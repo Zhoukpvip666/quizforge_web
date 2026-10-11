@@ -90,14 +90,13 @@ final class Library {
     private Map<String, Path> bankPaths = Map.of();
     private ObjectNode catalog = Json.object();
     private String previousSignature = null;
-    private record RuleCheck(List<List<OutlineItem>> outlineItems) { }
     private record PreparedCollection(String id, String title, String description, String kind, Extension extension,
-                                      List<Question> questions, BankFeatures features, String checkKey, RuleCheck checked) { }
+                                      List<Question> questions, BankFeatures features, String checkKey, CollectionValidation.Check checked) { }
     @FunctionalInterface private interface CollectionApplied { void accept(Collection collection) throws IOException; }
     private record PendingCollection(PreparedCollection prepared, java.util.function.Supplier<PreparedCollection> prepare,
                                      Runnable before, CollectionApplied applied, ObjectNode entry, String code, String description) { }
     // Only successful checks from the current catalog survive the next directory scan.
-    private Map<String, RuleCheck> ruleChecks = Map.of();
+    private Map<String, CollectionValidation.Check> ruleChecks = Map.of();
     private String checksRunnerRevision = "";
     Library(Path root, RuleEngine engine) { this(root, root, engine); }
     Library(Path root, Path codeRoot, RuleEngine engine) { this(root, codeRoot, engine, settings(root)); }
@@ -482,7 +481,7 @@ final class Library {
         if (signature.equals(previousSignature)) return;
         String runnerRevision = runnerRevision();
         if (!runnerRevision.equals(checksRunnerRevision)) ruleChecks = Map.of();
-        var nextChecks = new HashMap<String, RuleCheck>();
+        var nextChecks = new HashMap<String, CollectionValidation.Check>();
         boolean transientRuleFailure = false;
         Map<String, Extension> nextExtensions = new LinkedHashMap<>();
         Map<String, Collection> nextBanks = new LinkedHashMap<>(), nextPreviews = new HashMap<>();
@@ -594,7 +593,7 @@ final class Library {
         developmentPackages = Map.copyOf(nextDevelopment); developmentExtensions = Map.copyOf(nextDevelopmentExtensions); developmentOriginals = Map.copyOf(nextDevelopmentOriginals); developmentPreviews = Map.copyOf(nextDevelopmentPreviews); developmentBanks = Map.copyOf(nextDevelopmentBanks); developmentUiBanks = Map.copyOf(nextUiBanks);
         ruleChecks = Map.copyOf(nextChecks); checksRunnerRevision = runnerRevision;
     }
-    private boolean applyPendingCollections(List<PendingCollection> pending, Map<String, RuleCheck> nextChecks) {
+    private boolean applyPendingCollections(List<PendingCollection> pending, Map<String, CollectionValidation.Check> nextChecks) {
         var inputs = new ArrayList<List<Question>>();
         for (PendingCollection item : pending) inputs.add(item.prepared() == null || item.prepared().checked() != null ? null : item.prepared().questions());
         Map<Integer, RuntimeException> failures = CatalogRuleValidation.validate(engine, inputs);
@@ -713,58 +712,21 @@ final class Library {
     private Collection parseResolvedCollection(JsonNode raw, String kind, Extension extension, String id, Map<String, Extension> available) {
         return parseResolvedCollection(raw, kind, extension, id, available, null);
     }
-    private Collection parseResolvedCollection(JsonNode raw, String kind, Extension extension, String id, Map<String, Extension> available, Map<String, RuleCheck> nextChecks) {
+    private Collection parseResolvedCollection(JsonNode raw, String kind, Extension extension, String id, Map<String, Extension> available, Map<String, CollectionValidation.Check> nextChecks) {
         return finishCollection(prepareCollection(raw, kind, extension, id, available, nextChecks), nextChecks, false, null);
     }
-    private PreparedCollection prepareCollection(JsonNode raw, String kind, Extension extension, String id, Map<String, Extension> available, Map<String, RuleCheck> nextChecks) {
-        if (!raw.isObject() || (kind.equals("bank") || kind.equals("development-bank")) && !id.equals(Json.id(raw, "id"))) throw ApiException.bad("Invalid bank ID");
-        ExtensionApi.requireBank(raw);
-        BankFeatures features = BankFeatures.read(raw);
-        Extension fallback = raw.has("extension") ? resolveExtension(raw.get("extension"), available) : null;
-        if (extension != null && fallback != null && (!extension.id().equals(fallback.id()) || !extension.version().equals(fallback.version()))) throw ApiException.bad("Extension mismatch");
-        JsonNode questions = raw.get("questions");
-        if (questions == null || !questions.isArray() || questions.isEmpty() || questions.size() > 10000) throw ApiException.bad("Invalid questions");
-        var list = new ArrayList<Question>(); var ids = new HashSet<String>(); boolean perQuestion = false;
-        for (JsonNode question : questions) {
-            String qid = Json.id(question, "id");
-            if (question.has("features")) throw ApiException.bad("features belong at the bank root");
-            if (!ids.add(qid) || !question.has("data")) throw ApiException.bad("Duplicate question or missing data");
-            Extension owner = question.has("extension") ? resolveExtension(question.get("extension"), available) : fallback;
-            if (owner == null) throw ApiException.bad("Missing question extension");
-            if ((kind.equals("extension") || kind.equals("development")) && (extension == null || !owner.id().equals(extension.id()) || !owner.version().equals(extension.version()))) throw ApiException.bad("Example extension mismatch");
-            perQuestion |= question.has("extension");
-            JsonNode rawData = question.get("data").deepCopy();
-            Outline outline = question.has("outline") ? OutlineItems.readConfiguration(question.get("outline"), owner) : null;
-            list.add(new Question(qid, Json.text(question, "title", 300), rawData, Json.fingerprint(rawData, owner.fingerprint()), owner,
-                    outline == null ? List.of() : outline.items(), outline));
-        }
-        String checkKey = nextChecks == null ? null : Json.fingerprint(raw, kind + ":" + ruleIdentity(list));
-        RuleCheck checked = checkKey == null ? null : ruleChecks.get(checkKey);
-        Extension collectionExtension = kind.equals("extension") || kind.equals("development") ? extension : perQuestion || fallback == null ? null : fallback;
-        return new PreparedCollection(id, Json.text(raw, "title", 300), optional(raw, "description", 4000), kind, collectionExtension, list, features, checkKey, checked);
+    private PreparedCollection prepareCollection(JsonNode raw, String kind, Extension extension, String id, Map<String, Extension> available, Map<String, CollectionValidation.Check> nextChecks) {
+        var prepared = new CollectionValidation(engine).prepare(raw, kind, extension, id, available);
+        String key = nextChecks == null ? null : prepared.checkKey();
+        return new PreparedCollection(prepared.id(), prepared.title(), prepared.description(), prepared.kind(), prepared.extension(), prepared.questions(), prepared.features(), key, key == null ? null : ruleChecks.get(key));
     }
-    private Collection finishCollection(PreparedCollection prepared, Map<String, RuleCheck> nextChecks, boolean validated, RuntimeException validationFailure) {
-        List<Question> list = prepared.questions(); RuleCheck checked = prepared.checked(); String checkKey = prepared.checkKey();
-        boolean development = prepared.kind().startsWith("development");
-        List<Question> outlined;
-        if (checked != null) {
-            outlined = new ArrayList<>();
-            for (int i = 0; i < list.size(); i++) {
-                Question question = list.get(i);
-                outlined.add(new Question(question.id(), question.title(), question.data(), question.fingerprint(), question.extension(), checked.outlineItems().get(i), question.outline()));
-            }
-            nextChecks.put(checkKey, checked);
-        } else {
-            boolean valid = true;
-            try { if (validationFailure != null) throw validationFailure; if (!validated) RuleBatches.validate(engine, list); }
-            catch (ApiException error) { if (!development || !developmentRuleFailure(error)) throw error; valid = false; }
-            try { outlined = RuleBatches.outline(engine, list); }
-            catch (ApiException error) { if (!development || !developmentRuleFailure(error)) throw error; outlined = list; valid = false; }
-            if (valid && nextChecks != null) nextChecks.put(checkKey, new RuleCheck(outlined.stream().map(Question::outlineItems).toList()));
-        }
-        return new Collection(prepared.id(), prepared.title(), prepared.description(), prepared.kind(), prepared.extension(), outlined, prepared.features());
+    private Collection finishCollection(PreparedCollection prepared, Map<String, CollectionValidation.Check> nextChecks, boolean validated, RuntimeException validationFailure) {
+        var input = new CollectionValidation.Prepared(prepared.id(), prepared.title(), prepared.description(), prepared.kind(), prepared.extension(), prepared.questions(), prepared.features(), prepared.checkKey());
+        var result = new CollectionValidation(engine).finish(input, prepared.checked(), validated, validationFailure);
+        if (nextChecks != null && result.successfulCheck() != null) nextChecks.put(prepared.checkKey(), result.successfulCheck());
+        return result.collection();
     }
-    private static String ruleIdentity(List<Question> questions) {
+    static String ruleIdentity(List<Question> questions) {
         ArrayNode owners = Json.MAPPER.createArrayNode();
         for (Question question : questions) {
             Extension value = question.extension();
@@ -785,8 +747,8 @@ final class Library {
         }
         return Json.fingerprint(value, "quizforge-library-content-v1");
     }
-    private static boolean developmentRuleFailure(ApiException error) { return List.of("DEVELOPMENT_NOT_IMPLEMENTED", "RULE_REJECTED", "RULE_TIMEOUT", "RULE_UNAVAILABLE", "SCORE_UNAVAILABLE").contains(error.code); }
-    private static Extension resolveExtension(JsonNode reference, Map<String, Extension> available) {
+    static boolean developmentRuleFailure(ApiException error) { return List.of("DEVELOPMENT_NOT_IMPLEMENTED", "RULE_REJECTED", "RULE_TIMEOUT", "RULE_UNAVAILABLE", "SCORE_UNAVAILABLE").contains(error.code); }
+    static Extension resolveExtension(JsonNode reference, Map<String, Extension> available) {
         if (reference == null || !reference.isObject() || reference.has("typeId")) throw ApiException.bad("Extension references identify a single extension; typeId is unsupported");
         if (reference.has("development") && reference.size() != 1) throw ApiException.bad("Development extension references require only development");
         Extension value = reference.has("development") ? available.get("development:" + Json.id(reference, "development")) : available.get(Json.id(reference, "id") + "@" + Json.id(reference, "version"));
@@ -865,7 +827,7 @@ final class Library {
         return revision.toString();
     }
     private static void stamp(StringBuilder signature, Path path) throws IOException { signature.append(path).append(':').append(Files.size(path)).append(':').append(Files.getLastModifiedTime(path)).append(';'); }
-    private static String optional(JsonNode raw, String field, int max) { if (!raw.has(field)) return ""; JsonNode value = raw.get(field); if (!value.isTextual() || value.asText().length() > max) throw ApiException.bad("Invalid " + field); return value.asText(); }
+    static String optional(JsonNode raw, String field, int max) { if (!raw.has(field)) return ""; JsonNode value = raw.get(field); if (!value.isTextual() || value.asText().length() > max) throw ApiException.bad("Invalid " + field); return value.asText(); }
     private static String asset(Path path) throws IOException { if (path == null) return ""; if (Files.size(path) > 1024 * 1024) throw new IOException("Asset size limit"); return Files.readString(path, StandardCharsets.UTF_8); }
     private static String fallback(Path path) { String name = path.getFileName().toString(); return name.substring(0, Math.min(name.length(), 120)); }
     private static int compareVersion(String left, String right) {
