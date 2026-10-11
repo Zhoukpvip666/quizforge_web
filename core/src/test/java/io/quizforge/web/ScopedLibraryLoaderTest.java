@@ -49,6 +49,22 @@ class ScopedLibraryLoaderTest {
     @Test void invalidKindIsRejectedAsInvalidRequest() {
         assertEquals(400, assertThrows(ApiException.class, () -> library.collection("unknown-kind", "unknown-id")).status);
     }
+    @Test void submittedCachedIdentityIsRecheckedAfterDependencyChanges() throws Exception {
+        var loader=new ScopedLibraryLoader(library);var snapshot=library.indexSnapshot();
+        loader.load(snapshot,"bank","bank");int calls=trace.validations.get();
+        var observed=loader.observe(loader.scope(snapshot,"bank","bank"));
+        Path dependency=root.resolve("node_modules/ajv/dist/ajv.js");Files.writeString(dependency,Files.readString(dependency)+"\n// changed after submission\n");
+        var result=loader.load(snapshot,"bank","bank",observed);
+        assertNotEquals(observed.identity(),result.sourceIdentity());assertEquals(calls+2,trace.validations.get());
+    }
+    @Test void submittedFirstLoadIdentityCannotPersistChangedSourceSuccess() throws Exception {
+        var loader=new ScopedLibraryLoader(library);var snapshot=library.indexSnapshot();
+        var observed=loader.observe(loader.scope(snapshot,"bank","bank"));
+        Path rules=root.resolve("extensions/generic/rules.js");Files.writeString(rules,Files.readString(rules)+"\n// changed after submission\n");
+        var result=loader.load(snapshot,"bank","bank",observed);
+        assertNotEquals(observed.identity(),result.sourceIdentity());assertEquals(4,trace.validations.get());
+        try(var files=Files.list(root.resolve(".state/validation-cache/v1"))){assertEquals(2,files.count(),"Only the stable retry may persist its successes");}
+    }
     @Test void cachedOpenRestoresMissingImageAndRejectsCorruptStoredImage() throws Exception {
         byte[] image = new LibraryResourceImportsTest().image(1);
         Path source = root.resolve("extensions/generic/assets/image.png"); Files.createDirectories(source.getParent()); Files.write(source,image);

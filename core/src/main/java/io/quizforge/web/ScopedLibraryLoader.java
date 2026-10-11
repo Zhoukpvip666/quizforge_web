@@ -11,6 +11,7 @@ final class ScopedLibraryLoader {
                   Map<String,DevelopmentExtensions.Package> developmentPackages, ObjectNode descriptor,
                   String sourceIdentity, ObjectNode catalogRow, Library view, String contentIdentity) { }
     record Scope(List<Path> folders, List<Path> files) { }
+    record ObservedIdentity(Scope scope,String environment,String identity) { }
     private final Library library;
     private final LinkedHashMap<String,Loaded> loaded = new LinkedHashMap<>(16, .75f, true);
     private final Map<String,CollectionValidation.Check> checks = new java.util.concurrent.ConcurrentHashMap<>();
@@ -18,27 +19,33 @@ final class ScopedLibraryLoader {
     ScopedLibraryLoader(Library library) { this.library = library; }
 
     Loaded load(LibraryIndex.Snapshot snapshot, String kind, String id) {
+        return load(snapshot,kind,id,null);
+    }
+    ObservedIdentity observe(Scope scope){String environment=library.scopedRunnerRevision();return new ObservedIdentity(scope,environment,library.scopedIdentity(scope.folders(),scope.files(),environment));}
+    Loaded load(LibraryIndex.Snapshot snapshot,String kind,String id,ObservedIdentity submitted) {
         for (int attempt = 0; attempt < 2; attempt++) {
             Scope scope = scope(snapshot, kind, id);
-            String environment=library.scopedRunnerRevision();String identity = library.scopedIdentity(scope.folders(), scope.files(),environment);
+            ObservedIdentity before=attempt==0&&submitted!=null&&submitted.scope().equals(scope)?submitted:observe(scope);
+            String environment=before.environment(),identity=before.identity();
             String key = kind + ":" + id;
+            Loaded cached;
             synchronized (loaded) {
-                Loaded cached = loaded.get(key);
-                if (!environment.equals("unavailable") && cached != null && cached.sourceIdentity().equals(identity) && !transientFailure(cached.catalogRow())) {
-                    if(cached.view()!=null&&!cached.catalogRow().has("error"))cached.view().ensureLoadedResources();
-                    if(identity.equals(library.scopedIdentity(scope.folders(),scope.files()))&&library.scopedModeMatches(snapshot))return cached;
-                    snapshot=library.indexSnapshot();continue;
-                }
+                cached = loaded.get(key);
                 String currentRunner = environment;
                 if (currentRunner.equals("unavailable") || !runner.equals(currentRunner)) { checks.clear(); runner = currentRunner; }
             }
+            if (!environment.equals("unavailable") && cached != null && cached.sourceIdentity().equals(identity) && !transientFailure(cached.catalogRow())) {
+                if(cached.view()!=null&&!cached.catalogRow().has("error"))cached.view().ensureLoadedResources();
+                if(identity.equals(observe(scope).identity())&&library.scopedModeMatches(snapshot))return cached;
+                snapshot=library.indexSnapshot();continue;
+            }
             Library view = library.scopedView(scope.folders(), scope.files(), checks,environment);
             Loaded result = view.scopedResult(kind, id, identity);
-            String after = library.scopedIdentity(scope.folders(), scope.files());
-            if (!identity.equals(after) || !library.scopedModeMatches(snapshot)) {
+            ObservedIdentity after = observe(scope);
+            if (!identity.equals(after.identity()) || !library.scopedModeMatches(snapshot)) {
                 snapshot = library.indexSnapshot(); continue;
             }
-            view.persistSuccessfulChecks();checks.putAll(view.scopedChecks());
+            view.persistSuccessfulChecks(after.environment());checks.putAll(view.scopedChecks());
             if (checks.size() > 2048) checks.clear();
 
             synchronized (loaded) { if(environment.equals("unavailable"))loaded.remove(key);else loaded.put(key, result); while (loaded.size() > 64) loaded.remove(loaded.keySet().iterator().next()); }

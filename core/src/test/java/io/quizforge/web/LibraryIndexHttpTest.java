@@ -24,6 +24,17 @@ class LibraryIndexHttpTest {
         assertEquals(401,fixture.call("GET","/api/library/index",null,null,null).status());
         assertEquals(200,fixture.call("GET","/api/library/index",null,ServerTest.TOKEN,null).status());
     }
+    @Test void metadataDecorationRetainsCustomNamesAndEmptyGroupsAfterStatusUpdates() throws Exception {
+        fixture.write(".state/library-labels.json","{\"generic@1.0.0\":\"Custom name\"}");
+        java.nio.file.Files.createDirectories(root.resolve("question-banks/Empty group"));
+        fixture.start(null);var cold=fixture.get("/api/library/index").body();
+        assertEquals("Custom name",cold.at("/extensions/0/name").asText());assertEquals("Custom name",cold.at("/extensions/0/displayName").asText());
+        assertTrue(cold.path("groups").path("banks").toString().contains("Empty group"));
+        assertEquals(200,fixture.get("/api/collections/bank/bank").status());var ready=fixture.get("/api/library/index").body();
+        assertEquals("ready",ready.at("/banks/0/validationStatus").asText());assertEquals("Custom name",ready.at("/extensions/0/name").asText());assertEquals(cold.path("groups"),ready.path("groups"));
+        fixture.write(".state/library-labels.json","{\"generic@1.0.0\":\"Changed name\"}");var changed=fixture.get("/api/library/index").body();
+        assertEquals("Changed name",changed.at("/extensions/0/displayName").asText());assertNotEquals(ready.path("indexRevision"),changed.path("indexRevision"));
+    }
     @Test void checkedRowsReturnToPendingAfterSourceChangesAndDeletedRowsDisappear() throws Exception {
         fixture.start(null); fixture.get("/api/library/index");
         assertEquals(200, fixture.get("/api/collections/bank/bank").status());

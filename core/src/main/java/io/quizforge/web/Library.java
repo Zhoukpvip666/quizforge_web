@@ -124,17 +124,21 @@ final class Library {
     ObjectNode index() {
         indexUsed = true; LibraryIndex.Snapshot snapshot = indexSnapshot(); ObjectNode result = snapshot.catalog();
         ArrayNode banks = Json.MAPPER.createArrayNode(), packages = Json.MAPPER.createArrayNode();
+        Map<String,JsonNode> labels=new HashMap<>();
+        for(JsonNode row:result.path("extensions"))if(row.has("displayName"))labels.put(row.path("kind").asText()+":"+row.path("id").asText()+"@"+row.path("version").asText(),row);
         Map<Path,String> stamps = new HashMap<>();
         for (LibraryIndex.Candidate candidate : snapshot.candidates()) {
             ObjectNode row = candidate.metadata(); IndexState state = indexStates.get(candidate.kind() + ":" + row.path("path").asText());
             if (state != null && state.revision().equals(snapshot.revision()) && state.stamp().equals(scopeStamp(state.scope(), stamps))) {
                 for (String field : List.of("validationStatus", "error", "errorCode", "errorStatus", "contentRevision")) if (state.row().has(field)) row.set(field, state.row().get(field).deepCopy());
             }
+            JsonNode label=labels.get(row.path("kind").asText()+":"+row.path("id").asText()+"@"+row.path("version").asText());
+            if(label!=null){row.set("name",label.get("name"));row.set("displayName",label.get("displayName"));if(row.has("title"))row.set("title",label.get("title"));}
             (List.of("bank", "development-bank").contains(candidate.kind()) ? banks : packages).add(row);
         }
         result.set("banks", banks); result.set("extensions", LibraryIndex.latest(packages));
         if(backgroundEnabled&&snapshot.candidates().stream().filter(candidate->!candidate.metadata().has("error")).anyMatch(candidate->{IndexState state=indexStates.get(candidate.kind()+":"+candidate.metadata().path("path").asText());return state==null||!state.revision().equals(snapshot.revision())||!state.stamp().equals(scopeStamp(state.scope(),stamps));}))requestBackgroundValidation();
-        return new LibraryManagement(root).catalog(result);
+        return result;
     }
     private String scopeStamp(ScopedLibraryLoader.Scope scope, Map<Path,String> stamps) {
         StringBuilder value = new StringBuilder();
@@ -153,8 +157,8 @@ final class Library {
     }
     private java.util.concurrent.CompletableFuture<ScopedLibraryLoader.Loaded> submitScoped(LibraryIndex.Snapshot snapshot, String kind, String id, boolean foreground) {
         var scope = loader().scope(snapshot, kind, id);
-        String identity = scopedIdentity(scope.folders(), scope.files());
-        var key = new LibraryLoadCoordinator.Key(kind, id, snapshot.revision() + ":" + identity);
+        var observed = loader().observe(scope);
+        var key = new LibraryLoadCoordinator.Key(kind, id, snapshot.revision() + ":" + observed.identity());
         return coordinator.submit(key, () -> {
             String beforeStamp = scopeStamp(scope, new HashMap<>());
             for (var candidate : snapshot.candidates()) if (candidate.kind().equals(kind) && candidate.id().equals(id)) {
@@ -162,7 +166,7 @@ final class Library {
                 indexStates.put(kind + ":" + checking.path("path").asText(), new IndexState(snapshot.revision(), scope, beforeStamp, checking));
             }
             ScopedLibraryLoader.Loaded loaded;
-            try { loaded=loader().load(snapshot,kind,id); }
+            try { loaded=loader().load(snapshot,kind,id,observed); }
             catch(ApiException failure){
                 if(!closed&&failure.status!=409&&indexSnapshot().revision().equals(snapshot.revision())&&beforeStamp.equals(scopeStamp(scope,new HashMap<>())))for(var candidate:snapshot.candidates())if(candidate.kind().equals(kind)&&candidate.id().equals(id)){
                     ObjectNode error=candidate.metadata().put("validationStatus","error").put("error",failure.getMessage()).put("errorCode",failure.code).put("errorStatus",failure.status);error.remove("contentRevision");
@@ -617,7 +621,7 @@ final class Library {
         String signature = signature(extensionFolders, bankFiles);
         // A staging view is published only after the loader rechecks its complete byte identity.
         if(scopedFolders!=null&&signature.equals(previousSignature))return;
-        String environment = engine.validationEnvironment();
+        String environment = scopedFolders==null?engine.validationEnvironment():validationEnvironment;
         if (!environment.equals("unavailable") && signature.equals(previousSignature) && environment.equals(validationEnvironment)) return;
         if (environment.equals("unavailable") || !environment.equals(validationEnvironment)) ruleChecks = Map.of();
         validationEnvironment = environment;
@@ -995,9 +999,12 @@ final class Library {
     String scopedRunnerRevision() { return engine.validationEnvironment(); }
     Map<String, CollectionValidation.Check> scopedChecks() { return ruleChecks; }
     void persistSuccessfulChecks() {
+        persistSuccessfulChecks(engine.validationEnvironment());
+    }
+    void persistSuccessfulChecks(String environment) {
         synchronized(scanLock){
             if(pendingCacheWrites.isEmpty())return;
-            String environment=engine.validationEnvironment();Map<List<Path>,String> sources=new HashMap<>();var retained=new HashMap<>(ruleChecks);
+            Map<List<Path>,String> sources=new HashMap<>();var retained=new HashMap<>(ruleChecks);
             for(var entry:pendingCacheWrites.entrySet()){
                 CacheWrite write=entry.getValue();
                 if(write.environment().equals(environment)&&write.sources().equals(sources.computeIfAbsent(write.folders(),folders->scopedContentIdentity(folders,List.of()))))validationCache.write(entry.getKey(),write.check());
