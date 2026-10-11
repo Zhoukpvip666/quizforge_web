@@ -136,7 +136,7 @@ final class ResourceStore {
         if (create) Files.createDirectories(directory);
     }
     static String hash(byte[] bytes) { try { return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes)); } catch (java.security.NoSuchAlgorithmException e) { throw new IllegalStateException(e); } }
-    private static String detectMime(byte[] bytes) {
+    static String detectMime(byte[] bytes) {
         if (bytes.length >= 24 && bytes[0] == (byte) 0x89 && bytes[1] == 'P' && bytes[2] == 'N' && bytes[3] == 'G' && bytes[4] == 13 && bytes[5] == 10 && bytes[6] == 26 && bytes[7] == 10 && bytes[12] == 'I' && bytes[13] == 'H' && bytes[14] == 'D' && bytes[15] == 'R') return "image/png";
         if (bytes.length >= 4 && bytes[0] == (byte) 0xff && bytes[1] == (byte) 0xd8 && bytes[bytes.length - 2] == (byte) 0xff && bytes[bytes.length - 1] == (byte) 0xd9) return "image/jpeg";
         if (bytes.length >= 12 && bytes[0] == 'R' && bytes[1] == 'I' && bytes[2] == 'F' && bytes[3] == 'F' && bytes[8] == 'W' && bytes[9] == 'E' && bytes[10] == 'B' && bytes[11] == 'P') return "image/webp";

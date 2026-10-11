@@ -20,6 +20,7 @@ final class RuleEngine {
     private final String node;
     private final Duration deadline;
     private final boolean permissions;
+    private final String nodeIdentity;
     RuleEngine(Path codeRoot, String node, Duration deadline) throws IOException {
         this.codeRoot = codeRoot; this.node = node; this.deadline = deadline;
         ProcessBuilder probeBuilder = new ProcessBuilder(node, "--permission", "-e", "process.stdout.write('ok')"); sanitizeEnvironment(probeBuilder);
@@ -27,7 +28,39 @@ final class RuleEngine {
         try { permissions = probe.waitFor(3, TimeUnit.SECONDS) && probe.exitValue() == 0; }
         catch (InterruptedException e) { Thread.currentThread().interrupt(); throw new IOException("Node check interrupted", e); }
         finally { if (probe.isAlive()) probe.destroyForcibly(); }
+        nodeIdentity = probeIdentity();
         if (!permissions) System.err.println("Node filesystem permissions unavailable; install Node 24 for the supported restriction mode.");
+    }
+    private String probeIdentity() throws IOException {
+        ProcessBuilder builder = new ProcessBuilder(node, "-e", "process.stdout.write(JSON.stringify({path:process.execPath,version:process.version,modules:process.versions.modules}))"); sanitizeEnvironment(builder);
+        Process child = builder.start();
+        try {
+            if (!child.waitFor(3, TimeUnit.SECONDS) || child.exitValue() != 0) throw new IOException("Node identity unavailable");
+            JsonNode identity = Json.MAPPER.readTree(child.getInputStream().readNBytes(8192));
+            Path executable = Path.of(identity.path("path").asText());
+            return Json.fingerprint(identity, ResourceStore.hash(java.nio.file.Files.readAllBytes(executable)));
+        } catch (InterruptedException failure) { Thread.currentThread().interrupt(); throw new IOException("Node check interrupted", failure); }
+        finally { if (child.isAlive()) child.destroyForcibly(); }
+    }
+    String validationEnvironment() {
+        try {
+            var files = Json.MAPPER.createArrayNode(); files.add(nodeIdentity);
+            Path runner = Json.safeFile(codeRoot.resolve("server"), "rules-runner.cjs"); files.add(ResourceStore.hash(java.nio.file.Files.readAllBytes(runner)));
+            for (String dependency : List.of("ajv", "fast-uri", "fast-deep-equal", "json-schema-traverse", "require-from-string")) {
+                Path directory = codeRoot.resolve("node_modules").resolve(dependency);
+                if (java.nio.file.Files.isSymbolicLink(directory)) throw new IOException("Unsafe rule dependency");
+                try (var stream = java.nio.file.Files.walk(directory)) {
+                    var paths = stream.sorted().limit(10001).toList(); if (paths.size() > 10000) throw new IOException("Dependency size limit");
+                    for (Path path : paths) {
+                        if (java.nio.file.Files.isSymbolicLink(path)) throw new IOException("Unsafe dependency file");
+                        if (!java.nio.file.Files.isRegularFile(path, java.nio.file.LinkOption.NOFOLLOW_LINKS)) continue;
+                        if (java.nio.file.Files.size(path) > 8 * 1024 * 1024) throw new IOException("Dependency file limit");
+                        files.add(dependency + "/" + directory.relativize(path)); files.add(ResourceStore.hash(java.nio.file.Files.readAllBytes(path)));
+                    }
+                }
+            }
+            return Json.fingerprint(files, "quizforge-validation-environment-v1");
+        } catch (IOException | RuntimeException failure) { return "unavailable"; }
     }
     JsonNode run(Library.Extension extension, ObjectNode request) {
         boolean development = DevelopmentExtensions.runtimeMetadata(extension) != null;
@@ -42,7 +75,17 @@ final class RuleEngine {
         Path runner = codeRoot.resolve("server/rules-runner.cjs");
         if (permissions) {
             command.add("--permission");
-            for (Path allowed : new Path[]{runner, codeRoot.resolve("node_modules"), extension.rules(), extension.questionSchema(), extension.answerSchema()}) if (allowed != null) command.add("--allow-fs-read=" + allowed);
+            for (Path allowed : new Path[]{runner, codeRoot.resolve("node_modules"), extension.rules(), extension.questionSchema(), extension.answerSchema()}) if (allowed != null) {
+                command.add("--allow-fs-read=" + allowed);
+                try {
+                    Path resolved = allowed.toRealPath();
+                    if (!resolved.equals(allowed.toAbsolutePath().normalize())) {
+                        command.add("--allow-fs-read=" + resolved);
+                        if (System.getProperty("os.name").startsWith("Windows")) command.add("--allow-fs-read=\\\\?\\" + resolved);
+                    }
+                }
+                catch (IOException ignored) { /* Missing paths keep their original permission and are handled by execution. */ }
+            }
         }
         command.add(runner.toString());
         Process process = null;

@@ -77,10 +77,13 @@ final class Library {
     private final Path root;
     private final Path codeRoot;
     private final RuleEngine engine;
-    private final ResourceStore resources;
+    private ResourceStore resources;
+    private LibraryResourceImports resourceImports = new LibraryResourceImports();
+    private final ValidationCache validationCache;
+    private String validationEnvironment = "";
     private final RichTextService richText;
     private final DevelopmentSettings developmentSettings;
-    private final ResourceStore developmentResources;
+    private ResourceStore developmentResources;
     private final Object scopedStateLock = new Object(), scanLock = new Object();
     private static final Object SDK_LOCK = new Object();
     private List<Path> scopedFolders, scopedFiles;
@@ -105,7 +108,7 @@ final class Library {
     private String checksRunnerRevision = "";
     Library(Path root, RuleEngine engine) { this(root, root, engine); }
     Library(Path root, Path codeRoot, RuleEngine engine) { this(root, codeRoot, engine, settings(root)); }
-    Library(Path root, Path codeRoot, RuleEngine engine, DevelopmentSettings developmentSettings) { this.root = root; this.codeRoot = codeRoot; this.engine = engine; resources = new ResourceStore(root); developmentResources = new ResourceStore(root.resolve(".development")); richText = new RichTextService(codeRoot); this.developmentSettings = developmentSettings; }
+    Library(Path root, Path codeRoot, RuleEngine engine, DevelopmentSettings developmentSettings) { this.root = root; this.codeRoot = codeRoot; this.engine = engine; validationCache = new ValidationCache(root); resources = new ResourceStore(root); developmentResources = new ResourceStore(root.resolve(".development")); richText = new RichTextService(codeRoot); this.developmentSettings = developmentSettings; }
     private static DevelopmentSettings settings(Path root) { try { return new DevelopmentSettings(root); } catch (IOException e) { throw new ApiException(503, "DEVELOPMENT_SETTINGS_UNAVAILABLE", "Developer settings cannot be read"); } }
 
     private volatile boolean indexUsed, closed;
@@ -588,7 +591,10 @@ final class Library {
         List<Path> extensionFolders = scopedFolders == null ? ExtensionDirectories.scan(root.resolve("extensions")) : scopedFolders;
         List<Path> bankFiles = scopedFiles == null ? bankFiles(root.resolve("question-banks")) : scopedFiles;
         String signature = signature(extensionFolders, bankFiles);
-        if (signature.equals(previousSignature)) return;
+        String environment = engine.validationEnvironment();
+        if (signature.equals(previousSignature) && environment.equals(validationEnvironment)) return;
+        if (!environment.equals(validationEnvironment)) ruleChecks = Map.of();
+        validationEnvironment = environment;
         String runnerRevision = runnerRevision();
         if (!runnerRevision.equals(checksRunnerRevision)) ruleChecks = Map.of();
         var nextChecks = new HashMap<String, CollectionValidation.Check>();
@@ -621,7 +627,7 @@ final class Library {
                     var available = Map.of(extension.id() + "@" + extension.version(), extension, "development:" + value.folder(), extension);
                     PreparedCollection prepared = prepareCollection(example, "development", extension, value.folder(), available, nextChecks);
                     pending.add(new PendingCollection(prepared, null, null, preview -> {
-                        developmentResources.importExtensionAssets(folder, staticAssets(folder, developmentDeclaration(folder)));
+                        resourceImports.ensure(developmentResources, folder, staticAssets(folder, developmentDeclaration(folder)), true);
                         nextDevelopmentOriginals.put(value.folder(), original); nextDevelopmentExtensions.put(value.folder(), extension); nextDevelopmentPreviews.put(value.folder(), preview);
                         entry.put("questionCount", preview.questions().size()).put("version", original.version());
                         entry.set("features", preview.features().json()); entry.put("contentRevision", catalogRevision(preview));
@@ -631,7 +637,7 @@ final class Library {
             }
             try {
                 Extension extension = extension(folder, entry);
-                resources.importExtensionAssets(folder, staticAssets(folder, Json.read(Json.safeFile(folder, "manifest.json"), 256 * 1024)));
+                resourceImports.ensure(resources, folder, staticAssets(folder, Json.read(Json.safeFile(folder, "manifest.json"), 256 * 1024)), true);
                 String key = extension.id() + "@" + extension.version();
                 if (nextExtensions.containsKey(key)) throw ApiException.bad("Duplicate extension version"); nextExtensions.put(key, extension);
                 try {
@@ -668,7 +674,7 @@ final class Library {
                     entry.put("kind", "development-bank"); entry.set("development", bankDevelopmentMetadata(devFolders));
                     for (String folder : devFolders) if (!nextDevelopment.containsKey(folder)) throw ApiException.bad("Missing development extension");
                 }
-                if (file.getFileName().toString().equals("bank.json") && !file.getParent().equals(root.resolve("question-banks"))) (developmentBank ? developmentResources : resources).importAssets(file.getParent());
+                if (file.getFileName().toString().equals("bank.json") && !file.getParent().equals(root.resolve("question-banks"))) resourceImports.ensure(developmentBank ? developmentResources : resources, file.getParent(), Json.MAPPER.createArrayNode(), false);
                 var available = new HashMap<>(nextExtensions); for (var value : nextDevelopmentExtensions.entrySet()) available.put("development:" + value.getKey(), value.getValue());
                 Extension extension = raw.has("extension") ? resolveExtension(raw.get("extension"), available) : null;
                 Runnable unique = () -> { if (nextBanks.containsKey(id) || nextDevelopmentBanks.containsKey(id) || nextUiBanks.containsKey(id)) throw ApiException.bad("Duplicate bank ID"); };
@@ -680,7 +686,7 @@ final class Library {
                 pending.add(new PendingCollection(prepared, prepared == null ? prepare : null, unique, bank -> {
                     if (developmentBank) for (Extension value : bank.extensions()) {
                         JsonNode declaration = DevelopmentExtensions.runtimeMetadata(value) == null ? Json.read(Json.safeFile(value.directory(), "manifest.json"), 256 * 1024) : developmentDeclaration(value.directory());
-                        developmentResources.importExtensionAssets(value.directory(), staticAssets(value.directory(), declaration));
+                        resourceImports.ensure(developmentResources, value.directory(), staticAssets(value.directory(), declaration), true);
                     }
                     if (bank.extension() == null) entry.putNull("extension"); else entry.set("extension", extensionReference(bank.extension()));
                     ArrayNode used = entry.putArray("extensions"); for (Extension value : bank.extensions()) used.add(extensionReference(value));
@@ -830,13 +836,18 @@ final class Library {
     }
     private PreparedCollection prepareCollection(JsonNode raw, String kind, Extension extension, String id, Map<String, Extension> available, Map<String, CollectionValidation.Check> nextChecks) {
         var prepared = new CollectionValidation(engine).prepare(raw, kind, extension, id, available);
-        String key = nextChecks == null ? null : prepared.checkKey();
-        return new PreparedCollection(prepared.id(), prepared.title(), prepared.description(), prepared.kind(), prepared.extension(), prepared.questions(), prepared.features(), key, key == null ? null : ruleChecks.get(key));
+        String key = nextChecks == null ? null : Json.fingerprint(Json.object().put("collection", prepared.checkKey()).put("environment", validationEnvironment).put("sources", scopedContentIdentity(prepared.questions().stream().map(q -> q.extension().directory()).distinct().toList(), List.of())), "quizforge-validation-v1");
+        CollectionValidation.Check cached = key == null ? null : ruleChecks.get(key);
+        if (cached == null && key != null && !validationEnvironment.equals("unavailable")) cached = validationCache.read(key, prepared.questions().size()).orElse(null);
+        return new PreparedCollection(prepared.id(), prepared.title(), prepared.description(), prepared.kind(), prepared.extension(), prepared.questions(), prepared.features(), key, cached);
     }
     private Collection finishCollection(PreparedCollection prepared, Map<String, CollectionValidation.Check> nextChecks, boolean validated, RuntimeException validationFailure) {
         var input = new CollectionValidation.Prepared(prepared.id(), prepared.title(), prepared.description(), prepared.kind(), prepared.extension(), prepared.questions(), prepared.features(), prepared.checkKey());
         var result = new CollectionValidation(engine).finish(input, prepared.checked(), validated, validationFailure);
-        if (nextChecks != null && result.successfulCheck() != null) nextChecks.put(prepared.checkKey(), result.successfulCheck());
+        if (nextChecks != null && result.successfulCheck() != null) {
+            nextChecks.put(prepared.checkKey(), result.successfulCheck());
+            if (prepared.checked() == null && !validationEnvironment.equals("unavailable")) validationCache.write(prepared.checkKey(), result.successfulCheck());
+        }
         return result.collection();
     }
     static String ruleIdentity(List<Question> questions) {
@@ -954,10 +965,11 @@ final class Library {
     }
     LibraryIndex.Snapshot indexSnapshot() { return new LibraryIndex(root, developmentSettings).scan(); }
     boolean scopedModeMatches(LibraryIndex.Snapshot snapshot) { return developmentSettings.enabled() == snapshot.catalog().path("developmentEnabled").asBoolean(); }
-    String scopedRunnerRevision() { return runnerRevision(); }
+    String scopedRunnerRevision() { return engine.validationEnvironment(); }
     Map<String, CollectionValidation.Check> scopedChecks() { return ruleChecks; }
     Library scopedView(List<Path> folders, List<Path> files, Map<String,CollectionValidation.Check> sharedChecks) {
         Library view = new Library(root, codeRoot, engine, developmentSettings);
+        view.resources = resources; view.developmentResources = developmentResources; view.resourceImports = resourceImports;
         view.scopedFolders = folders; view.scopedFiles = files;
         var checks = new HashMap<>(ruleChecks); checks.putAll(sharedChecks);
         view.ruleChecks = Map.copyOf(checks); view.checksRunnerRevision = runnerRevision(); return view;
@@ -990,11 +1002,7 @@ final class Library {
         }
     }
     String scopedIdentity(List<Path> folders, List<Path> files) {
-        return Json.fingerprint(Json.object().put("content", scopedContentIdentity(folders, files)).put("runner", runnerContentIdentity()), "quizforge-scoped-load-v1");
-    }
-    private String runnerContentIdentity() {
-        try { return ResourceStore.hash(Files.readAllBytes(Json.safeFile(codeRoot.resolve("server"), "rules-runner.cjs"))); }
-        catch (IOException | RuntimeException failure) { return "unavailable"; }
+        return Json.fingerprint(Json.object().put("content", scopedContentIdentity(folders, files)).put("runner", engine.validationEnvironment()), "quizforge-scoped-load-v1");
     }
     String scopedContentIdentity(List<Path> folders, List<Path> files) {
         ArrayNode values = Json.MAPPER.createArrayNode(); values.add(developmentSettings.enabled());
