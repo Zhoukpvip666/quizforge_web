@@ -215,7 +215,7 @@ final class StateStore {
         ObjectNode state = questionState(load(collection), collection, question), result = Json.object();
         ObjectNode raw = Json.object().put("id", question.id()).put("title", question.title()); raw.set("data", question.data().deepCopy()); result.set("question", raw);
         Library.Extension extension = collection.extensionFor(question);
-        result.set("extension", extensionMetadata(extension)); result.put("revision", state.path("revision").asLong()).put("contentVersion", stamp(collection, question, state).path("contentVersion").asText());
+        result.set("extension", extensionMetadata(extension)); result.put("revision", state.path("revision").asLong()).put("contentVersion", editorVersion(collection, question));
         result.put("draftVersion", Json.fingerprint(raw, extension.fingerprint()));
         ObjectNode editor = library.editorPage(extension); if (editor == null) result.putNull("editor"); else result.set("editor", editor); return result;
     }
@@ -233,7 +233,7 @@ final class StateStore {
         }
         JsonNode revision = request.get("revision"); if (revision == null || !revision.isIntegralNumber() || !revision.canConvertToLong() || revision.asLong() < 0) throw ApiException.bad("Invalid revision");
         String version = Json.text(request, "contentVersion", 64); if (!version.matches("[a-f0-9]{64}")) throw ApiException.bad("Invalid contentVersion");
-        if (!version.equals(stamp(collection, question, current).path("contentVersion").asText())) throw new ApiException(409, "CONTENT_CONFLICT", "Question content changed; reload the editor before saving");
+        if (!version.equals(editorVersion(collection, question))) throw new ApiException(409, "CONTENT_CONFLICT", "Question content changed; reload the editor before saving");
         if (revision.asLong() != current.path("revision").asLong()) throw new ApiException(409, "REVISION_CONFLICT", "Question practice changed; reload the editor before saving");
         if (revision.asLong() == Long.MAX_VALUE) throw new ApiException(409, "REVISION_LIMIT", "Question revision limit reached");
         String title = Json.text(request, "title", 300); if (!request.has("data")) throw ApiException.bad("Missing question data");
@@ -789,6 +789,9 @@ final class StateStore {
         return Json.object().put("revision", state.path("revision").asLong())
                 .put("contentVersion", opaqueVersion("question", collection.stateKey(), question.id(), question.title(), question.fingerprint()))
                 .put("packageVersion", opaqueVersion("package", extension.id(), extension.version(), extension.fingerprint(), extension.providerRevision()));
+    }
+    private String editorVersion(Library.Collection collection, Library.Question question) {
+        return opaqueVersion("edit-source", collection.stateKey(), question.id(), Library.catalogRevision(collection));
     }
     private String opaqueVersion(String... fields) {
         try {

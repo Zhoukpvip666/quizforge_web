@@ -107,7 +107,7 @@ public final class QuizForgeServer implements AutoCloseable {
         }
     }
     public int port() { return server.getAddress().getPort(); }
-    @Override public synchronized void close() { examTimer.shutdownNow(); exams.close(); if (networkServer != null) { networkServer.stop(0); networkServer = null; } networkSettings.invalidateSessions(); practiceSessions.close(); aiGrading.close(); developmentAiGrading.close(); server.stop(0); executor.shutdownNow(); }
+    @Override public synchronized void close() { library.close(); examTimer.shutdownNow(); exams.close(); if (networkServer != null) { networkServer.stop(0); networkServer = null; } networkSettings.invalidateSessions(); practiceSessions.close(); aiGrading.close(); developmentAiGrading.close(); server.stop(0); executor.shutdownNow(); }
 
     private PracticeSessions.Session createPracticeSession() throws IOException {
         StateStore temporary = StateStore.memory(root, engine, root);
@@ -334,6 +334,7 @@ public final class QuizForgeServer implements AutoCloseable {
             if (method.equals("DELETE")) { validateWriteOrigin(exchange); return editorDrafts.delete(scope, question); }
         }
         if (path.startsWith("/api/extensions/") || path.startsWith("/api/development/")) rejectTypeQuery(exchange);
+        if (path.equals("/api/library/index") && method.equals("GET")) return library.index().put("canManage", canManageNetwork(exchange));
         if (parts.length == 2 && parts[1].equals("catalog") && method.equals("GET")) { states.recover(); return library.catalog().put("canManage", canManageNetwork(exchange)); }
         if (path.equals("/api/library/import") && method.equals("POST")) {
             requireLocalLibrary(exchange); validateWriteOrigin(exchange);
@@ -369,7 +370,8 @@ public final class QuizForgeServer implements AutoCloseable {
                 JsonNode history = (development ? developmentRoutes : collectionRoutes).route(exchange, method, parts);
                 return bank && parts.length == 5 && method.equals("GET") ? exams.appendHistory(parts[2], routeId(parts[3]), (ObjectNode) history) : history;
             }
-            Library.Collection collection = library.collection(parts[2], routeId(parts[3]));
+            boolean readQuestion = method.equals("GET") && parts.length >= 6 && parts[4].equals("questions") && (parts.length == 6 || parts.length == 7 && parts[6].equals("stamp"));
+            Library.Collection collection = readQuestion ? library.readCollection(parts[2], routeId(parts[3])) : library.collection(parts[2], routeId(parts[3]));
             if (collection.features().history()) return (development ? developmentRoutes : collectionRoutes).route(exchange, method, parts);
             try (PracticeSessions.Lease lease = practiceSession(exchange, true, !method.equals("GET"))) {
                 synchronized (lease.session) { return (development ? lease.session.developmentRoutes : lease.session.routes).route(exchange, method, parts); }

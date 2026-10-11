@@ -108,7 +108,89 @@ final class Library {
     Library(Path root, Path codeRoot, RuleEngine engine, DevelopmentSettings developmentSettings) { this.root = root; this.codeRoot = codeRoot; this.engine = engine; resources = new ResourceStore(root); developmentResources = new ResourceStore(root.resolve(".development")); richText = new RichTextService(codeRoot); this.developmentSettings = developmentSettings; }
     private static DevelopmentSettings settings(Path root) { try { return new DevelopmentSettings(root); } catch (IOException e) { throw new ApiException(503, "DEVELOPMENT_SETTINGS_UNAVAILABLE", "Developer settings cannot be read"); } }
 
-    ObjectNode index() { return new LibraryIndex(root, developmentSettings).scan().catalog(); }
+    private volatile boolean indexUsed, closed;
+    private volatile Thread backgroundThread;
+    private volatile String backgroundRevision = "";
+    private final LibraryLoadCoordinator coordinator = new LibraryLoadCoordinator();
+    private final java.util.concurrent.atomic.AtomicBoolean backgroundRunning = new java.util.concurrent.atomic.AtomicBoolean();
+    private final Map<String,IndexState> indexStates = new java.util.concurrent.ConcurrentHashMap<>();
+    private record IndexState(String revision, ScopedLibraryLoader.Scope scope, String stamp, ObjectNode row) { }
+    ObjectNode index() {
+        indexUsed = true; LibraryIndex.Snapshot snapshot = indexSnapshot(); ObjectNode result = snapshot.catalog();
+        ArrayNode banks = Json.MAPPER.createArrayNode(), packages = Json.MAPPER.createArrayNode();
+        Map<Path,String> stamps = new HashMap<>();
+        for (LibraryIndex.Candidate candidate : snapshot.candidates()) {
+            ObjectNode row = candidate.metadata(); IndexState state = indexStates.get(candidate.kind() + ":" + row.path("path").asText());
+            if (state != null && state.revision().equals(snapshot.revision()) && state.stamp().equals(scopeStamp(state.scope(), stamps))) {
+                for (String field : List.of("validationStatus", "error", "errorCode", "errorStatus", "contentRevision")) if (state.row().has(field)) row.set(field, state.row().get(field).deepCopy());
+            }
+            (List.of("bank", "development-bank").contains(candidate.kind()) ? banks : packages).add(row);
+        }
+        result.set("banks", banks); result.set("extensions", LibraryIndex.latest(packages));
+        return new LibraryManagement(root).catalog(result);
+    }
+    private String scopeStamp(ScopedLibraryLoader.Scope scope, Map<Path,String> stamps) {
+        StringBuilder value = new StringBuilder();
+        for (Path folder : scope.folders()) value.append(stamps.computeIfAbsent(folder, path -> signature(List.of(path), List.of())));
+        for (Path file : scope.files()) value.append(stamps.computeIfAbsent(file, path -> signature(List.of(), List.of(path))));
+        return value.toString();
+    }
+    private ScopedLibraryLoader.Loaded loadScoped(String kind, String id) {
+        LibraryIndex.Snapshot snapshot = indexSnapshot();
+        try {
+            if (!indexUsed) { var result = loader().load(snapshot, kind, id); if (result.view() != null) adoptScoped(result.view()); return result; }
+            return submitScoped(snapshot, kind, id, true).join();
+        } catch (java.util.concurrent.CompletionException failure) {
+            if (failure.getCause() instanceof RuntimeException cause) throw cause; throw failure;
+        } finally { if (indexUsed) startBackgroundValidation(); }
+    }
+    private java.util.concurrent.CompletableFuture<ScopedLibraryLoader.Loaded> submitScoped(LibraryIndex.Snapshot snapshot, String kind, String id, boolean foreground) {
+        var scope = loader().scope(snapshot, kind, id);
+        String identity = scopedIdentity(scope.folders(), scope.files());
+        var key = new LibraryLoadCoordinator.Key(kind, id, snapshot.revision() + ":" + identity);
+        return coordinator.submit(key, () -> {
+            String beforeStamp = scopeStamp(scope, new HashMap<>());
+            for (var candidate : snapshot.candidates()) if (candidate.kind().equals(kind) && candidate.id().equals(id)) {
+                ObjectNode checking = candidate.metadata().put("validationStatus", "checking");
+                indexStates.put(kind + ":" + checking.path("path").asText(), new IndexState(snapshot.revision(), scope, beforeStamp, checking));
+            }
+            var loaded = loader().load(snapshot, kind, id);
+            if (closed || !indexSnapshot().revision().equals(snapshot.revision()) || !beforeStamp.equals(scopeStamp(scope, new HashMap<>()))) throw new ApiException(409, "LIBRARY_CHANGED", "Library changed while loading; refresh and retry");
+            synchronized (scopedStateLock) {
+                if (closed) throw new ApiException(409, "LIBRARY_CHANGED", "Library closed while loading");
+                if (loaded.view() != null) adoptScoped(loaded.view());
+                if (loaded.view() == null) {
+                    ObjectNode row = loaded.catalogRow().deepCopy();
+                    indexStates.put(kind + ":" + row.path("path").asText(), new IndexState(snapshot.revision(), scope, beforeStamp, row));
+                }
+                ObjectNode checked = loaded.view() == null ? null : loaded.view().catalog;
+                if (checked != null) for (String section : List.of("banks", "extensions")) for (JsonNode entry : checked.path(section)) {
+                    ObjectNode row = (ObjectNode) entry.deepCopy(); row.put("validationStatus", row.has("error") ? "error" : "ready");
+                    indexStates.put(row.path("kind").asText(section.equals("banks") ? "bank" : "extension") + ":" + row.path("path").asText(), new IndexState(snapshot.revision(), scope, beforeStamp, row));
+                }
+            }
+            return loaded;
+        }, foreground);
+    }
+    void startBackgroundValidation() {
+        String revision = indexSnapshot().revision();
+        if (closed || backgroundRevision.equals(revision) || !backgroundRunning.compareAndSet(false, true)) return;
+        backgroundRevision = revision;
+        Thread thread = new Thread(() -> {
+            try {
+                LibraryIndex.Snapshot snapshot = indexSnapshot(); var seen = new HashSet<String>();
+                for (var candidate : snapshot.candidates()) {
+                    if (closed || Thread.currentThread().isInterrupted()) break;
+                    if (candidate.metadata().has("error") || !seen.add(candidate.kind() + ":" + candidate.id())) continue;
+                    try { submitScoped(snapshot, candidate.kind(), candidate.id(), false).join(); }
+                    catch (RuntimeException ignored) { /* Individual errors remain isolated in their catalog rows. */ }
+                }
+            } finally { backgroundRunning.set(false); }
+        }, "quizforge-library-dispatch");
+        backgroundThread = thread; thread.setDaemon(true); thread.start();
+    }
+    void close() { closed = true; coordinator.close(); Thread thread = backgroundThread; if (thread != null) thread.interrupt(); indexStates.clear(); }
+
     ObjectNode catalog() { refresh(); return new LibraryManagement(root).catalog(catalog); }
     synchronized ObjectNode manage(JsonNode request) throws IOException {
         ObjectNode outcome = new LibraryManagement(root).change(request, catalog());
@@ -131,12 +213,20 @@ final class Library {
     }
     private java.util.function.Function<String, Collection> examCollections;
     void examCollections(java.util.function.Function<String, Collection> resolver) { examCollections = resolver; }
+    Collection readCollection(String kind, String id) {
+        if (scopedFolders == null && !kind.equals("exam")) {
+            if (kind.startsWith("development")) developmentSettings.requireEnabled();
+            Collection value = loader().readCached(indexSnapshot(), kind, id);
+            if (value != null) return value;
+        }
+        return collection(kind, id);
+    }
     Collection collection(String kind, String id) {
         if (kind.equals("exam") && examCollections != null) return examCollections.apply(id);
         if (scopedFolders == null) {
             if (!List.of("bank", "extension", "development", "development-bank").contains(kind)) throw ApiException.bad("Invalid collection kind");
             if (kind.startsWith("development")) developmentSettings.requireEnabled();
-            var value = loader().load(indexSnapshot(), kind, id);
+            var value = loadScoped(kind, id);
             if (value.collection() == null) throw new ApiException(404, "COLLECTION_NOT_FOUND", value.catalogRow().path("error").asText("Collection unavailable; inspect catalog errors"));
             return value.collection();
         }
@@ -150,7 +240,7 @@ final class Library {
         }
     }
     ObjectNode page(String id, String version) {
-        if (scopedFolders == null) return loader().load(indexSnapshot(), "page", id + "@" + version).descriptor().deepCopy();
+        if (scopedFolders == null) return loadScoped("page", id + "@" + version).descriptor().deepCopy();
         refresh(); Extension extension = extensions.get(id + "@" + version);
         if (extension == null && developmentSettings.enabled()) extension = developmentExtensions.values().stream().filter(value -> value.id().equals(id) && value.version().equals(version)).findFirst().orElse(null);
         if (extension == null) throw new ApiException(404, "EXTENSION_NOT_FOUND", "Extension is unavailable");
@@ -177,7 +267,7 @@ final class Library {
         return withDependencies(page, extension);
     }
     ObjectNode development(String folder) {
-        if (scopedFolders == null) { developmentSettings.requireEnabled(); var value = loader().load(indexSnapshot(), "development", folder); if (value.collection() == null) throw new ApiException(422, "INVALID_DEVELOPMENT_RUNTIME", value.catalogRow().path("error").asText()); return value.descriptor().deepCopy(); }
+        if (scopedFolders == null) { developmentSettings.requireEnabled(); var value = loadScoped("development", folder); if (value.collection() == null) throw new ApiException(422, "INVALID_DEVELOPMENT_RUNTIME", value.catalogRow().path("error").asText()); return value.descriptor().deepCopy(); }
         developmentSettings.requireEnabled();
         try {
             refresh(); DevelopmentExtensions.Package value = developmentPackages.get(folder);
@@ -196,7 +286,7 @@ final class Library {
         } catch (IOException e) { throw new ApiException(422, "INVALID_DEVELOPMENT", "Development page is unavailable"); }
     }
     ObjectNode developmentBank(String id) {
-        if (scopedFolders == null) { developmentSettings.requireEnabled(); var value = loader().load(indexSnapshot(), "development-bank", id); if (value.collection() == null) throw new ApiException(404, "COLLECTION_NOT_FOUND", value.catalogRow().path("error").asText()); return value.descriptor().deepCopy(); }
+        if (scopedFolders == null) { developmentSettings.requireEnabled(); var value = loadScoped("development-bank", id); if (value.collection() == null) throw new ApiException(404, "COLLECTION_NOT_FOUND", value.catalogRow().path("error").asText()); return value.descriptor().deepCopy(); }
         developmentSettings.requireEnabled();
         try {
             JsonNode raw = developmentBankSource(id); List<String> folders = developmentFolders(raw);
@@ -758,7 +848,7 @@ final class Library {
         }
         return Json.fingerprint(owners, "quizforge-library-rules-v1");
     }
-    private static String catalogRevision(Collection collection) {
+    static String catalogRevision(Collection collection) {
         ObjectNode value = Json.object().put("title", collection.title()).put("description", collection.description()).put("stateKey", collection.stateKey());
         value.set("features", collection.features().json());
         ArrayNode questions = value.putArray("questions");
@@ -860,7 +950,7 @@ final class Library {
     }
 
     private ScopedLibraryLoader loader() {
-        synchronized (loaderLock) { if (scopedLoader == null) scopedLoader = new ScopedLibraryLoader(this, new CollectionValidation(engine)); return scopedLoader; }
+        synchronized (loaderLock) { if (scopedLoader == null) scopedLoader = new ScopedLibraryLoader(this); return scopedLoader; }
     }
     LibraryIndex.Snapshot indexSnapshot() { return new LibraryIndex(root, developmentSettings).scan(); }
     boolean scopedModeMatches(LibraryIndex.Snapshot snapshot) { return developmentSettings.enabled() == snapshot.catalog().path("developmentEnabled").asBoolean(); }
@@ -889,7 +979,7 @@ final class Library {
             if (value != null && !candidate.has("error")) break;
         }
         row.put("validationStatus", row.has("error") ? "error" : "ready");
-        return new ScopedLibraryLoader.Loaded(value, extensions, developmentPackages, descriptor, identity, row, this);
+        return new ScopedLibraryLoader.Loaded(value, extensions, developmentPackages, descriptor, identity, row, this, scopedContentIdentity(scopedFolders, scopedFiles));
     }
     private static <K,V> Map<K,V> merged(Map<K,V> before, Map<K,V> addition) { var values = new HashMap<>(before); values.putAll(addition); return Map.copyOf(values); }
     void adoptScoped(Library view) {
@@ -900,9 +990,16 @@ final class Library {
         }
     }
     String scopedIdentity(List<Path> folders, List<Path> files) {
+        return Json.fingerprint(Json.object().put("content", scopedContentIdentity(folders, files)).put("runner", runnerContentIdentity()), "quizforge-scoped-load-v1");
+    }
+    private String runnerContentIdentity() {
+        try { return ResourceStore.hash(Files.readAllBytes(Json.safeFile(codeRoot.resolve("server"), "rules-runner.cjs"))); }
+        catch (IOException | RuntimeException failure) { return "unavailable"; }
+    }
+    String scopedContentIdentity(List<Path> folders, List<Path> files) {
         ArrayNode values = Json.MAPPER.createArrayNode(); values.add(developmentSettings.enabled());
         try {
-            values.add(ResourceStore.hash(Files.readAllBytes(Json.safeFile(codeRoot.resolve("server"), "rules-runner.cjs"))));
+
             for (Path folder : folders) {
                 values.add(folder.toString());
                 if (DevelopmentExtensions.marked(folder)) {

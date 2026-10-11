@@ -50,8 +50,8 @@ final class CollectionRoutes {
             if (parts.length == 6 && parts[4].equals("history") && method.equals("DELETE")) { writes.validateOrigin(exchange); return states.deleteHistory(kind, id, routeId(parts[5])); }
             if (parts.length >= 6 && parts[4].equals("questions")) {
                 String qid = routeId(parts[5]);
-                if (parts.length == 6 && method.equals("GET")) { Library.Collection collection = library.collection(kind, id); Library.Question question = collection.question(qid); var response = states.question(collection, question); var task = aiGrading.current(collection, question); if (task != null) response.set("aiTask", task); return response; }
-                if (parts.length == 7 && parts[6].equals("stamp") && method.equals("GET")) { Library.Collection collection = library.collection(kind, id); return states.stamp(collection, collection.question(qid)); }
+                if (parts.length == 6 && method.equals("GET")) { Library.Collection collection = library.readCollection(kind, id); Library.Question question = collection.question(qid); var response = states.question(collection, question); var task = aiGrading.current(collection, question); if (task != null) response.set("aiTask", task); return response; }
+                if (parts.length == 7 && parts[6].equals("stamp") && method.equals("GET")) { Library.Collection collection = library.readCollection(kind, id); return states.stamp(collection, collection.question(qid)); }
                 if (parts.length == 7 && parts[6].equals("editor") && method.equals("GET")) { Library.Collection collection = library.collection(kind, id); return states.editor(library, collection, collection.question(qid)); }
                 if (parts.length == 7 && parts[6].equals("edit") && method.equals("POST")) { JsonNode request = writes.read(exchange); Library.Collection collection = library.collection(kind, id); return states.edit(library, collection, collection.question(qid), request); }
                 if (parts.length == 7 && parts[6].equals("actions") && method.equals("POST")) {
