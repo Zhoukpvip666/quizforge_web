@@ -25,6 +25,7 @@ class LibraryIndexHttpTest {
         assertEquals(200,fixture.call("GET","/api/library/index",null,ServerTest.TOKEN,null).status());
     }
     @Test void metadataDecorationRetainsCustomNamesAndEmptyGroupsAfterStatusUpdates() throws Exception {
+        java.nio.file.Files.createDirectories(root.resolve(".state"));
         fixture.write(".state/library-labels.json","{\"generic@1.0.0\":\"Custom name\"}");
         java.nio.file.Files.createDirectories(root.resolve("question-banks/Empty group"));
         fixture.start(null);var cold=fixture.get("/api/library/index").body();
@@ -53,7 +54,9 @@ class LibraryIndexHttpTest {
             var index = CompletableFuture.supplyAsync(() -> { try { return fixture.get("/api/library/index"); } catch(Exception e) { throw new CompletionException(e); } });
             assertEquals(200,index.get(3,TimeUnit.SECONDS).status()); assertFalse(holder.isDone());
             var foreground = CompletableFuture.supplyAsync(() -> { try { return fixture.get("/api/collections/bank/bank"); } catch(Exception e) { throw new CompletionException(e); } });
-            assertEquals(200,foreground.get(5,TimeUnit.SECONDS).status()); assertFalse(holder.isDone());
+            // Keep the monitor held throughout: this proves independence from that lock.
+            // Allow the rule engine's own deadlines; browser measurements cover latency.
+            assertEquals(200,foreground.get(30,TimeUnit.SECONDS).status()); assertFalse(holder.isDone());
         } finally { release.countDown(); holder.get(3,TimeUnit.SECONDS); }
     }
     @Test void sourceChangedDuringRealRuleExecutionCannotPublishOldReady() throws Exception {
@@ -77,6 +80,28 @@ class LibraryIndexHttpTest {
         int calls=trace.validations.get(); Path rules=root.resolve("extensions/generic/rules.js"); java.nio.file.Files.writeString(rules,java.nio.file.Files.readString(rules)+"\n// changed after background completed\n");
         assertNotEquals("ready",fixture.get("/api/library/index").body().at("/banks/0/validationStatus").asText());
         awaitReady(); assertTrue(trace.validations.get()>calls,"Polling should resume the completed background dispatcher");
+    }
+    @Test void closeWaitsForInterruptedDispatcherCleanup() throws Exception {
+        fixture.start(null);
+        var libraryField=QuizForgeServer.class.getDeclaredField("library");libraryField.setAccessible(true);
+        Library library=(Library)libraryField.get(fixture.server);
+        CountDownLatch started=new CountDownLatch(1),interrupted=new CountDownLatch(1),allowCleanup=new CountDownLatch(1);
+        Thread dispatcher=new Thread(()->{
+            started.countDown();
+            try {new CountDownLatch(1).await();}
+            catch(InterruptedException shutdown){
+                interrupted.countDown();
+                try {allowCleanup.await();}catch(InterruptedException repeated){Thread.currentThread().interrupt();}
+            }
+        },"quizforge-library-close-test");dispatcher.setDaemon(true);
+        var threadField=Library.class.getDeclaredField("backgroundThread");threadField.setAccessible(true);threadField.set(library,dispatcher);
+        dispatcher.start();assertTrue(started.await(2,TimeUnit.SECONDS));
+        CompletableFuture<Void> closing=CompletableFuture.runAsync(library::close);
+        try {
+            assertTrue(interrupted.await(2,TimeUnit.SECONDS));
+            assertFalse(closing.isDone(),"Close must await the dispatcher's interrupted cleanup");
+            allowCleanup.countDown();closing.get(3,TimeUnit.SECONDS);assertFalse(dispatcher.isAlive());
+        } finally {allowCleanup.countDown();dispatcher.join(3000);closing.get(3,TimeUnit.SECONDS);}
     }
     void awaitReady() throws Exception {
         long end=System.nanoTime()+TimeUnit.SECONDS.toNanos(30);

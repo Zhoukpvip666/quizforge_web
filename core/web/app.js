@@ -552,9 +552,10 @@ async function openCollection(kind,id){
   const key=`${kind}:${id}`;
   await flushPane(active());
   if(collections.has(key)){await activateReady(key);return;}
-  let development;
-  if(kind.startsWith('development'))development=await request(developmentPath({kind,id}),{timeoutMs:60000});
-  const collection=await request(collectionPath(kind,id),{timeoutMs:60000});
+  const [development,collection]=await Promise.all([
+    kind.startsWith('development')?request(developmentPath({kind,id}),{timeoutMs:60000}):undefined,
+    request(collectionPath(kind,id),{timeoutMs:60000}),
+  ]);
   if(!collection.questions?.length)throw new Error('这个列表还没有题目');
   await suspendPane(active());
   collection.states ||= {};

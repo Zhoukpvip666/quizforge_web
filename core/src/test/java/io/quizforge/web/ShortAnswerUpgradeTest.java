@@ -244,7 +244,8 @@ class ShortAnswerUpgradeTest {
     }
 
     @Test void invalidPinnedTargetSdkIsReportedAndNeverReplacedFromSource() throws Exception {
-        prepare();Path archive=root.resolve(".state/sdk/quizforge.richtext/1.1.2/sdk.json");Files.writeString(archive,"{}");
+        prepare();library.sdk("quizforge.richtext","1.1.2");
+        Path archive=root.resolve(".state/sdk/quizforge.richtext/1.1.2/sdk.json");Files.writeString(archive,"{}");
         byte[] bankBefore=Files.readAllBytes(root.resolve("question-banks/short-answer-demo/bank.json"));
         library=new Library(root,new RuleEngine(root,"node",Duration.ofSeconds(4)));
         ApiException failure=assertThrows(ApiException.class,()->ShortAnswerUpgrade.run(library,states));

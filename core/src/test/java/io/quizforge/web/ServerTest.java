@@ -178,7 +178,7 @@ class ServerTest {
     Path savedFile() throws IOException { try (var files = Files.list(root.resolve(".state"))) { return files.filter(p -> p.toString().endsWith(".json")).findFirst().orElseThrow(); } }
     java.util.Map<Path, byte[]> stateFileBytes() throws IOException {
         var result = new java.util.LinkedHashMap<Path, byte[]>();
-        try (var paths = Files.walk(root.resolve(".state"))) { for (Path path : paths.filter(Files::isRegularFile).sorted().toList()) result.put(path, Files.readAllBytes(path)); }
+        try (var paths = Files.walk(root.resolve(".state"))) { for (Path path : paths.filter(Files::isRegularFile).filter(path -> !path.startsWith(root.resolve(".state/validation-cache"))).sorted().toList()) result.put(path, Files.readAllBytes(path)); }
         return result;
     }
     void assertStateFileBytes(java.util.Map<Path, byte[]> expected) throws IOException {

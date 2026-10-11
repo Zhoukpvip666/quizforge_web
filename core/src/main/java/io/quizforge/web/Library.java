@@ -192,17 +192,25 @@ final class Library {
         }, foreground);
     }
     void startBackgroundValidation() {
+        if(closed)return;
         backgroundEnabled=true;
-        LibraryIndex.Snapshot snapshot=indexSnapshot();Map<Path,String> stamps=new HashMap<>();
-        if(snapshot.candidates().stream().filter(candidate->!candidate.metadata().has("error")).anyMatch(candidate->{IndexState state=indexStates.get(candidate.kind()+":"+candidate.metadata().path("path").asText());return state==null||!state.revision().equals(snapshot.revision())||!state.stamp().equals(scopeStamp(state.scope(),stamps));}))requestBackgroundValidation();
+        try {
+            LibraryIndex.Snapshot snapshot=indexSnapshot();Map<Path,String> stamps=new HashMap<>();
+            if(snapshot.candidates().stream().filter(candidate->!candidate.metadata().has("error")).anyMatch(candidate->{IndexState state=indexStates.get(candidate.kind()+":"+candidate.metadata().path("path").asText());return state==null||!state.revision().equals(snapshot.revision())||!state.stamp().equals(scopeStamp(state.scope(),stamps));}))requestBackgroundValidation();
+        } catch(RuntimeException failure){if(!closed)throw failure;}
     }
     private void requestBackgroundValidation() {
-        if(closed)return;backgroundRequested.set(true);
-        if(!backgroundRunning.compareAndSet(false,true))return;
-        backgroundRequested.set(false);
-        Thread thread = new Thread(() -> {
-            LibraryIndex.Snapshot snapshot=null;boolean stale=false;
-            try {
+        synchronized(scopedStateLock){
+            if(closed)return;backgroundRequested.set(true);
+            if(!backgroundRunning.compareAndSet(false,true))return;
+            backgroundRequested.set(false);
+            Thread thread=new Thread(this::runBackgroundValidation,"quizforge-library-dispatch");
+            backgroundThread=thread;thread.setDaemon(true);thread.start();
+        }
+    }
+    private void runBackgroundValidation() {
+        LibraryIndex.Snapshot snapshot=null;boolean stale=false;
+        try {
                 snapshot = indexSnapshot(); var seen = new HashSet<String>();Map<Path,String> stamps=new HashMap<>();
                 for (var candidate : snapshot.candidates()) {
                     if (closed || Thread.currentThread().isInterrupted()) break;
@@ -213,14 +221,29 @@ final class Library {
                     try { submitScoped(snapshot, candidate.kind(), candidate.id(), false).join(); }
                     catch (RuntimeException failure) { Throwable cause=failure instanceof java.util.concurrent.CompletionException?failure.getCause():failure;if(cause instanceof ApiException error&&error.status==409)stale=true; }
                 }
-            } finally {
-                backgroundRunning.set(false);
-                if(!closed&&(stale||backgroundRequested.get()||snapshot!=null&&!indexSnapshot().revision().equals(snapshot.revision())))requestBackgroundValidation();
+        } catch(RuntimeException failure){if(!closed)throw failure;}
+        finally {
+            boolean changed=false;
+            try {if(!closed&&snapshot!=null)changed=!indexSnapshot().revision().equals(snapshot.revision());}
+            catch(RuntimeException failure){if(!closed)throw failure;}
+            finally {
+                synchronized(scopedStateLock){
+                    backgroundRunning.set(false);
+                    if(!closed&&(stale||backgroundRequested.get()||changed))requestBackgroundValidation();
+                }
             }
-        }, "quizforge-library-dispatch");
-        backgroundThread = thread; thread.setDaemon(true); thread.start();
+        }
     }
-    void close() { closed = true; coordinator.close(); Thread thread = backgroundThread; if (thread != null) thread.interrupt(); indexStates.clear(); }
+    void close() {
+        Thread thread;
+        synchronized(scopedStateLock){closed=true;thread=backgroundThread;}
+        coordinator.close();
+        if(thread!=null){
+            thread.interrupt();
+            if(thread!=Thread.currentThread())try{thread.join(2000);}catch(InterruptedException interrupted){Thread.currentThread().interrupt();}
+        }
+        indexStates.clear();
+    }
 
     ObjectNode catalog() { refresh(); return new LibraryManagement(root).catalog(catalog); }
     synchronized ObjectNode manage(JsonNode request) throws IOException {
@@ -298,7 +321,13 @@ final class Library {
         return withDependencies(page, extension);
     }
     ObjectNode development(String folder) {
-        if (scopedFolders == null) { developmentSettings.requireEnabled(); var value = loadScoped("development", folder); if (value.collection() == null) throw new ApiException(422, "INVALID_DEVELOPMENT_RUNTIME", value.catalogRow().path("error").asText()); return value.descriptor().deepCopy(); }
+        if (scopedFolders == null) {
+            developmentSettings.requireEnabled();
+            var value = loadScoped("development", folder);
+            if (!value.developmentPackages().containsKey(folder)) throw new ApiException(404, "DEVELOPMENT_NOT_FOUND", "Development extension unavailable; inspect catalog errors");
+            if (value.collection() == null) throw new ApiException(422, "INVALID_DEVELOPMENT_RUNTIME", value.catalogRow().path("error").asText());
+            return value.descriptor().deepCopy();
+        }
         developmentSettings.requireEnabled();
         try {
             refresh(); DevelopmentExtensions.Package value = developmentPackages.get(folder);
@@ -601,6 +630,8 @@ final class Library {
     }
     private Extension shortAnswerUpgradeTarget() { return shortAnswerUpgradeTarget(ShortAnswerUpgrade.TARGET_VERSION); }
     private Extension shortAnswerUpgradeTarget(String version) {
+        // The upgrade target can be installed without being referenced by the opened bank.
+        refresh();
         for (JsonNode row : catalog.path("extensions")) {
             if (row.path("id").asText().equals("quizforge.short-answer") && row.path("version").asText().equals(version) && row.has("error"))
                 throw new ApiException(row.path("errorStatus").asInt(422), row.path("errorCode").asText("INVALID_EXTENSION"), "Short-answer upgrade target " + version + " is unavailable: " + row.path("error").asText());

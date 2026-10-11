@@ -67,6 +67,48 @@ test('startup renders a pending bank before its collection request finishes',asy
   release();await start;assert.equal(f.sandbox.activeKey,'bank:bank');f.host.refreshCatalog.client.stop();
 });
 
+test('opening a development bank starts both metadata reads before either finishes',async t=>{
+  const f=fixture(t,{developmentEnabled:true});f.add('current');await f.host.openCollection('bank','current');
+  const current=f.collections.get('bank:current'),calls=[];
+  let releaseDescriptor,releaseCollection;
+  const descriptor=new Promise(resolve=>{releaseDescriptor=resolve;}),collection=new Promise(resolve=>{releaseCollection=resolve;});
+  f.sandbox.developmentPath=()=>'/development/new';
+  f.sandbox.request=async(path,options)=>{calls.push(path);assert.equal(options.timeoutMs,60000);return path==='/development/new'?descriptor:collection;};
+  const opening=f.host.openCollection('development-bank','new');
+  try{
+    await new Promise(resolve=>setImmediate(resolve));
+    assert.deepEqual(calls,['/development/new','development-bank:new']);
+    assert.equal(f.sandbox.activeKey,'bank:current');assert.equal(current.plugin.destroyed,undefined);
+    releaseDescriptor({development:{mode:'runtime'},revision:'r1'});await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(f.collections.size,1,'Both reads must finish before creating a new pane');
+    releaseCollection({id:'new',title:'New bank',questions:[{id:'first'}],states:{}});
+    await opening;assert.equal(f.sandbox.activeKey,'development-bank:new');
+    assert.equal(f.collections.get('development-bank:new').developmentDescriptor.revision,'r1');
+  }finally{
+    releaseDescriptor({development:{mode:'runtime'},revision:'r1'});
+    releaseCollection({id:'new',title:'New bank',questions:[{id:'first'}],states:{}});await opening;
+  }
+});
+
+test('a failed parallel metadata read keeps the current question and observes both rejections',async t=>{
+  for(const failed of ['/development/new','development-bank:new']){
+    const f=fixture(t,{developmentEnabled:true});f.add('current');await f.host.openCollection('bank','current');
+    const current=f.collections.get('bank:current'),rejects=new Map(),calls=[];
+    f.sandbox.developmentPath=()=>'/development/new';
+    f.sandbox.request=path=>{calls.push(path);return new Promise((_resolve,reject)=>rejects.set(path,reject));};
+    const opening=f.host.openCollection('development-bank','new');
+    const rejected=assert.rejects(opening,/read failed/);
+    await new Promise(resolve=>setImmediate(resolve));
+    try{
+      assert.deepEqual(calls,['/development/new','development-bank:new']);
+      rejects.get(failed)(new Error('read failed'));await rejected;
+      assert.equal(f.sandbox.activeKey,'bank:current');assert.equal(f.collections.size,1);assert.equal(current.plugin.destroyed,undefined);
+    }finally{
+      for(const reject of rejects.values())reject(new Error('read failed'));await rejected;
+    }
+  }
+});
+
 test('the title row keeps both sidebar controls and the collection tab bar is gone',t=>{
   const f=fixture(t);f.host.syncSidebars();
   assert.equal(f.document.querySelector('#tabs,.tab-header,.tab-close,#library-hide,#outline-hide'),null);
