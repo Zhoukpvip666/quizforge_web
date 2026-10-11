@@ -1,3 +1,4 @@
+import {installFrameCapture} from '../web/frame-capture.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -25,7 +26,7 @@ test('the actual selected iframe bridge exposes frozen host metadata while legac
   const parent={postMessage:message=>sent.push(structuredClone(message))};
   const context={mode:'practice',question:{id:'old-choice'},capabilities:{canSave:false}};
   const boot={session:'legacy',context,api:bridge.api};
-  const sandbox={parent,Promise,structuredClone,document:{body:{scrollHeight:100},documentElement:{}},ResizeObserver:class{observe(){}disconnect(){}},
+  const sandbox={parent,Promise,structuredClone,installFrameCapture,document:{body:{scrollHeight:100},documentElement:{}},ResizeObserver:class{observe(){}disconnect(){}},
     setTimeout(callback){const id=++nextTimer;timers.set(id,callback);return id;},clearTimeout:id=>timers.delete(id),addEventListener:(name,callback)=>listeners.set(name,callback)};
   // Evaluate exactly what mountExtension serializes, with no access to the module's closure.
   vm.runInNewContext(`(${bridge.bootstrap.toString()})(${JSON.stringify(boot)});`,sandbox);
@@ -46,7 +47,7 @@ test('the actual selected iframe bridge exposes frozen host metadata while legac
 
 test('mount rejects unsupported versions before creating an iframe, timer or listener',()=>{
   let created=0,timers=0,listeners=0,appended=0;
-  const sandbox={resolveExtensionApi,makeRequestId:()=>{throw new Error('No ID should be needed');},
+  const sandbox={resolveExtensionApi,installFrameCapture,makeRequestId:()=>{throw new Error('No ID should be needed');},
     document:{createElement(){created++;}},window:{addEventListener(){listeners++;}},setTimeout(){timers++;}};
   const source=frameSource.replace(/^import[^\r\n]*\r?\n/gm,'').replace('export function mountExtension','function mountExtension');
   vm.runInNewContext(`${source}\nglobalThis.mount=mountExtension;`,sandbox);

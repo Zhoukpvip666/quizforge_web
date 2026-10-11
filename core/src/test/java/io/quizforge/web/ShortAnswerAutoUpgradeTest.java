@@ -21,7 +21,7 @@ class ShortAnswerAutoUpgradeTest {
 
     void prepare(boolean mixed) throws Exception {
         ServerTest fixture = new ServerTest(); fixture.root = root; fixture.prepare();
-        for (String folder : new String[]{"extensions/short-answer-1.2.2", "extensions/short-answer-1.3.0", "shared/richtext/1.1.2"}) {
+        for (String folder : new String[]{"extensions/short-answer-1.2.2", "extensions/short-answer-1.3.0", "shared/richtext/1.1.2", "shared/richtext/1.1.3"}) {
             Path source = folder.equals("extensions/short-answer-1.2.2")
                     ? Path.of("test/fixtures/legacy-extensions/short-answer-1.2.2")
                     : folder.startsWith("extensions/") ? InstalledExtensionFixtures.find("quizforge.short-answer", "1.3.0") : Path.of(folder);

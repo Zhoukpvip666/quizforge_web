@@ -13,6 +13,6 @@ export async function prepareExtensionAssets(assets,loadLibrary) {
 export function validateContentApi(value){
   const invalid=message=>{throw Object.assign(new Error(message),{code:'INVALID_CONTENT_API'});};
   if(!value||typeof value!=='object'||Array.isArray(value)||!Number.isInteger(value.major)||value.major<1||!Number.isInteger(value.minor)||value.minor<0||!Number.isInteger(value.documentFormat)||value.documentFormat<1||!['basic-v1','advanced-v1'].includes(value.documentProfile)||!Array.isArray(value.capabilities)||value.capabilities.some(capability=>typeof capability!=='string')||new Set(value.capabilities).size!==value.capabilities.length)invalid('富文本服务接口声明无效');
-  const supported=value.documentProfile==='basic-v1'?['basic-formatting','images']:['basic-formatting','images','advanced-formatting','tables','math','image-resize'];
-  if(value.major!==1||value.minor>0||value.documentFormat!==1||value.capabilities.some(capability=>!supported.includes(capability)))throw Object.assign(new Error('当前应用不支持此富文本服务接口'),{code:'UNSUPPORTED_CONTENT_API'});
+  const supported=value.documentProfile==='basic-v1'?['basic-formatting','images']:['basic-formatting','images','advanced-formatting','tables','math','image-resize',...(value.minor>=1?['camera-capture']:[])];
+  if(value.major!==1||value.minor>1||value.documentFormat!==1||value.capabilities.some(capability=>!supported.includes(capability)))throw Object.assign(new Error('当前应用不支持此富文本服务接口'),{code:'UNSUPPORTED_CONTENT_API'});
 }

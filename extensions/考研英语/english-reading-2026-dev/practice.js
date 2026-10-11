@@ -1,0 +1,35 @@
+// Local adapter over the public QF API. It owns no storage or grading.
+function createPersistence(read,notice){
+ let context=null,version=0,saved=0,timer=null,chain=Promise.resolve(),disposed=false,busy=false;
+ const caps=()=>context?.capabilities||{},locked=()=>context?.status==='submitted'||context?.mode==='history';
+ const ok=reply=>{if(!reply?.ok)throw new Error(reply?.error?.message||'操作失败。');return reply;};
+ function controls(){const submit=document.getElementById('submit-button'),retry=document.getElementById('retry-button');submit.hidden=locked()||!caps().canSubmit;submit.disabled=busy||!caps().canSubmit||!Object.values(read().responses).some(v=>v.trim());retry.hidden=context?.status!=='submitted'||context?.mode==='history'||context?.mode==='exam';retry.disabled=busy||!caps().canRetry;}
+ function save(){clearTimeout(timer);timer=null;if(disposed||locked()||version<=saved)return chain;if(!caps().canSave)return Promise.reject(new Error('当前答案不能保存。'));const current=version,answer=structuredClone(read());const next=chain.catch(()=>{}).then(async()=>{ok(await QF.save({purpose:'draft',data:{answer}}));saved=Math.max(saved,current);if(!disposed&&current===version)notice('');});chain=next;next.catch(e=>{if(!disposed)notice(e.message+' 当前输入仍保留，切题前会重试。');});return next;}
+ return {get busy(){return busy;},get context(){return context;},enter(next){const same=context?.question.id===next.question.id,previous=context?.status;context=next;const preserve=same&&!locked()&&previous!=='submitted';if(!same||previous==='submitted'&&!locked()){version=0;saved=0;chain=Promise.resolve();clearTimeout(timer);}controls();return !preserve;},changed(){if(locked()||busy)return;version++;notice('');clearTimeout(timer);timer=setTimeout(()=>save().catch(()=>{}),180);},async flush(){clearTimeout(timer);timer=null;await save();await chain;},async submit(){if(busy||locked()||!caps().canSubmit)return;busy=true;controls();try{await this.flush();ok(await QF.save({purpose:'submit',data:{answer:structuredClone(read())}}));notice('');}catch(e){notice(e.message+' 当前答案仍保留。');}finally{busy=false;controls();}},async retry(){if(busy||!caps().canRetry)return;busy=true;controls();try{await this.flush();ok(await QF.requestAction({action:'retry'}));}catch(e){notice(e.message);}finally{busy=false;controls();}},dispose(){disposed=true;clearTimeout(timer);timer=null;}};
+}
+function optionLetter(part,option,index){return part.options.length===2&&part.options.every(o=>o.id==='T'||o.id==='F')?option.id:String.fromCharCode(65+index);}
+(function(){"use strict";
+const $ = id => document.getElementById(id);
+const node = (tag, cls, text) => {const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;};
+const targets = new Map();const store=createPersistence(()=>({responses:{...answer}}),message);
+let context, data, answer={}, demoSubmitted=false, dispose=false;
+const listeners=[];
+function listen(target,event,fn){target.addEventListener(event,fn);listeners.push(()=>target.removeEventListener(event,fn));}
+const resize=()=>{if(!dispose)QF.ui.resize();};
+function message(text){$('notice').textContent=text;resize();}
+function paragraphs(target,text){target.replaceChildren();String(text||'').split(/\n\n+/).forEach(t=>target.append(node('p','',t)));}
+function partSection(part,stem){const section=node('section','part');section.id='part-'+part.id;section.tabIndex=-1;targets.set(part.id,section);const h=node('h3','part-title');h.append(node('span','part-number',part.number+'.'));if(stem)h.append(node('span','part-question',stem));section.append(h);return section;}
+function outline(id){const target=targets.get(id);if(!target)return false;target.scrollIntoView({block:'center',behavior:'auto'});target.focus({preventScroll:true});return true;}
+function readOnly(){return context?.mode==='history'||context?.status==='submitted';}
+function clearListeners(){listeners.splice(0).forEach(fn=>fn());}
+let stemView=null,analysisView=null;async function renderPassage(){stemView?.destroy();stemView=QF.content.render($('passage'),data.stem);await stemView.ready;resize();}
+function buildOptions(section,part){const options=node('fieldset','options');options.setAttribute('aria-label','第'+part.number+'题选项');for(const [index,option] of part.options.entries()){const row=node('label','option');const radio=node('input');radio.type='radio';radio.name='answer-'+part.id;radio.value=option.id;radio.checked=answer[part.id]===option.id;radio.disabled=readOnly();radio.setAttribute('aria-label',part.number+'. '+optionLetter(part,option,index)+'. '+option.text);row.append(radio,node('span','option-letter',optionLetter(part,option,index)),node('span','option-text',option.text));if(demoSubmitted){const correct=part.correctOptionId;if(option.id===correct)row.classList.add('correct');else if(radio.checked)row.classList.add('incorrect');}listen(radio,'change',()=>{if(store.busy)return;answer[part.id]=option.id;store.changed();updateButton();});options.append(row);}section.append(options);}
+function updateButton(){$('submit-button').disabled=store.busy||!context.capabilities?.canSubmit||!data.parts.some(p=>answer[p.id]);}
+function renderParts(){clearListeners();targets.clear();$('parts').replaceChildren();for(const part of data.parts){const section=partSection(part,part.stem);buildOptions(section,part); $('parts').append(section);}
+  
+  $('result-panel').hidden=!demoSubmitted;$('submit-button').hidden=demoSubmitted||context.mode==='history'||!context?.capabilities?.canSubmit;$('retry-button').hidden=!demoSubmitted||context.mode==='history'||context?.mode==='exam';if(demoSubmitted){$('result-score').textContent=context.result.score+' / '+context.result.maxScore+' 分';renderResults();}updateButton();resize();}
+function renderResults(){analysisView?.destroy();const panel=$('result-details');panel.replaceChildren();const doc=typeof data.explanation==='string'?{type:'doc',content:data.explanation?[{type:'paragraph',content:[{type:'text',text:data.explanation}]}]:[{type:'paragraph'}]}:data.explanation;analysisView=QF.content.render(panel,doc);analysisView.ready.then(resize);}
+const submitHandler=()=>store.submit(),retryHandler=()=>store.retry();$('submit-button').addEventListener('click',submitHandler);$('retry-button').addEventListener('click',retryHandler);
+QF.page.register({async onLoad(next){const rebuild=store.enter(next);context=next;data=next.question.data;if(!rebuild){updateButton();return;}answer={...(next.answer?.responses||{})};demoSubmitted=next.status==='submitted';$('score-hint').textContent=data.maxScore+' 分';renderParts();await renderPassage();message(next.mode==='history'?'':demoSubmitted?'':'');},onOutlineNavigate:outline,onFlush:()=>store.flush(),onDispose(){dispose=true;store.dispose();stemView?.destroy();analysisView?.destroy();clearListeners();targets.clear();$('submit-button').removeEventListener('click',submitHandler);$('retry-button').removeEventListener('click',retryHandler);}}).catch(e=>message(e.message));
+
+})();

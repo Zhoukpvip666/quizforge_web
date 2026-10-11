@@ -1,0 +1,2158 @@
+{
+  "formatVersion": 1,
+  "id": "kaoyan-english1-2007",
+  "title": "2007年考研英语（一）真题",
+  "description": "依据原卷及附录参考答案制作；作文范文与评分细则留空。",
+  "features": {
+    "editing": true,
+    "whiteboard": true,
+    "history": true,
+    "exam": true
+  },
+  "questions": [
+    {
+      "id": "cloze-01",
+      "title": "完形填空（1–20）",
+      "extension": {
+        "development": "english-cloze-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Choose the best word(s) for each numbered blank and mark A, B, C or D on ANSWER SHEET 1. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "By 1830 the former Spanish and Portuguese colonies had become independent nations. The roughly 20 million [[1]] of these nations looked [[2]] to the future. Born in the crisis of the old regime and Iberian Colonialism, many of the leaders of independence [[3]] the ideals of representative government, careers [[4]] to talent, freedom of commerce and trade, the [[5]] to private property, and a belief in the individual as the basis of society. [[6]] there was a belief that the new nations should be sovereign and independent states, large enough to be economically viable and integrated by a [[7]] set of laws."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "On the issue of [[8]] of religion and the position of the Church, [[9]] , there was less agreement [[10]] the leadership. Roman Catholicism had been the state religion and the only one [[11]] by the Spanish Crown. [[12]] most leaders sought to maintain Catholicism [[13]] the official religion of the new states, some sought to end the [[14]] of other faiths. The defense of the Church became a rallying [[15]] for the conservative forces."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The ideals of the early leaders of independence were often egalitarian, valuing equality of everything. Bolivar had received aid from Haiti and had [[16]] in return to abolish slavery in the areas he liberated. By 1854 slavery had been abolished everywhere except Spain’s [[17]] colonies. Early promises to end Indian tribute and taxes on people of mixed origin came much [[18]] because the new nations still needed the revenue such policies [[19]] . Egalitarian sentiments were often tempered by fears that the mass of the population was [[20]] self-rule and democracy."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-1",
+            "number": "1",
+            "options": [
+              {
+                "id": "A",
+                "text": "natives"
+              },
+              {
+                "id": "B",
+                "text": "inhabitants"
+              },
+              {
+                "id": "C",
+                "text": "peoples"
+              },
+              {
+                "id": "D",
+                "text": "individuals"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-2",
+            "number": "2",
+            "options": [
+              {
+                "id": "A",
+                "text": "confusedly"
+              },
+              {
+                "id": "B",
+                "text": "cheerfully"
+              },
+              {
+                "id": "C",
+                "text": "worriedly"
+              },
+              {
+                "id": "D",
+                "text": "hopefully"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-3",
+            "number": "3",
+            "options": [
+              {
+                "id": "A",
+                "text": "shared"
+              },
+              {
+                "id": "B",
+                "text": "forgot"
+              },
+              {
+                "id": "C",
+                "text": "attained"
+              },
+              {
+                "id": "D",
+                "text": "rejected"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-4",
+            "number": "4",
+            "options": [
+              {
+                "id": "A",
+                "text": "related"
+              },
+              {
+                "id": "B",
+                "text": "close"
+              },
+              {
+                "id": "C",
+                "text": "open"
+              },
+              {
+                "id": "D",
+                "text": "devoted"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-5",
+            "number": "5",
+            "options": [
+              {
+                "id": "A",
+                "text": "access"
+              },
+              {
+                "id": "B",
+                "text": "succession"
+              },
+              {
+                "id": "C",
+                "text": "right"
+              },
+              {
+                "id": "D",
+                "text": "return"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-6",
+            "number": "6",
+            "options": [
+              {
+                "id": "A",
+                "text": "Presumably"
+              },
+              {
+                "id": "B",
+                "text": "Incidentally"
+              },
+              {
+                "id": "C",
+                "text": "Obviously"
+              },
+              {
+                "id": "D",
+                "text": "Generally"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-7",
+            "number": "7",
+            "options": [
+              {
+                "id": "A",
+                "text": "unique"
+              },
+              {
+                "id": "B",
+                "text": "common"
+              },
+              {
+                "id": "C",
+                "text": "particular"
+              },
+              {
+                "id": "D",
+                "text": "typical"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-8",
+            "number": "8",
+            "options": [
+              {
+                "id": "A",
+                "text": "freedom"
+              },
+              {
+                "id": "B",
+                "text": "origin"
+              },
+              {
+                "id": "C",
+                "text": "impact"
+              },
+              {
+                "id": "D",
+                "text": "reform"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-9",
+            "number": "9",
+            "options": [
+              {
+                "id": "A",
+                "text": "therefore"
+              },
+              {
+                "id": "B",
+                "text": "however"
+              },
+              {
+                "id": "C",
+                "text": "indeed"
+              },
+              {
+                "id": "D",
+                "text": "moreover"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-10",
+            "number": "10",
+            "options": [
+              {
+                "id": "A",
+                "text": "with"
+              },
+              {
+                "id": "B",
+                "text": "about"
+              },
+              {
+                "id": "C",
+                "text": "among"
+              },
+              {
+                "id": "D",
+                "text": "by"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-11",
+            "number": "11",
+            "options": [
+              {
+                "id": "A",
+                "text": "allowed"
+              },
+              {
+                "id": "B",
+                "text": "preached"
+              },
+              {
+                "id": "C",
+                "text": "granted"
+              },
+              {
+                "id": "D",
+                "text": "funded"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-12",
+            "number": "12",
+            "options": [
+              {
+                "id": "A",
+                "text": "Since"
+              },
+              {
+                "id": "B",
+                "text": "If"
+              },
+              {
+                "id": "C",
+                "text": "Unless"
+              },
+              {
+                "id": "D",
+                "text": "While"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-13",
+            "number": "13",
+            "options": [
+              {
+                "id": "A",
+                "text": "as"
+              },
+              {
+                "id": "B",
+                "text": "for"
+              },
+              {
+                "id": "C",
+                "text": "under"
+              },
+              {
+                "id": "D",
+                "text": "against"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-14",
+            "number": "14",
+            "options": [
+              {
+                "id": "A",
+                "text": "spread"
+              },
+              {
+                "id": "B",
+                "text": "interference"
+              },
+              {
+                "id": "C",
+                "text": "exclusion"
+              },
+              {
+                "id": "D",
+                "text": "influence"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-15",
+            "number": "15",
+            "options": [
+              {
+                "id": "A",
+                "text": "support"
+              },
+              {
+                "id": "B",
+                "text": "cry"
+              },
+              {
+                "id": "C",
+                "text": "plea"
+              },
+              {
+                "id": "D",
+                "text": "wish"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-16",
+            "number": "16",
+            "options": [
+              {
+                "id": "A",
+                "text": "urged"
+              },
+              {
+                "id": "B",
+                "text": "intended"
+              },
+              {
+                "id": "C",
+                "text": "expected"
+              },
+              {
+                "id": "D",
+                "text": "promised"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-17",
+            "number": "17",
+            "options": [
+              {
+                "id": "A",
+                "text": "controlling"
+              },
+              {
+                "id": "B",
+                "text": "former"
+              },
+              {
+                "id": "C",
+                "text": "remaining"
+              },
+              {
+                "id": "D",
+                "text": "original"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-18",
+            "number": "18",
+            "options": [
+              {
+                "id": "A",
+                "text": "slower"
+              },
+              {
+                "id": "B",
+                "text": "faster"
+              },
+              {
+                "id": "C",
+                "text": "easier"
+              },
+              {
+                "id": "D",
+                "text": "tougher"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-19",
+            "number": "19",
+            "options": [
+              {
+                "id": "A",
+                "text": "created"
+              },
+              {
+                "id": "B",
+                "text": "produced"
+              },
+              {
+                "id": "C",
+                "text": "contributed"
+              },
+              {
+                "id": "D",
+                "text": "preferred"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-20",
+            "number": "20",
+            "options": [
+              {
+                "id": "A",
+                "text": "puzzled by"
+              },
+              {
+                "id": "B",
+                "text": "hostile to"
+              },
+              {
+                "id": "C",
+                "text": "pessimistic about"
+              },
+              {
+                "id": "D",
+                "text": "unprepared for"
+              }
+            ],
+            "correctOptionId": "D"
+          }
+        ],
+        "pointsPerItem": 0.5,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-1",
+            "label": "1"
+          },
+          {
+            "id": "q-2",
+            "label": "2"
+          },
+          {
+            "id": "q-3",
+            "label": "3"
+          },
+          {
+            "id": "q-4",
+            "label": "4"
+          },
+          {
+            "id": "q-5",
+            "label": "5"
+          },
+          {
+            "id": "q-6",
+            "label": "6"
+          },
+          {
+            "id": "q-7",
+            "label": "7"
+          },
+          {
+            "id": "q-8",
+            "label": "8"
+          },
+          {
+            "id": "q-9",
+            "label": "9"
+          },
+          {
+            "id": "q-10",
+            "label": "10"
+          },
+          {
+            "id": "q-11",
+            "label": "11"
+          },
+          {
+            "id": "q-12",
+            "label": "12"
+          },
+          {
+            "id": "q-13",
+            "label": "13"
+          },
+          {
+            "id": "q-14",
+            "label": "14"
+          },
+          {
+            "id": "q-15",
+            "label": "15"
+          },
+          {
+            "id": "q-16",
+            "label": "16"
+          },
+          {
+            "id": "q-17",
+            "label": "17"
+          },
+          {
+            "id": "q-18",
+            "label": "18"
+          },
+          {
+            "id": "q-19",
+            "label": "19"
+          },
+          {
+            "id": "q-20",
+            "label": "20"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-01",
+      "title": "阅读理解 Text 1（21–25）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "If you were to examine the birth certificates of every soccer player in 2006’s World Cup tournament, you would most likely find a noteworthy quirk: elite soccer players are more likely to have been born in the earlier months of the year than in the later months. If you then examined the European national youth teams that feed the World Cup and professional ranks, you would find this strange phenomenon to be even more pronounced."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "What might account for this strange phenomenon? Here are a few guesses: a) certain astrological signs confer superior soccer skills; b) winter-born babies tend to have higher oxygen capacity, which increases soccer stamina; c) soccer-mad parents are more likely to conceive children in springtime, at the annual peak of soccer mania; d) none of the above."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Anders Ericsson, a 58-year-old psychology professor at Florida State University, says he believes strongly in “none of the above.” Ericsson grew up in Sweden, and studied nuclear engineering until he realized he would have more opportunity to conduct his own research if he switched to psychology. His first experiment, nearly 30 years ago, involved memory: training a person to hear and then repeat a random series of numbers. “With the first subject, after about 20 hours of training, his digit span had risen from 7 to 20,” Ericsson recalls. “He kept improving, and after about 200 hours of training he had risen to over 80 numbers.”"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "This success, coupled with later research showing that memory itself is not genetically determined, led Ericsson to conclude that the act of memorizing is more of a cognitive exercise than an intuitive one. In other words, whatever inborn differences two people may exhibit in their abilities to memorize, those differences are swamped by how well each person “encodes” the information. And the best way to learn how to encode information meaningfully, Ericsson determined, was a process known as deliberate practice. Deliberate practice entails more than simply repeating a task. Rather, it involves setting specific goals, obtaining immediate feedback and concentrating as much on technique as on outcome."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Ericsson and his colleagues have thus taken to studying expert performers in a wide range of pursuits, including soccer. They gather all the data they can, not just performance statistics and biographical details but also the results of their own laboratory experiments with high achievers. Their work makes a rather startling assertion: the trait we commonly call talent is highly overrated. Or, put another way, expert performers—whether in memory or surgery, ballet or computer programming—are nearly always made, not born."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-21",
+            "number": "21",
+            "stem": "The birthday phenomenon found among soccer players is mentioned to",
+            "options": [
+              {
+                "id": "A",
+                "text": "stress the importance of professional training."
+              },
+              {
+                "id": "B",
+                "text": "spotlight the soccer superstars in the World Cup."
+              },
+              {
+                "id": "C",
+                "text": "introduce the topic of what makes expert performance."
+              },
+              {
+                "id": "D",
+                "text": "explain why some soccer teams play better than others."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-22",
+            "number": "22",
+            "stem": "The word “mania” (Line 5, Paragraph 2) most probably means",
+            "options": [
+              {
+                "id": "A",
+                "text": "fun."
+              },
+              {
+                "id": "B",
+                "text": "craze."
+              },
+              {
+                "id": "C",
+                "text": "hysteria."
+              },
+              {
+                "id": "D",
+                "text": "excitement."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-23",
+            "number": "23",
+            "stem": "According to Ericsson, good memory",
+            "options": [
+              {
+                "id": "A",
+                "text": "depends on meaningful processing of information."
+              },
+              {
+                "id": "B",
+                "text": "results from intuitive rather than cognitive exercises."
+              },
+              {
+                "id": "C",
+                "text": "is determined by genetic rather than psychological factors."
+              },
+              {
+                "id": "D",
+                "text": "requires immediate feedback and a high degree of concentration."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-24",
+            "number": "24",
+            "stem": "Ericsson and his colleagues believe that",
+            "options": [
+              {
+                "id": "A",
+                "text": "talent is a dominating factor for professional success."
+              },
+              {
+                "id": "B",
+                "text": "biographical data provide the key to excellent performance."
+              },
+              {
+                "id": "C",
+                "text": "the role of talent tends to be overlooked."
+              },
+              {
+                "id": "D",
+                "text": "high achievers owe their success mostly to nurture."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-25",
+            "number": "25",
+            "stem": "Which of the following proverbs is closest to the message the text tries to convey?",
+            "options": [
+              {
+                "id": "A",
+                "text": "“Faith will move mountains.”"
+              },
+              {
+                "id": "B",
+                "text": "“One reaps what one sows.”"
+              },
+              {
+                "id": "C",
+                "text": "“Practice makes perfect.”"
+              },
+              {
+                "id": "D",
+                "text": "“Like father, like son.”"
+              }
+            ],
+            "correctOptionId": "C"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-21",
+            "label": "21"
+          },
+          {
+            "id": "q-22",
+            "label": "22"
+          },
+          {
+            "id": "q-23",
+            "label": "23"
+          },
+          {
+            "id": "q-24",
+            "label": "24"
+          },
+          {
+            "id": "q-25",
+            "label": "25"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-02",
+      "title": "阅读理解 Text 2（26–30）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "For the past several years, the Sunday newspaper supplement Parade has featured a column called “Ask Marilyn.” People are invited to query Marilyn vos Savant, who at age 10 had tested at a mental level of someone about 23 years old; that gave her an IQ of 228—the highest score ever recorded. IQ tests ask you to complete verbal and visual analogies, to envision paper after it has been folded and cut, and to deduce numerical sequences, among other similar tasks. So it is a bit confusing when vos Savant fields such queries from the average Joe (whose IQ is 100) as, What’s the difference between love and fondness? Or what is the nature of luck and coincidence? It’s not obvious how the capacity to visualize objects and to figure out numerical patterns suits one to answer questions that have eluded some of the best poets and philosophers."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Clearly, intelligence encompasses more than a score on a test. Just what does it mean to be smart? How much of intelligence can be specified, and how much can we learn about it from neurology, genetics, computer science and other fields?"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The defining term of intelligence in humans still seems to be the IQ score, even though IQ tests are not given as often as they used to be. The test comes primarily in two forms: the Stanford-Binet Intelligence Scale and the Wechsler Intelligence Scales (both come in adult and children’s version). Generally costing several hundred dollars, they are usually given only by psychologists, although variations of them populate bookstores and the World Wide Web. Superhigh scores like vos Savant’s are no longer possible, because scoring is now based on a statistical population distribution among age peers, rather than simply dividing the mental age by the chronological age and multiplying by 100. Other standardized tests, such as the Scholastic Assessment Test (SAT) and the Graduate Record Exam (GRE), capture the main aspects of IQ tests."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Such standardized tests may not assess all the important elements necessary to succeed in school and in life, argues Robert J. Sternberg. In his article “How Intelligent Is Intelligence Testing?”, Sternberg notes that traditional tests best assess analytical and verbal skills but fail to measure creativity and practical knowledge, components also critical to problem solving and life success. Moreover, IQ tests do not necessarily predict so well once populations or situations change. Research has found that IQ predicted leadership skills when the tests were given under low-stress conditions, but under high-stress conditions, IQ was negatively correlated with leadership—that is, it predicted the opposite. Anyone who has toiled through SAT will testify that test-taking skill also matters, whether it’s knowing when to guess or what questions to skip."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-26",
+            "number": "26",
+            "stem": "Which of the following may be required in an intelligence test?",
+            "options": [
+              {
+                "id": "A",
+                "text": "Answering philosophical questions."
+              },
+              {
+                "id": "B",
+                "text": "Folding or cutting paper into different shapes."
+              },
+              {
+                "id": "C",
+                "text": "Telling the differences between certain concepts."
+              },
+              {
+                "id": "D",
+                "text": "Choosing words or graphs similar to the given ones."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-27",
+            "number": "27",
+            "stem": "What can be inferred about intelligence testing from Paragraph 3?",
+            "options": [
+              {
+                "id": "A",
+                "text": "People no longer use IQ scores as an indicator of intelligence."
+              },
+              {
+                "id": "B",
+                "text": "More versions of IQ tests are now available on the Internet."
+              },
+              {
+                "id": "C",
+                "text": "The test contents and formats for adults and children may be different."
+              },
+              {
+                "id": "D",
+                "text": "Scientists have defined the important elements of human intelligence."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-28",
+            "number": "28",
+            "stem": "People nowadays can no longer achieve IQ scores as high as vos Savant’s because",
+            "options": [
+              {
+                "id": "A",
+                "text": "the scores are obtained through different computational procedures."
+              },
+              {
+                "id": "B",
+                "text": "creativity rather than analytical skills is emphasized now."
+              },
+              {
+                "id": "C",
+                "text": "vos Savant’s case is an extreme one that will not repeat."
+              },
+              {
+                "id": "D",
+                "text": "the defining characteristic of IQ tests has changed."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-29",
+            "number": "29",
+            "stem": "We can conclude from the last paragraph that",
+            "options": [
+              {
+                "id": "A",
+                "text": "test scores may not be reliable indicators of one’s ability."
+              },
+              {
+                "id": "B",
+                "text": "IQ scores and SAT results are highly correlated."
+              },
+              {
+                "id": "C",
+                "text": "testing involves a lot of guesswork."
+              },
+              {
+                "id": "D",
+                "text": "traditional tests are out of date."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-30",
+            "number": "30",
+            "stem": "What is the author’s attitude towards IQ tests?",
+            "options": [
+              {
+                "id": "A",
+                "text": "Supportive."
+              },
+              {
+                "id": "B",
+                "text": "Skeptical."
+              },
+              {
+                "id": "C",
+                "text": "Impartial."
+              },
+              {
+                "id": "D",
+                "text": "Biased."
+              }
+            ],
+            "correctOptionId": "B"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-26",
+            "label": "26"
+          },
+          {
+            "id": "q-27",
+            "label": "27"
+          },
+          {
+            "id": "q-28",
+            "label": "28"
+          },
+          {
+            "id": "q-29",
+            "label": "29"
+          },
+          {
+            "id": "q-30",
+            "label": "30"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-03",
+      "title": "阅读理解 Text 3（31–35）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "During the past generation, the American middle-class family that once could count on hard work and fair play to keep itself financially secure had been transformed by economic risk and new realities. Now a pink slip, a bad diagnosis, or a disappearing spouse can reduce a family from solidly middle class to newly poor in a few months."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "In just one generation, millions of mothers have gone to work, transforming basic family economics. Scholars, policymakers, and critics of all stripes have debated the social implications of these changes, but few have looked at the side effect: family risk has risen as well. Today’s families have budgeted to the limits of their new two-paycheck status. As a result, they have lost the parachute they once had in times of financial setback—a back-up earner (usually Mom) who could go into the workforce if the primary earner got laid off or fell sick. This “added- worker effect” could support the safety net offered by unemployment insurance or disability insurance to help families weather bad times. But today, a disruption to family fortunes can no longer be made up with extra income from an otherwise- stay-at-home partner."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "During the same period, families have been asked to absorb much more risk in their retirement income. Steelworkers, airline employees, and now those in the auto industry are joining millions of families who must worry about interest rates, stock market fluctuation, and the harsh reality that they may outlive their retirement money. For much of the past year, President Bush campaigned to move Social Security to a savings-account model, with retirees trading much or all of their guaranteed payments for payments depending on investment returns. For younger families, the picture is not any better. Both the absolute cost of healthcare and the share of it borne by families have risen—and newly fashionable health-savings plans are spreading from legislative halls to Wal-Mart workers, with much higher deductibles and a large new dose of investment risk for families’ future healthcare. Even demographics are working against the middle class family, as the odds of having a weak elderly parent—and all the attendant need for physical and financial assistance—have jumped eightfold in just one generation."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "From the middle-class family perspective, much of this, understandably, looks far less like an opportunity to exercise more financial responsibility, and a good deal more like a frightening acceleration of the wholesale shift of financial risk onto their already overburdened shoulders. The financial fallout has begun, and the political fallout may not be far behind."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-31",
+            "number": "31",
+            "stem": "Today’s double-income families are at greater financial risk in that",
+            "options": [
+              {
+                "id": "A",
+                "text": "the safety net they used to enjoy has disappeared."
+              },
+              {
+                "id": "B",
+                "text": "their chances of being laid off have greatly increased."
+              },
+              {
+                "id": "C",
+                "text": "they are more vulnerable to changes in family economics."
+              },
+              {
+                "id": "D",
+                "text": "they are deprived of unemployment or disability insurance."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-32",
+            "number": "32",
+            "stem": "As a result of President Bush’s reform, retired people may have",
+            "options": [
+              {
+                "id": "A",
+                "text": "a higher sense of security."
+              },
+              {
+                "id": "B",
+                "text": "less secured payments."
+              },
+              {
+                "id": "C",
+                "text": "less chance to invest."
+              },
+              {
+                "id": "D",
+                "text": "a guaranteed future."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-33",
+            "number": "33",
+            "stem": "According to the author, health-savings plans will",
+            "options": [
+              {
+                "id": "A",
+                "text": "help reduce the cost of healthcare."
+              },
+              {
+                "id": "B",
+                "text": "popularize among the middle class."
+              },
+              {
+                "id": "C",
+                "text": "compensate for the reduced pensions."
+              },
+              {
+                "id": "D",
+                "text": "increase the families’ investment risk."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-34",
+            "number": "34",
+            "stem": "It can be inferred from the last paragraph that",
+            "options": [
+              {
+                "id": "A",
+                "text": "financial risks tend to outweigh political risks."
+              },
+              {
+                "id": "B",
+                "text": "the middle class may face greater political challenges."
+              },
+              {
+                "id": "C",
+                "text": "financial problems may bring about political problems."
+              },
+              {
+                "id": "D",
+                "text": "financial responsibility is an indicator of political status."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-35",
+            "number": "35",
+            "stem": "Which of the following is the best title for this text?",
+            "options": [
+              {
+                "id": "A",
+                "text": "The Middle Class on the Alert"
+              },
+              {
+                "id": "B",
+                "text": "The Middle Class on the Cliff"
+              },
+              {
+                "id": "C",
+                "text": "The Middle Class in Conflict"
+              },
+              {
+                "id": "D",
+                "text": "The Middle Class in Ruins"
+              }
+            ],
+            "correctOptionId": "B"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-31",
+            "label": "31"
+          },
+          {
+            "id": "q-32",
+            "label": "32"
+          },
+          {
+            "id": "q-33",
+            "label": "33"
+          },
+          {
+            "id": "q-34",
+            "label": "34"
+          },
+          {
+            "id": "q-35",
+            "label": "35"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-04",
+      "title": "阅读理解 Text 4（36–40）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "It never rains but it pours. Just as bosses and boards have finally sorted out their worst accounting and compliance troubles, and improved their feeble corporation governance, a new problem threatens to earn them—especially in America—the sort of nasty headlines that inevitably lead to heads rolling in the executive suite: data insecurity. Left, until now, to odd, low-level IT staff to put right, and seen as a concern only of data-rich industries such as banking, telecoms and air travel, information protection is now high on the boss’s agenda in businesses of every variety."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Several massive leakages of customer and employee data this year—from organizations as diverse as Time Warner, the American defense contractor Science Applications International Corp and even the University of California, Berkeley— have left managers hurriedly peering into their intricate IT systems and business processes in search of potential vulnerabilities."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "“Data is becoming an asset which needs to be guarded as much as any other asset,” says Haim Mendelson of Stanford University’s business school. “The ability to guard customer data is the key to market value, which the board is responsible for on behalf of shareholders.” Indeed, just as there is the concept of Generally Accepted Accounting Principles (GAAP), perhaps it is time for GASP, Generally Accepted Security Practices, suggested Eli Noam of New York’s Columbia Business School. “Setting the proper investment level for security, redundancy, and recovery is a management issue, not a technical one,” he says."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The mystery is that this should come as a surprise to any boss. Surely it should be obvious to the dimmest executive that trust, that most valuable of economic assets, is easily destroyed and hugely expensive to restore—and that few things are more likely to destroy trust than a company letting sensitive personal data get into the wrong hands."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The current state of affairs may have been encouraged—though not justified— by the lack of legal penalty (in America, but not Europe) for data leakage. Until California recently passed a law, American firms did not have to tell anyone, even the victim, when data went astray. That may change fast: lots of proposed data- security legislation is now doing the rounds in Washington, D.C. Meanwhile, the theft of information about some 40 million credit-card accounts in America, disclosed on June 17th, overshadowed a hugely important decision a day earlier by America’s Federal Trade Commission (FTC) that puts corporate America on notice that regulators will act if firms fail to provide adequate data security."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-36",
+            "number": "36",
+            "stem": "The statement “It never rains but it pours” is used to introduce",
+            "options": [
+              {
+                "id": "A",
+                "text": "the fierce business competition."
+              },
+              {
+                "id": "B",
+                "text": "the feeble boss-board relations."
+              },
+              {
+                "id": "C",
+                "text": "the threat from news reports."
+              },
+              {
+                "id": "D",
+                "text": "the severity of data leakage."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-37",
+            "number": "37",
+            "stem": "According to Paragraph 2, some organizations check their systems to find out",
+            "options": [
+              {
+                "id": "A",
+                "text": "whether there is any weak point."
+              },
+              {
+                "id": "B",
+                "text": "what sort of data has been stolen."
+              },
+              {
+                "id": "C",
+                "text": "who is responsible for the leakage."
+              },
+              {
+                "id": "D",
+                "text": "how the potential spies can be located."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-38",
+            "number": "38",
+            "stem": "In bringing up the concept of GASP the author is making the point that",
+            "options": [
+              {
+                "id": "A",
+                "text": "shareholders’ interests should be properly attended to."
+              },
+              {
+                "id": "B",
+                "text": "information protection should be given due attention."
+              },
+              {
+                "id": "C",
+                "text": "businesses should enhance their level of accounting security."
+              },
+              {
+                "id": "D",
+                "text": "the market value of customer data should be emphasized."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-39",
+            "number": "39",
+            "stem": "According to Paragraph 4, what puzzles the author is that some bosses fail to",
+            "options": [
+              {
+                "id": "A",
+                "text": "see the link between trust and data protection."
+              },
+              {
+                "id": "B",
+                "text": "perceive the sensitivity of personal data."
+              },
+              {
+                "id": "C",
+                "text": "realize the high cost of data restoration."
+              },
+              {
+                "id": "D",
+                "text": "appreciate the economic value of trust."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-40",
+            "number": "40",
+            "stem": "It can be inferred from Paragraph 5 that",
+            "options": [
+              {
+                "id": "A",
+                "text": "data leakage is more severe in Europe."
+              },
+              {
+                "id": "B",
+                "text": "FTC’s decision is essential to data security."
+              },
+              {
+                "id": "C",
+                "text": "California takes the lead in security legislation."
+              },
+              {
+                "id": "D",
+                "text": "legal penalty is a major solution to data leakage."
+              }
+            ],
+            "correctOptionId": "D"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-36",
+            "label": "36"
+          },
+          {
+            "id": "q-37",
+            "label": "37"
+          },
+          {
+            "id": "q-38",
+            "label": "38"
+          },
+          {
+            "id": "q-39",
+            "label": "39"
+          },
+          {
+            "id": "q-40",
+            "label": "40"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-b-01",
+      "title": "阅读匹配（41–45）",
+      "extension": {
+        "development": "reading-match-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "You are going to read a list of headings and a text about what parents are supposed to do to guide their children into adulthood. Choose a heading from the list A-G that best fits the meaning of each numbered part of the text (41-45). The first and last paragraphs of the text are not numbered. There are two extra headings that you do not need to use. Mark your answers on ANSWER SHEET 1. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[A] Set a Good Example for Your Kids"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[B] Build Your Kids’ Work Skills"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[C] Place Time Limits on Leisure Activities"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[D] Talk about the Future on a Regular Basis"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[E] Help Kids Develop Coping Strategies"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[F] Help Your Kids Figure Out Who They Are"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[G] Build Your Kids’ Sense of Responsibility How Can a Parent Help?"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Mothers and fathers can do a lot to ensure a safe landing in early adulthood for their kids. Even if a job’s starting salary seems too small to satisfy an emerging adult’s need for rapid content, the transition from school to work can be less of a setback if the start-up adult is ready for the move. Here are a few measures, drawn from my book Ready or Not, Here Life Comes, that parents can take to prevent what I call “work-life unreadiness”: 41"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "You can start this process when they are 11 or 12. Periodically review their emerging strengths and weaknesses with them and work together on any shortcomings, like difficulty in communicating well or collaborating. Also, identify the kinds of interests they keep coming back to, as these offer clues to the careers that will fit them best. 42"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Kids need a range of authentic role models—as opposed to members of their clique, pop stars and vaunted athletes. Have regular dinner-table discussions about people the family knows and how they got where they are. Discuss the joys and downsides of your own career and encourage your kids to form some ideas about their own future. When asked what they want to do, they should be discouraged from saying “I have no idea.” They can change their minds 200 times, but having only a foggy view of the future is of little good. 43"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Teachers are responsible for teaching kids how to learn; parents should be responsible for teaching them how to work. Assign responsibilities around the house and make sure homework deadlines are met. Encourage teenagers to take a part-time job. Kids need plenty of practice delaying gratification and deploying effective organizational skills, such as managing time and setting priorities. 44"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Playing video games encourages immediate content. And hours of watching TV shows with canned laughter only teaches kids to process information in a passive way. At the same time, listening through earphones to the same monotonous beats for long stretches encourages kids to stay inside their bubble instead of pursuing other endeavors. All these activities can prevent the growth of important communication and thinking skills and make it difficult for kids to develop the kind of sustained concentration they will need for most jobs. 45"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "They should know how to deal with setbacks, stresses and feelings of inadequacy. They should also learn how to solve problems and resolve conflicts, ways to brainstorm and think critically. Discussions at home can help kids practice doing these things and help them apply these skills to everyday life situations."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "What about the son or daughter who is grown but seems to be struggling and wandering aimlessly through early adulthood? Parents still have a major role to play, but now it is more delicate. They have to be careful not to come across as disappointed in their child. They should exhibit strong interest and respect for whatever currently interests their fledging adult (as naive or ill conceived as it may seem) while becoming a partner in exploring options for the future. Most of all, these new adults must feel that they are respected and supported by a family that appreciates them."
+                }
+              ]
+            }
+          ]
+        },
+        "paragraphIds": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E",
+          "F",
+          "G"
+        ],
+        "slots": [
+          {
+            "id": "slot-41",
+            "locked": false,
+            "correctParagraphId": "F"
+          },
+          {
+            "id": "slot-42",
+            "locked": false,
+            "correctParagraphId": "D"
+          },
+          {
+            "id": "slot-43",
+            "locked": false,
+            "correctParagraphId": "B"
+          },
+          {
+            "id": "slot-44",
+            "locked": false,
+            "correctParagraphId": "C"
+          },
+          {
+            "id": "slot-45",
+            "locked": false,
+            "correctParagraphId": "E"
+          }
+        ],
+        "parts": [
+          {
+            "id": "q-41",
+            "number": "41",
+            "slotId": "slot-41"
+          },
+          {
+            "id": "q-42",
+            "number": "42",
+            "slotId": "slot-42"
+          },
+          {
+            "id": "q-43",
+            "number": "43",
+            "slotId": "slot-43"
+          },
+          {
+            "id": "q-44",
+            "number": "44",
+            "slotId": "slot-44"
+          },
+          {
+            "id": "q-45",
+            "number": "45",
+            "slotId": "slot-45"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-41",
+            "label": "41"
+          },
+          {
+            "id": "q-42",
+            "label": "42"
+          },
+          {
+            "id": "q-43",
+            "label": "43"
+          },
+          {
+            "id": "q-44",
+            "label": "44"
+          },
+          {
+            "id": "q-45",
+            "label": "45"
+          }
+        ]
+      }
+    },
+    {
+      "id": "translation-01",
+      "title": "分句翻译（46–50）",
+      "extension": {
+        "development": "segment-translation-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text carefully and then translate the underlined segments into Chinese. Your translation should be written clearly on ANSWER SHEET 2. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The study of law has been recognized for centuries as a basic intellectual discipline in European universities. However, only in recent years has it become a feature of undergraduate programs in Canadian universities. (46) "
+                },
+                {
+                  "type": "text",
+                  "text": "Traditionally, legal learning has been viewed in such institutions as the special preserve of lawyers, rather than a necessary part of the intellectual equipment of an educated person.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " Happily, the older and more continental view of legal education is establishing itself in a number of Canadian universities and some have even begun to offer undergraduate degrees in law."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "If the study of law is beginning to establish itself as part and parcel of a general education, its aims and methods should appeal directly to journalism educators. Law is a discipline which encourages responsible judgment. On the one hand, it provides opportunities to analyze such ideas as justice, democracy and freedom. (47) "
+                },
+                {
+                  "type": "text",
+                  "text": "On the other, it links these concepts to everyday realities in a manner which is parallel to the links journalists forge on a daily basis as they cover and comment on the news.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " For example, notions of evidence and fact, of basic rights and public interest are at work in the process of journalistic judgment and production just as in courts of law. Sharpening judgment by absorbing and reflecting on law is a desirable component of a journalist’s intellectual preparation for his or her career."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "(48) "
+                },
+                {
+                  "type": "text",
+                  "text": "But the idea that the journalist must understand the law more profoundly than an ordinary citizen rests on an understanding of the established conventions and special responsibilities of the news media.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " Politics or, more broadly, the functioning of the state, is a major subject for journalists. The better informed they are about the way the state works, the better their reporting will be. (49) "
+                },
+                {
+                  "type": "text",
+                  "text": "In fact, it is difficult to see how journalists who do not have a clear grasp of the basic features of the Canadian Constitution can do a competent job on political stories.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Furthermore, the legal system and the events which occur within it are primary subjects for journalists. While the quality of legal journalism varies greatly, there is an undue reliance amongst many journalists on interpretations supplied to them by lawyers. (50) "
+                },
+                {
+                  "type": "text",
+                  "text": "While comment and reaction from lawyers may enhance stories, it is preferable for journalists to rely on their own notions of significance and make their own judgments.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " These can only come from a well-grounded understanding of the legal system."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-46",
+            "number": "46",
+            "segment": "Traditionally, legal learning has been viewed in such institutions as the special preserve of lawyers, rather than a necessary part of the intellectual equipment of an educated person."
+          },
+          {
+            "id": "q-47",
+            "number": "47",
+            "segment": "On the other, it links these concepts to everyday realities in a manner which is parallel to the links journalists forge on a daily basis as they cover and comment on the news."
+          },
+          {
+            "id": "q-48",
+            "number": "48",
+            "segment": "But the idea that the journalist must understand the law more profoundly than an ordinary citizen rests on an understanding of the established conventions and special responsibilities of the news media."
+          },
+          {
+            "id": "q-49",
+            "number": "49",
+            "segment": "In fact, it is difficult to see how journalists who do not have a clear grasp of the basic features of the Canadian Constitution can do a competent job on political stories."
+          },
+          {
+            "id": "q-50",
+            "number": "50",
+            "segment": "While comment and reaction from lawyers may enhance stories, it is preferable for journalists to rely on their own notions of significance and make their own judgments."
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "assessment": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "46. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "长久以来，法律知识在这类学校里一直被视为律师们所专有的，而不 是一个受教育者的知识素养的必要组成部分。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "47. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "另一方面，这一学科把这些概念结合到日常生活中，这与新闻记者每 天报道和评论新闻时的做法是相同的。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "48. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "新闻记者应比普通公民更加透彻地了解法律，而这种看法是基于他们 对新闻媒体业已确立的规约和特殊责任的理解。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "49. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "事实上，很难设想那些对加拿大宪法的基本要点缺乏清晰了解的新闻 记者何以能胜任政治新闻的报道工作。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "50. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "尽管律师的见解和反应会提高报道的质量，但新闻记者最好凭借他们 自己对重要性的理解自行做出判断。"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-46",
+            "label": "46"
+          },
+          {
+            "id": "q-47",
+            "label": "47"
+          },
+          {
+            "id": "q-48",
+            "label": "48"
+          },
+          {
+            "id": "q-49",
+            "label": "49"
+          },
+          {
+            "id": "q-50",
+            "label": "50"
+          }
+        ]
+      }
+    },
+    {
+      "id": "writing-51",
+      "title": "2007英语（一）应用文写作",
+      "extension": {
+        "development": "english-writing-2026-dev"
+      },
+      "data": {
+        "formatVersion": 1,
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "51. Write a letter to your university library, making suggestions for improving its service."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "You should write about 100 words on ANSWER SHEET 2."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Do not sign your own name at the end of the letter. Use “Li Ming” instead."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Do not write the address. (10 points)"
+                }
+              ]
+            }
+          ]
+        },
+        "referenceAnswer": null,
+        "rubric": null,
+        "wordCount": {
+          "target": 100
+        },
+        "maxScore": 10
+      },
+      "outline": {
+        "level": "question",
+        "label": "51"
+      }
+    },
+    {
+      "id": "writing-52",
+      "title": "2007英语（一）图画／图表作文",
+      "extension": {
+        "development": "english-writing-2026-dev"
+      },
+      "data": {
+        "formatVersion": 1,
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "52. Write an essay of 160-200 words based on the following drawing. In your essay, you should"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "1) describe the drawing briefly,"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "2) explain its intended meaning, and then"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "3) support your view with an example/examples."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "You should write neatly on ANSWER SHEET 2. (20 points)"
+                }
+              ]
+            },
+            {
+              "type": "image",
+              "attrs": {
+                "assetId": "290d90ae4343c7555828b9883fd389ca038063b2094c6755f88e4f408c1376c9",
+                "alt": "2007年作文原题图表"
+              }
+            }
+          ]
+        },
+        "referenceAnswer": null,
+        "rubric": null,
+        "wordCount": {
+          "min": 160,
+          "max": 200
+        },
+        "maxScore": 20
+      },
+      "outline": {
+        "level": "question",
+        "label": "52"
+      }
+    }
+  ]
+}

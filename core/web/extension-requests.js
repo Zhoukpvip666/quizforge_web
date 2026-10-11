@@ -1,4 +1,4 @@
-import {collectionFeature} from './practice-context.js';
+import {collectionFeature,examActive} from './practice-context.js';
 const denied=(code,message)=>Promise.resolve({ok:false,error:{code,message}});
 
 // Dispatches the public extension protocol. The shell owns persistence and lifecycle.
@@ -18,6 +18,10 @@ export function createExtensionRouter({readResource,uploadResource,loadSdk,save,
     }
     if(pane.view!=='practice')return denied('READ_ONLY','当前页面不接受作答修改');
     if(!args||typeof args!=='object')return denied('INVALID_REQUEST','请求格式不正确');
+    if(pane.exam){
+      if(method.startsWith('ai-')&&pane.exam.status!=='grading')return denied('EXAM_ACTION_DISABLED','交卷后才能评分');
+      if(method==='save'&&(args.purpose==='submit'||args.purpose==='review'&&pane.exam.status!=='grading'||args.purpose==='draft'&&!examActive(pane))||method==='action'&&args.action==='retry')return denied('EXAM_ACTION_DISABLED','考试请使用宿主的交卷按钮，交卷后答案锁定');
+    }
     if(method.startsWith('ai-'))return ai(pane,method,args);
     if(method==='save'){
       if(args.purpose==='review'&&args.data?.review)return save(pane,'review',{review:args.data.review});

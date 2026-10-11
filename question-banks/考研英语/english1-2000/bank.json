@@ -1,0 +1,1596 @@
+{
+  "formatVersion": 1,
+  "id": "kaoyan-english1-2000",
+  "title": "2000年考研英语真题（整理版）",
+  "description": "仅制作所提供PDF收录题目，不补齐缺失部分；按PDF及用户确认分值。",
+  "features": {
+    "editing": true,
+    "whiteboard": true,
+    "history": true,
+    "exam": true
+  },
+  "questions": [
+    {
+      "id": "cloze-01",
+      "title": "完形填空（1–10）",
+      "extension": {
+        "development": "english-cloze-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Choose the best word(s) for each numbered blank and mark A, B, C or D on ANSWER SHEET 1. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "If a farmer wishes to succeed, he must try to keep a wide gap between his consumption and his production. He must store a large quantity of grain [[1]] consuming all his grain immediately. He can continue to support himself and his family [[2]] he produces a surplus. He must use this surplus in three ways: as seed for sowing, as an insurance [[3]] the unpredictable effects of bad weather and as a commodity which he must sell in order to [[4]] old agricultural implements and obtain chemical fertilizers to [[5]] the soil. He may also need money to construct irrigation [[6]] and improve his farm in other ways. If no surplus is available, a farmer cannot be [[7]] . He must either sell some of his property or [[8]] extra funds in the form of loans. Naturally he will try to borrow money at a low [[9]] of interest, but loans of this kind are not [[10]] obtainable."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-1",
+            "number": "1",
+            "options": [
+              {
+                "id": "A",
+                "text": "other than"
+              },
+              {
+                "id": "B",
+                "text": "as well as"
+              },
+              {
+                "id": "C",
+                "text": "instead of"
+              },
+              {
+                "id": "D",
+                "text": "more than"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-2",
+            "number": "2",
+            "options": [
+              {
+                "id": "A",
+                "text": "only if"
+              },
+              {
+                "id": "B",
+                "text": "much as"
+              },
+              {
+                "id": "C",
+                "text": "long before"
+              },
+              {
+                "id": "D",
+                "text": "ever since"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-3",
+            "number": "3",
+            "options": [
+              {
+                "id": "A",
+                "text": "for"
+              },
+              {
+                "id": "B",
+                "text": "against"
+              },
+              {
+                "id": "C",
+                "text": "of"
+              },
+              {
+                "id": "D",
+                "text": "towards"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-4",
+            "number": "4",
+            "options": [
+              {
+                "id": "A",
+                "text": "replace"
+              },
+              {
+                "id": "B",
+                "text": "purchase"
+              },
+              {
+                "id": "C",
+                "text": "supplement"
+              },
+              {
+                "id": "D",
+                "text": "dispose"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-5",
+            "number": "5",
+            "options": [
+              {
+                "id": "A",
+                "text": "enhance"
+              },
+              {
+                "id": "B",
+                "text": "mix"
+              },
+              {
+                "id": "C",
+                "text": "feed"
+              },
+              {
+                "id": "D",
+                "text": "raise"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-6",
+            "number": "6",
+            "options": [
+              {
+                "id": "A",
+                "text": "vessels"
+              },
+              {
+                "id": "B",
+                "text": "routes"
+              },
+              {
+                "id": "C",
+                "text": "paths"
+              },
+              {
+                "id": "D",
+                "text": "channels"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-7",
+            "number": "7",
+            "options": [
+              {
+                "id": "A",
+                "text": "self-confident"
+              },
+              {
+                "id": "B",
+                "text": "self-sufficient"
+              },
+              {
+                "id": "C",
+                "text": "self-satisfied"
+              },
+              {
+                "id": "D",
+                "text": "self-restrained"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-8",
+            "number": "8",
+            "options": [
+              {
+                "id": "A",
+                "text": "search"
+              },
+              {
+                "id": "B",
+                "text": "save"
+              },
+              {
+                "id": "C",
+                "text": "offer"
+              },
+              {
+                "id": "D",
+                "text": "seek"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-9",
+            "number": "9",
+            "options": [
+              {
+                "id": "A",
+                "text": "proportion"
+              },
+              {
+                "id": "B",
+                "text": "percentage"
+              },
+              {
+                "id": "C",
+                "text": "rate"
+              },
+              {
+                "id": "D",
+                "text": "ratio"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-10",
+            "number": "10",
+            "options": [
+              {
+                "id": "A",
+                "text": "genuinely"
+              },
+              {
+                "id": "B",
+                "text": "obviously"
+              },
+              {
+                "id": "C",
+                "text": "presumably"
+              },
+              {
+                "id": "D",
+                "text": "frequently"
+              }
+            ],
+            "correctOptionId": "D"
+          }
+        ],
+        "pointsPerItem": 1.0,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-1",
+            "label": "1"
+          },
+          {
+            "id": "q-2",
+            "label": "2"
+          },
+          {
+            "id": "q-3",
+            "label": "3"
+          },
+          {
+            "id": "q-4",
+            "label": "4"
+          },
+          {
+            "id": "q-5",
+            "label": "5"
+          },
+          {
+            "id": "q-6",
+            "label": "6"
+          },
+          {
+            "id": "q-7",
+            "label": "7"
+          },
+          {
+            "id": "q-8",
+            "label": "8"
+          },
+          {
+            "id": "q-9",
+            "label": "9"
+          },
+          {
+            "id": "q-10",
+            "label": "10"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-01",
+      "title": "阅读理解 Text 1（11–14）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "A history of long and effortless success can be a dreadful handicap, but, if properly handled, it may become a driving force. When the United States entered just such a glowing period after the end of the Second World War, it had a market eight times larger than any competitor, giving its industries unparalleled economies of scale. Its scientists were the world’s best; its workers the most skilled. America and Americans were prosperous beyond the dreams of the Europeans and Asians whose economies the war had destroyed."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "It was inevitable that this primacy should have narrowed as other countries grew richer. Just as inevitably, the retreat from predominance proved painful. By the mid-1980s Americans had found themselves at a loss over their fading industrial competitiveness. Some huge American industries, such as consumer electronics, had shrunk or vanished in the face of foreign competition. By 1987 there was only one American television maker left, Zenith. (Now there is none: Zenith was bought by South Korea’s LG Electronics in July.) Foreign-made cars and textiles were sweeping into the domestic market. America’s machine-tool industry was on the ropes. For a while it looked as though the making of semiconductors, which America had invented and which sat at the heart of the new computer age, was going to be the next casualty."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "All of this caused a crisis of confidence. Americans stopped taking prosperity for granted. They began to believe that their way of doing business was failing, and that their incomes would therefore shortly begin to fall as well. The mid-1980s brought one inquiry after another into the causes of America’s industrial decline. Their sometimes sensational findings were filled with warnings about the growing competition from overseas."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "How things have changed! In 1995 the United States can look back on five years of solid growth while Japan has been struggling. Few Americans attribute this solely to such obvious causes as a devalued dollar or the turning of the business"
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-11",
+            "number": "11",
+            "stem": "The U.S. achieved its predominance after World War II because",
+            "options": [
+              {
+                "id": "A",
+                "text": "it had made painstaking efforts towards this goal."
+              },
+              {
+                "id": "B",
+                "text": "its domestic market was eight times larger than before."
+              },
+              {
+                "id": "C",
+                "text": "the war had destroyed the economies of most potential competitors."
+              },
+              {
+                "id": "D",
+                "text": "the unparalleled size of its workforce had given an impetus to its economy."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-12",
+            "number": "12",
+            "stem": "The loss of U.S. predominance in the world economy in the 1980s is manifested in the fact that the American",
+            "options": [
+              {
+                "id": "A",
+                "text": "TV industry had withdrawn to its domestic market."
+              },
+              {
+                "id": "B",
+                "text": "semiconductor industry had been taken over by foreign enterprises."
+              },
+              {
+                "id": "C",
+                "text": "machine-tool industry had collapsed after suicidal actions."
+              },
+              {
+                "id": "D",
+                "text": "auto industry had lost part of its domestic market."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-13",
+            "number": "13",
+            "stem": "What can be inferred from the passage?",
+            "options": [
+              {
+                "id": "A",
+                "text": "It is human nature to shift between self-doubt and blind pride."
+              },
+              {
+                "id": "B",
+                "text": "Intense competition may contribute to economic progress."
+              },
+              {
+                "id": "C",
+                "text": "The revival of the economy depends on international cooperation."
+              },
+              {
+                "id": "D",
+                "text": "A long history of success may pave the way for further development."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-14",
+            "number": "14",
+            "stem": "The author seems to believe the revival of the U.S. economy in the 1990s can be attributed to the",
+            "options": [
+              {
+                "id": "A",
+                "text": "turning of the business cycle."
+              },
+              {
+                "id": "B",
+                "text": "restructuring of industry."
+              },
+              {
+                "id": "C",
+                "text": "improved business management."
+              },
+              {
+                "id": "D",
+                "text": "success in education."
+              }
+            ],
+            "correctOptionId": "A"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 8,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-11",
+            "label": "11"
+          },
+          {
+            "id": "q-12",
+            "label": "12"
+          },
+          {
+            "id": "q-13",
+            "label": "13"
+          },
+          {
+            "id": "q-14",
+            "label": "14"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-02",
+      "title": "阅读理解 Text 2（15–18）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Being a man has always been dangerous. There are about 105 males born for every 100 females, but this ratio drops to near balance at the age of maturity, and among 70-year-olds there are twice as many women as men. But the great universal of male mortality is being changed. Now, boy babies survive almost as well as girls do. This means that, for the first time, there will be an excess of boys in those crucial years when they are searching for a mate. More important, another chance for natural selection has been removed. Fifty years ago, the chance of a baby (particularly a boy baby) surviving depended on its weight. A kilogram too light or too heavy meant almost certain death. Today it makes almost no difference. Since much of the variation is due to genes, one more agent of evolution has gone."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "There is another way to commit evolutionary suicide: stay alive, but have fewer children. Few people are as fertile as in the past. Except in some religious communities, very few women have 15 children. Nowadays the number of births, like the age of death, has become average. Most of us have roughly the same number of offspring. Again, differences between people and the opportunity for natural selection to take advantage of it have diminished. India shows what is happening. The country offers wealth for a few in the great cities and poverty for the remaining tribal peoples. The grand mediocrity of today—everyone being the same in survival and number of offspring—means that natural selection has lost 80% of its power in upper-middle-class India compared to the tribes."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "For us, this means that evolution is over; the biological Utopia has arrived. Strangely, it has involved little physical change. No other species fills so many places in nature. But in the past 100,000 years—even the past 100 years— our lives have been transformed but our bodies have not. We did not evolve, because machines and society did it for us. Darwin had a phrase to describe those ignorant of evolution: they “look at an organic being as a savage looks at a ship, as at something wholly beyond his comprehension.” No doubt we will remember a 20th century way of life beyond comprehension for its ugliness. But however amazed our descendants may be at how far from Utopia we were, they will look just like us."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-15",
+            "number": "15",
+            "stem": "What used to be the danger in being a man according to the first paragraph?",
+            "options": [
+              {
+                "id": "A",
+                "text": "A lack of mates."
+              },
+              {
+                "id": "B",
+                "text": "A fierce competition."
+              },
+              {
+                "id": "C",
+                "text": "A lower survival rate."
+              },
+              {
+                "id": "D",
+                "text": "A defective gene."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-16",
+            "number": "16",
+            "stem": "What does the example of India illustrate?",
+            "options": [
+              {
+                "id": "A",
+                "text": "Wealthy people tend to have fewer children than poor people."
+              },
+              {
+                "id": "B",
+                "text": "Natural selection hardly works among the rich and the poor."
+              },
+              {
+                "id": "C",
+                "text": "The middle class population is 80% smaller than that of the tribes."
+              },
+              {
+                "id": "D",
+                "text": "India is one of the countries with a very high birth rate."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-17",
+            "number": "17",
+            "stem": "The author argues that our bodies have stopped evolving because",
+            "options": [
+              {
+                "id": "A",
+                "text": "life has been improved by technological advance."
+              },
+              {
+                "id": "B",
+                "text": "the number of female babies has been declining."
+              },
+              {
+                "id": "C",
+                "text": "our species has reached the highest stage of evolution."
+              },
+              {
+                "id": "D",
+                "text": "the difference between wealth and poverty is disappearing."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-18",
+            "number": "18",
+            "stem": "Which of the following would be the best title for the passage?",
+            "options": [
+              {
+                "id": "A",
+                "text": "Sex Ratio Changes in Human Evolution."
+              },
+              {
+                "id": "B",
+                "text": "Ways of Continuing Man’s Evolution."
+              },
+              {
+                "id": "C",
+                "text": "The Evolutionary Future of Nature."
+              },
+              {
+                "id": "D",
+                "text": "Human Evolution Going Nowhere."
+              }
+            ],
+            "correctOptionId": "D"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 8,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-15",
+            "label": "15"
+          },
+          {
+            "id": "q-16",
+            "label": "16"
+          },
+          {
+            "id": "q-17",
+            "label": "17"
+          },
+          {
+            "id": "q-18",
+            "label": "18"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-03",
+      "title": "阅读理解 Text 3（19–22）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "When a new movement in art attains a certain fashion, it is advisable to find out what its advocates are aiming at, for, however farfetched and unreasonable their principles may seem today, it is possible that in years to come they may be regarded as normal. With regard to Futurist poetry, however, the case is rather difficult, for whatever Futurist poetry may be—even admitting that the theory on which it is based may be right—it can hardly be classed as Literature."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "This, in brief, is what the Futurist says: for a century, past conditions of life have been conditionally speeding up, till now we live in a world of noise and violence and speed. Consequently, our feelings, thoughts and emotions have undergone a corresponding change. This speeding up of life, says the Futurist, requires a new form of expression. We must speed up our literature too, if we want to interpret modern stress. We must pour out a large stream of essential words, unhampered by stops, or qualifying adjectives, or finite verbs. Instead of describing sounds we must make up words that imitate them; we must use many sizes of type and different colored inks on the same page, and shorten or lengthen words at will."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Certainly their descriptions of battles are confusing. But it is a little upsetting to read in the explanatory notes that a certain line describes a fight between a Turkish and a Bulgarian officer on a bridge off which they both fall into the river—and then to find that the line consists of the noise of their falling and the weights of the officers: “Pluff! Pluff! A hundred and eighty-five kilograms.”"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "This, though it fulfills the laws and requirements of Futurist poetry, can hardly be classed as Literature. All the same, no thinking man can refuse to accept their first proposition: that a great change in our emotional life calls for a change of expression. The whole question is really this: have we essentially changed?"
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-19",
+            "number": "19",
+            "stem": "This passage is mainly",
+            "options": [
+              {
+                "id": "A",
+                "text": "a survey of new approaches to art."
+              },
+              {
+                "id": "B",
+                "text": "a review of Futurist poetry."
+              },
+              {
+                "id": "C",
+                "text": "about merits of the Futurist movement."
+              },
+              {
+                "id": "D",
+                "text": "about laws and requirements of literature."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-20",
+            "number": "20",
+            "stem": "When a novel literary idea appears, people should try to",
+            "options": [
+              {
+                "id": "A",
+                "text": "determine its purposes."
+              },
+              {
+                "id": "B",
+                "text": "ignore its flaws."
+              },
+              {
+                "id": "C",
+                "text": "follow the new fashions."
+              },
+              {
+                "id": "D",
+                "text": "accept the principles."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-21",
+            "number": "21",
+            "stem": "Futurists claim that we must",
+            "options": [
+              {
+                "id": "A",
+                "text": "increase the production of literature."
+              },
+              {
+                "id": "B",
+                "text": "use poetry to relieve modern stress."
+              },
+              {
+                "id": "C",
+                "text": "develop new modes of expression."
+              },
+              {
+                "id": "D",
+                "text": "avoid using adjectives and verbs."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-22",
+            "number": "22",
+            "stem": "The author believes that Futurist poetry is",
+            "options": [
+              {
+                "id": "A",
+                "text": "based on reasonable principles."
+              },
+              {
+                "id": "B",
+                "text": "new and acceptable to ordinary people."
+              },
+              {
+                "id": "C",
+                "text": "indicative of basic change in human nature."
+              },
+              {
+                "id": "D",
+                "text": "more of a transient phenomenon than literature."
+              }
+            ],
+            "correctOptionId": "D"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 8,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-19",
+            "label": "19"
+          },
+          {
+            "id": "q-20",
+            "label": "20"
+          },
+          {
+            "id": "q-21",
+            "label": "21"
+          },
+          {
+            "id": "q-22",
+            "label": "22"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-04",
+      "title": "阅读理解 Text 4（23–26）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Aimlessness has hardly been typical of the postwar Japan whose productivity and social harmony are the envy of the United States and Europe. But increasingly the Japanese are seeing a decline of the traditional work-moral values. Ten years ago young people were hardworking and saw their jobs as their primary reason for being, but now Japan has largely fulfilled its economic needs, and young people don’t know where they should go next."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The coming of age of the postwar baby boom and an entry of women into the male-dominated job market have limited the opportunities of teenagers who are already questioning the heavy personal sacrifices involved in climbing Japan’s rigid social ladder to good schools and jobs. In a recent survey, it was found that only 24.5 percent of Japanese students were fully satisfied with school life, compared with 67.2 percent of students in the United States. In addition, far more Japanese workers expressed dissatisfaction with their jobs than did their counterparts in the 10 other countries surveyed."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "While often praised by foreigners for its emphasis on the basics, Japanese education tends to stress test taking and mechanical learning over creativity and self-expression. “Those things that do not show up in the test scores—personality, ability, courage or humanity—are completely ignored,” says Toshiki Kaifu, chairman of the ruling Liberal Democratic Party’s education committee. “Frustration against this kind of thing leads kids to drop out and run wild.” Last year Japan experienced 2,125 incidents of school violence, including 929 assaults on teachers. Amid the outcry, many conservative leaders are seeking a return to the prewar emphasis on moral education. Last year Mitsuo Setoyama, who was then education minister, raised eyebrows when he argued that liberal reforms introduced by the American occupation authorities after World War II had weakened the “Japanese morality of respect for parents.”"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "But that may have more to do with Japanese life-styles. “In Japan,” says educator Yoko Muro, “it’s never a question of whether you enjoy your job and your life, but only how much you can endure.” With economic growth has come centralization; fully 76 percent of Japan’s 119 million citizens live in cities where community and the extended family have been abandoned in favor of isolated, two-generation households. Urban Japanese have long endured lengthy commutes (travels to and from work) and crowded living conditions, but as the old group and family values weaken, the discomfort is beginning to tell. In the past decade, the Japanese divorce rate, while still well below that of the United States, has increased by more than 50 percent, and suicides have increased by nearly one-quarter."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-23",
+            "number": "23",
+            "stem": "In the Westerners’ eyes, the postwar Japan was",
+            "options": [
+              {
+                "id": "A",
+                "text": "under aimless development."
+              },
+              {
+                "id": "B",
+                "text": "a positive example."
+              },
+              {
+                "id": "C",
+                "text": "a rival to the West."
+              },
+              {
+                "id": "D",
+                "text": "on the decline."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-24",
+            "number": "24",
+            "stem": "According to the author, what may chiefly be responsible for the moral decline of Japanese society?",
+            "options": [
+              {
+                "id": "A",
+                "text": "Women’s participation in social activities is limited."
+              },
+              {
+                "id": "B",
+                "text": "More workers are dissatisfied with their jobs."
+              },
+              {
+                "id": "C",
+                "text": "Excessive emphasis has been placed on the basics."
+              },
+              {
+                "id": "D",
+                "text": "The life-style has been influenced by Western values."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-25",
+            "number": "25",
+            "stem": "Which of the following is true according to the author?",
+            "options": [
+              {
+                "id": "A",
+                "text": "Japanese education is praised for helping the young climb the social ladder."
+              },
+              {
+                "id": "B",
+                "text": "Japanese education is characterized by mechanical learning as well as creativity."
+              },
+              {
+                "id": "C",
+                "text": "More stress should be placed on the cultivation of creativity."
+              },
+              {
+                "id": "D",
+                "text": "Dropping out leads to frustration against test taking."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-26",
+            "number": "26",
+            "stem": "The change in Japanese life-style is revealed in the fact that",
+            "options": [
+              {
+                "id": "A",
+                "text": "the young are less tolerant of discomforts in life."
+              },
+              {
+                "id": "B",
+                "text": "the divorce rate in Japan exceeds that in the U.S."
+              },
+              {
+                "id": "C",
+                "text": "the Japanese endure more than ever before."
+              },
+              {
+                "id": "D",
+                "text": "the Japanese appreciate their present life."
+              }
+            ],
+            "correctOptionId": "A"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 8,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-23",
+            "label": "23"
+          },
+          {
+            "id": "q-24",
+            "label": "24"
+          },
+          {
+            "id": "q-25",
+            "label": "25"
+          },
+          {
+            "id": "q-26",
+            "label": "26"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-05",
+      "title": "阅读理解 Text 5（27–30）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "If ambition is to be well regarded, the rewards of ambition—wealth, distinction, control over one’s destiny—must be deemed worthy of the sacrifices made on ambition’s behalf. If the tradition of ambition is to have vitality, it must be widely shared; and it especially must be highly regarded by people who are themselves admired, the educated not least among them. In an odd way, however, it is the educated who have claimed to have given up on ambition as an ideal. What is odd is that they have perhaps most benefited from ambition—if not always their own then that of their parents and grandparents. There is heavy note of hypocrisy in this, a case of closing the barn door after the horses have escaped—with the educated themselves riding on them."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Certainly people do not seem less interested in success and its signs now than formerly. Summer homes, European travel, BMWs—the locations, place names and name brands may change, but such items do not seem less in demand today than a decade or two years ago. What has happened is that people cannot confess fully to their dreams, as easily and openly as once they could, lest they be thought pushing, acquisitive and vulgar. Instead, we are treated to fine hypocritical spectacles, which now more than ever seem in ample supply: the critic of American materialism with a Southampton summer home; the publisher of radical books who takes his meals in three-star restaurants; the journalist advocating participatory democracy in all phases of life, whose own children are enrolled in private schools. For such people and many more perhaps not so exceptional, the proper formulation is, “Succeed at all costs but avoid appearing ambitious.”"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The attacks on ambition are many and come from various angles; its public defenders are few and unimpressive, where they are not extremely unattractive. As a result, the support for ambition as a healthy impulse, a quality to be admired and fixed in the mind of the young, is probably lower than it has ever been in the United States. This does not mean that ambition is at an end, that people no longer feel its stirrings and promptings, but only that, no longer openly honored, it is less openly professed. Consequences follow from this, of course, some of which are that ambition is driven underground, or made sly. Such, then, is the way things stand: on the left angry critics, on the right stupid supporters, and in the middle, as usual, the majority of earnest people trying to get on in life."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-27",
+            "number": "27",
+            "stem": "It is generally believed that ambition may be well regarded if",
+            "options": [
+              {
+                "id": "A",
+                "text": "its returns well compensate for the sacrifices."
+              },
+              {
+                "id": "B",
+                "text": "it is rewarded with money, fame and power."
+              },
+              {
+                "id": "C",
+                "text": "its goals are spiritual rather than material."
+              },
+              {
+                "id": "D",
+                "text": "it is shared by the rich and the famous."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-28",
+            "number": "28",
+            "stem": "The last sentence of the first paragraph most probably implies that it is",
+            "options": [
+              {
+                "id": "A",
+                "text": "customary of the educated to discard ambition in words."
+              },
+              {
+                "id": "B",
+                "text": "too late to check ambition once it has been let out."
+              },
+              {
+                "id": "C",
+                "text": "dishonest to deny ambition after the fulfillment of the goal."
+              },
+              {
+                "id": "D",
+                "text": "impractical for the educated to enjoy benefits from ambition."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-29",
+            "number": "29",
+            "stem": "Some people do not openly admit they have ambition because",
+            "options": [
+              {
+                "id": "A",
+                "text": "they think of it as immoral."
+              },
+              {
+                "id": "B",
+                "text": "their pursuits are not fame or wealth."
+              },
+              {
+                "id": "C",
+                "text": "ambition is not closely related to material benefits."
+              },
+              {
+                "id": "D",
+                "text": "they do not want to appear greedy and contemptible."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-30",
+            "number": "30",
+            "stem": "From the last paragraph the conclusion can be drawn that ambition should be maintained",
+            "options": [
+              {
+                "id": "A",
+                "text": "secretly and vigorously."
+              },
+              {
+                "id": "B",
+                "text": "openly and enthusiastically."
+              },
+              {
+                "id": "C",
+                "text": "easily and momentarily."
+              },
+              {
+                "id": "D",
+                "text": "verbally and spiritually."
+              }
+            ],
+            "correctOptionId": "B"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 8,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-27",
+            "label": "27"
+          },
+          {
+            "id": "q-28",
+            "label": "28"
+          },
+          {
+            "id": "q-29",
+            "label": "29"
+          },
+          {
+            "id": "q-30",
+            "label": "30"
+          }
+        ]
+      }
+    },
+    {
+      "id": "translation-01",
+      "title": "分句翻译（31–35）",
+      "extension": {
+        "development": "segment-translation-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text carefully and then translate the underlined segments into Chinese. Your translation should be written clearly on ANSWER SHEET 2. (15 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Governments throughout the world act on the assumption that the welfare of their people depends largely on the economic strength and wealth of the community. (31) "
+                },
+                {
+                  "type": "text",
+                  "text": "Under modern conditions, this requires varying measures of centralized control and hence the help of specialized scientists such as economists and operational research experts.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " (32) "
+                },
+                {
+                  "type": "text",
+                  "text": "Furthermore, it is obvious that the strength of a country’s economy is directly bound up with the efficiency of its agriculture and industry, and that this in turn rests upon the efforts of scientists and technologists of all kinds.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " It also means that governments are increasingly compelled to interfere in these sectors in order to step up production and ensure that it is utilized to the best advantage. For example, they may encourage research in various ways, including the setting up of their own research centers; they may alter the structure of education, or interfere in order to reduce the wastage of natural resources or tap resources hitherto unexploited; or they may cooperate directly in the growing number of international projects related to science, economics and industry. In any case, all such interventions are heavily dependent on scientific advice and also scientific and technological manpower of all kinds."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "(33) "
+                },
+                {
+                  "type": "text",
+                  "text": "Owing to the remarkable development in mass-communications, people everywhere are feeling new wants and are being exposed to new customs and ideas, while governments are often forced to introduce still further innovations for the reasons given above.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " At the same time, the normal rate of social change throughout the world is taking place at a vastly accelerated speed compared with the past. For example, (34) "
+                },
+                {
+                  "type": "text",
+                  "text": "in the early industrialized countries of Europe the process of industrialization—with all the far-reaching changes in social patterns that followed—was spread over nearly a century, whereas nowadays a developing nation may undergo the same process in a decade or so.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " All this has the effect of building up unusual pressures and tensions within the community and consequently presents serious problems for the governments concerned. (35) "
+                },
+                {
+                  "type": "text",
+                  "text": "Additional social stresses may also occur because of the population explosion or problems arising from mass migration movements—themselves made relatively easy nowadays by modern means of transport.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " As a result of all these factors, governments are becoming increasingly dependent on biologists and social scientists for planning the appropriate programs and putting them into effect."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-31",
+            "number": "31",
+            "segment": "Under modern conditions, this requires varying measures of centralized control and hence the help of specialized scientists such as economists and operational research experts."
+          },
+          {
+            "id": "q-32",
+            "number": "32",
+            "segment": "Furthermore, it is obvious that the strength of a country’s economy is directly bound up with the efficiency of its agriculture and industry, and that this in turn rests upon the efforts of scientists and technologists of all kinds."
+          },
+          {
+            "id": "q-33",
+            "number": "33",
+            "segment": "Owing to the remarkable development in mass-communications, people everywhere are feeling new wants and are being exposed to new customs and ideas, while governments are often forced to introduce still further innovations for the reasons given above."
+          },
+          {
+            "id": "q-34",
+            "number": "34",
+            "segment": "in the early industrialized countries of Europe the process of industrialization—with all the far-reaching changes in social patterns that followed—was spread over nearly a century, whereas nowadays a developing nation may undergo the same process in a decade or so."
+          },
+          {
+            "id": "q-35",
+            "number": "35",
+            "segment": "Additional social stresses may also occur because of the population explosion or problems arising from mass migration movements—themselves made relatively easy nowadays by modern means of transport."
+          }
+        ],
+        "pointsPerItem": 3.0,
+        "maxScore": 15,
+        "assessment": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "31. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "在现代条件下，这需要程度不同的集中控制措施，因此就需要诸如经济学和运筹学等领域的专家的协助。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "32. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "再者，显而易见的是一个国家的经济实力与其工农业生产效率密切相关，而效率的提高又有赖于各种科技人员的努力。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "33. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "大众传播的显著发展使各地的人们不断感到有新的需求，不断接触到新的习俗和思想，由于上述原因，政府常常得推出更多的革新。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "34. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "在先期实现工业化的欧洲国家中，其工业化进程以及随之而来的各种深刻的社会结构变革，持续了大约一个世纪之久，而如今一个发展中国家在十年左右就可能完成这个过程。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "35. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "由于人口的猛增或人口的大量流动（现代交通工具使这种流动相对容易）造成的种种问题也会对社会造成新的压力。"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-31",
+            "label": "31"
+          },
+          {
+            "id": "q-32",
+            "label": "32"
+          },
+          {
+            "id": "q-33",
+            "label": "33"
+          },
+          {
+            "id": "q-34",
+            "label": "34"
+          },
+          {
+            "id": "q-35",
+            "label": "35"
+          }
+        ]
+      }
+    },
+    {
+      "id": "writing-36",
+      "title": "2000英语图画／图表作文",
+      "extension": {
+        "development": "english-writing-2026-dev"
+      },
+      "data": {
+        "formatVersion": 1,
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "36. (1) Study the following two pictures carefully and write an essay of at least 150 words."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "(2) Your essay must be written neatly on ANSWER SHEET 2."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "(3) Your essay should meet the requirements below:"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "① Describe the pictures."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "② Deduce the purpose of the painter in the pictures."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "③ Suggest countermeasures. (15 points)"
+                }
+              ]
+            },
+            {
+              "type": "image",
+              "attrs": {
+                "assetId": "5df654387ca54bd35d57a88e083245e1b8f94a1f5e348dddf977f9c644feb7bb",
+                "alt": "2000年作文原题图表"
+              }
+            }
+          ]
+        },
+        "referenceAnswer": null,
+        "rubric": null,
+        "wordCount": {
+          "min": 150
+        },
+        "maxScore": 15
+      },
+      "outline": {
+        "level": "question",
+        "label": "36"
+      }
+    }
+  ]
+}

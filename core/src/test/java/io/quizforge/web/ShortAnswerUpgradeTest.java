@@ -19,7 +19,7 @@ class ShortAnswerUpgradeTest {
         for (String folder : new String[]{"extensions/short-answer", "extensions/short-answer-1.1.0", "extensions/short-answer-1.2.0", "extensions/short-answer-1.2.1", "extensions/short-answer-1.2.2", "shared/richtext/1.0.0", "shared/richtext/1.1.0", "shared/richtext/1.1.1", "shared/richtext/1.1.2", "question-banks/short-answer-demo"}) {
             Path source = folder.startsWith("extensions/")
                     ? Path.of("test/fixtures/legacy-extensions").resolve(folder.substring("extensions/".length()))
-                    : folder.startsWith("question-banks/") ? Path.of("..").resolve(folder) : Path.of(folder);
+                    : folder.startsWith("question-banks/") ? Path.of("test/fixtures/legacy-banks").resolve(folder.substring("question-banks/".length())) : Path.of(folder);
             try (var walk = Files.walk(source)) { for (Path path : walk.toList()) {
                 Path target = root.resolve(folder).resolve(source.relativize(path)); if (Files.isDirectory(path)) Files.createDirectories(target); else Files.copy(path, target);
             } }
@@ -50,7 +50,7 @@ class ShortAnswerUpgradeTest {
             Path target=root.resolve("extensions/single-choice").resolve(source.relativize(path));
             if(Files.isDirectory(path))Files.createDirectories(target);else Files.copy(path,target);
         }}
-        ObjectNode raw=(ObjectNode)Json.read(Path.of("../question-banks/mixed-demo/bank.json"),8*1024*1024);
+        ObjectNode raw=(ObjectNode)Json.read(Path.of("test/fixtures/legacy-banks/mixed-demo/bank.json"),8*1024*1024);
         ((ObjectNode)raw.at("/questions/1/extension")).put("version",version);
         raw.put("formatVersion",1).put("customMetadata","preserve author metadata");
         Files.createDirectories(root.resolve("question-banks/mixed-demo"));
@@ -244,7 +244,8 @@ class ShortAnswerUpgradeTest {
     }
 
     @Test void invalidPinnedTargetSdkIsReportedAndNeverReplacedFromSource() throws Exception {
-        prepare();Path archive=root.resolve(".state/sdk/quizforge.richtext/1.1.2/sdk.json");Files.writeString(archive,"{}");
+        prepare();library.sdk("quizforge.richtext","1.1.2");
+        Path archive=root.resolve(".state/sdk/quizforge.richtext/1.1.2/sdk.json");Files.writeString(archive,"{}");
         byte[] bankBefore=Files.readAllBytes(root.resolve("question-banks/short-answer-demo/bank.json"));
         library=new Library(root,new RuleEngine(root,"node",Duration.ofSeconds(4)));
         ApiException failure=assertThrows(ApiException.class,()->ShortAnswerUpgrade.run(library,states));

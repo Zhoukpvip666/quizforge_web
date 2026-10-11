@@ -1,0 +1,1859 @@
+{
+  "formatVersion": 1,
+  "id": "kaoyan-english1-2003",
+  "title": "2003年考研英语真题（整理版）",
+  "description": "仅制作所提供PDF收录题目，不补齐缺失部分；按PDF及用户确认分值。",
+  "features": {
+    "editing": true,
+    "whiteboard": true,
+    "history": true,
+    "exam": true
+  },
+  "questions": [
+    {
+      "id": "cloze-01",
+      "title": "完形填空（1–20）",
+      "extension": {
+        "development": "english-cloze-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Choose the best word(s) for each numbered blank and mark A, B, C or D on ANSWER SHEET 1. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Teachers need to be aware of the emotional, intellectual, and physical changes that young adults experience. And they also need to give serious [[1]] to how they can best [[2]] such changes. Growing bodies need movement and [[3]] , but not just in ways that emphasize competition. [[4]] they are adjusting to their new bodies and a whole host of new intellectual and emotional challenges, teenagers are especially self-conscious and need the [[5]] that comes from achieving success and knowing that their accomplishments are [[6]] by others. However, the typical teenage lifestyle is already filled with so much competition that it would be [[7]] to plan activities in which there are more winners than losers, [[8]] , publishing newsletters with many student-written book reviews, [[9]] student artwork, and sponsoring book discussion clubs. A variety of small clubs can provide [[10]] opportunities for leadership, as well as for practice in successful [[11]] dynamics. Making friends is extremely important to teenagers, and many shy students need the [[12]] of some kind of organization with a supportive adult [[13]] visible in the background."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "In these activities, it is important to remember that young teens have [[14]] attention spans. A variety of activities should be organized [[15]] participants can remain active as long as they want and then go on to [[16]] else without feeling guilty and without letting the other participants [[17]] . This does not mean that adults must accept irresponsibility. [[18]] , they can help students acquire a sense of commitment by [[19]] for roles that are within their [[20]] and their attention spans and by having clearly stated rules."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-1",
+            "number": "1",
+            "options": [
+              {
+                "id": "A",
+                "text": "thought"
+              },
+              {
+                "id": "B",
+                "text": "idea"
+              },
+              {
+                "id": "C",
+                "text": "opinion"
+              },
+              {
+                "id": "D",
+                "text": "advice"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-2",
+            "number": "2",
+            "options": [
+              {
+                "id": "A",
+                "text": "strengthen"
+              },
+              {
+                "id": "B",
+                "text": "accommodate"
+              },
+              {
+                "id": "C",
+                "text": "stimulate"
+              },
+              {
+                "id": "D",
+                "text": "enhance"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-3",
+            "number": "3",
+            "options": [
+              {
+                "id": "A",
+                "text": "care"
+              },
+              {
+                "id": "B",
+                "text": "nutrition"
+              },
+              {
+                "id": "C",
+                "text": "exercise"
+              },
+              {
+                "id": "D",
+                "text": "leisure"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-4",
+            "number": "4",
+            "options": [
+              {
+                "id": "A",
+                "text": "If"
+              },
+              {
+                "id": "B",
+                "text": "Although"
+              },
+              {
+                "id": "C",
+                "text": "Whereas"
+              },
+              {
+                "id": "D",
+                "text": "Because"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-5",
+            "number": "5",
+            "options": [
+              {
+                "id": "A",
+                "text": "assistance"
+              },
+              {
+                "id": "B",
+                "text": "guidance"
+              },
+              {
+                "id": "C",
+                "text": "confidence"
+              },
+              {
+                "id": "D",
+                "text": "tolerance"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-6",
+            "number": "6",
+            "options": [
+              {
+                "id": "A",
+                "text": "claimed"
+              },
+              {
+                "id": "B",
+                "text": "admired"
+              },
+              {
+                "id": "C",
+                "text": "ignored"
+              },
+              {
+                "id": "D",
+                "text": "surpassed"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-7",
+            "number": "7",
+            "options": [
+              {
+                "id": "A",
+                "text": "improper"
+              },
+              {
+                "id": "B",
+                "text": "risky"
+              },
+              {
+                "id": "C",
+                "text": "fair"
+              },
+              {
+                "id": "D",
+                "text": "wise"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-8",
+            "number": "8",
+            "options": [
+              {
+                "id": "A",
+                "text": "in effect"
+              },
+              {
+                "id": "B",
+                "text": "as a result"
+              },
+              {
+                "id": "C",
+                "text": "for example"
+              },
+              {
+                "id": "D",
+                "text": "in a sense"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-9",
+            "number": "9",
+            "options": [
+              {
+                "id": "A",
+                "text": "displaying"
+              },
+              {
+                "id": "B",
+                "text": "describing"
+              },
+              {
+                "id": "C",
+                "text": "creating"
+              },
+              {
+                "id": "D",
+                "text": "exchanging"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-10",
+            "number": "10",
+            "options": [
+              {
+                "id": "A",
+                "text": "durable"
+              },
+              {
+                "id": "B",
+                "text": "excessive"
+              },
+              {
+                "id": "C",
+                "text": "surplus"
+              },
+              {
+                "id": "D",
+                "text": "multiple"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-11",
+            "number": "11",
+            "options": [
+              {
+                "id": "A",
+                "text": "group"
+              },
+              {
+                "id": "B",
+                "text": "individual"
+              },
+              {
+                "id": "C",
+                "text": "personnel"
+              },
+              {
+                "id": "D",
+                "text": "corporation"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-12",
+            "number": "12",
+            "options": [
+              {
+                "id": "A",
+                "text": "consent"
+              },
+              {
+                "id": "B",
+                "text": "insurance"
+              },
+              {
+                "id": "C",
+                "text": "admission"
+              },
+              {
+                "id": "D",
+                "text": "security"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-13",
+            "number": "13",
+            "options": [
+              {
+                "id": "A",
+                "text": "particularly"
+              },
+              {
+                "id": "B",
+                "text": "barely"
+              },
+              {
+                "id": "C",
+                "text": "definitely"
+              },
+              {
+                "id": "D",
+                "text": "rarely"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-14",
+            "number": "14",
+            "options": [
+              {
+                "id": "A",
+                "text": "similar"
+              },
+              {
+                "id": "B",
+                "text": "long"
+              },
+              {
+                "id": "C",
+                "text": "different"
+              },
+              {
+                "id": "D",
+                "text": "short"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-15",
+            "number": "15",
+            "options": [
+              {
+                "id": "A",
+                "text": "if only"
+              },
+              {
+                "id": "B",
+                "text": "now that"
+              },
+              {
+                "id": "C",
+                "text": "so that"
+              },
+              {
+                "id": "D",
+                "text": "even if"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-16",
+            "number": "16",
+            "options": [
+              {
+                "id": "A",
+                "text": "everything"
+              },
+              {
+                "id": "B",
+                "text": "anything"
+              },
+              {
+                "id": "C",
+                "text": "nothing"
+              },
+              {
+                "id": "D",
+                "text": "something"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-17",
+            "number": "17",
+            "options": [
+              {
+                "id": "A",
+                "text": "off"
+              },
+              {
+                "id": "B",
+                "text": "down"
+              },
+              {
+                "id": "C",
+                "text": "out"
+              },
+              {
+                "id": "D",
+                "text": "alone"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-18",
+            "number": "18",
+            "options": [
+              {
+                "id": "A",
+                "text": "On the contrary"
+              },
+              {
+                "id": "B",
+                "text": "On the average"
+              },
+              {
+                "id": "C",
+                "text": "On the whole"
+              },
+              {
+                "id": "D",
+                "text": "On the other hand"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-19",
+            "number": "19",
+            "options": [
+              {
+                "id": "A",
+                "text": "making"
+              },
+              {
+                "id": "B",
+                "text": "standing"
+              },
+              {
+                "id": "C",
+                "text": "planning"
+              },
+              {
+                "id": "D",
+                "text": "taking"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-20",
+            "number": "20",
+            "options": [
+              {
+                "id": "A",
+                "text": "capabilities"
+              },
+              {
+                "id": "B",
+                "text": "responsibilities"
+              },
+              {
+                "id": "C",
+                "text": "proficiency"
+              },
+              {
+                "id": "D",
+                "text": "efficiency"
+              }
+            ],
+            "correctOptionId": "A"
+          }
+        ],
+        "pointsPerItem": 0.5,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-1",
+            "label": "1"
+          },
+          {
+            "id": "q-2",
+            "label": "2"
+          },
+          {
+            "id": "q-3",
+            "label": "3"
+          },
+          {
+            "id": "q-4",
+            "label": "4"
+          },
+          {
+            "id": "q-5",
+            "label": "5"
+          },
+          {
+            "id": "q-6",
+            "label": "6"
+          },
+          {
+            "id": "q-7",
+            "label": "7"
+          },
+          {
+            "id": "q-8",
+            "label": "8"
+          },
+          {
+            "id": "q-9",
+            "label": "9"
+          },
+          {
+            "id": "q-10",
+            "label": "10"
+          },
+          {
+            "id": "q-11",
+            "label": "11"
+          },
+          {
+            "id": "q-12",
+            "label": "12"
+          },
+          {
+            "id": "q-13",
+            "label": "13"
+          },
+          {
+            "id": "q-14",
+            "label": "14"
+          },
+          {
+            "id": "q-15",
+            "label": "15"
+          },
+          {
+            "id": "q-16",
+            "label": "16"
+          },
+          {
+            "id": "q-17",
+            "label": "17"
+          },
+          {
+            "id": "q-18",
+            "label": "18"
+          },
+          {
+            "id": "q-19",
+            "label": "19"
+          },
+          {
+            "id": "q-20",
+            "label": "20"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-01",
+      "title": "阅读理解 Text 1（21–25）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Wild Bill Donovan would have loved the Internet. The American spymaster who built the Office of Strategic Services in the World War II and later laid the roots for the CIA was fascinated with information. Donovan believed in using whatever tools came to hand in the “great game” of espionage—spying as a “profession.” These days the Net, which has already re-made such everyday pastimes as buying books and sending mail, is reshaping Donovan’s vocation as well."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The latest revolution isn’t simply a matter of gentlemen reading other gentlemen’s e-mail. That kind of electronic spying has been going on for decades. In the past three or four years, the World Wide Web has given birth to a whole industry of point-and-click spying. The spooks call it “open-source intelligence,” and as the Net grows, it is becoming increasingly influential. In 1995 the CIA held a contest to see who could compile the most data about Burundi. The winner, by a large margin, was a tiny Virginia company called Open Source Solutions, whose clear advantage was its mastery of the electronic world."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Among the firms making the biggest splash in the new world is Straitford, Inc., a private intelligence-analysis firm based in Austin, Texas. Straitford makes money by selling the results of spying (covering nations from Chile to Russia) to corporations like energy-services firm McDermott International. Many of its predictions are available online at www.straitford.com."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Straitford president George Friedman says he sees the online world as a kind of mutually reinforcing tool for both information collection and distribution, a spymaster’s dream. Last week his firm was busy vacuuming up data bits from the far corners of the world and predicting a crisis in Ukraine. “As soon as that report runs, we’ll suddenly get 500 new Internet sign-ups from Ukraine,” says Friedman, a former political science professor. “And we’ll hear back from some of them.” Open-source spying does have its risks, of course, since it can be difficult to tell good information from bad. That’s where Straitford earns its keep."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Friedman relies on a lean staff of 20 in Austin. Several of his staff members have military-intelligence backgrounds. He sees the firm’s outsider status as the key to its success. Straitford’s briefs don’t sound like the usual Washington back- and-forthing, whereby agencies avoid dramatic declarations on the chance they might be wrong. Straitford, says Friedman, takes pride in its independent voice."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-21",
+            "number": "21",
+            "stem": "The emergence of the Net has",
+            "options": [
+              {
+                "id": "A",
+                "text": "received support from fans like Donovan."
+              },
+              {
+                "id": "B",
+                "text": "remolded the intelligence services."
+              },
+              {
+                "id": "C",
+                "text": "restored many common pastimes."
+              },
+              {
+                "id": "D",
+                "text": "revived spying as a profession."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-22",
+            "number": "22",
+            "stem": "Donovan’s story is mentioned in the text to",
+            "options": [
+              {
+                "id": "A",
+                "text": "introduce the topic of online spying."
+              },
+              {
+                "id": "B",
+                "text": "show how he fought for the US."
+              },
+              {
+                "id": "C",
+                "text": "give an episode of the information war."
+              },
+              {
+                "id": "D",
+                "text": "honor his unique services to the CIA."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-23",
+            "number": "23",
+            "stem": "The phrase “making the biggest splash” (Line 1, Paragraph 3) most probably means",
+            "options": [
+              {
+                "id": "A",
+                "text": "causing the biggest trouble."
+              },
+              {
+                "id": "B",
+                "text": "exerting the greatest effort."
+              },
+              {
+                "id": "C",
+                "text": "achieving the greatest success."
+              },
+              {
+                "id": "D",
+                "text": "enjoying the widest popularity."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-24",
+            "number": "24",
+            "stem": "It can be learned from Paragraph 4 that",
+            "options": [
+              {
+                "id": "A",
+                "text": "Straitford’s prediction about Ukraine has proved true."
+              },
+              {
+                "id": "B",
+                "text": "Straitford guarantees the truthfulness of its information."
+              },
+              {
+                "id": "C",
+                "text": "Straitford’s business is characterized by unpredictability."
+              },
+              {
+                "id": "D",
+                "text": "Straitford is able to provide fairly reliable information."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-25",
+            "number": "25",
+            "stem": "Straitford is most proud of its",
+            "options": [
+              {
+                "id": "A",
+                "text": "official status."
+              },
+              {
+                "id": "B",
+                "text": "nonconformist image."
+              },
+              {
+                "id": "C",
+                "text": "efficient staff."
+              },
+              {
+                "id": "D",
+                "text": "military background."
+              }
+            ],
+            "correctOptionId": "B"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-21",
+            "label": "21"
+          },
+          {
+            "id": "q-22",
+            "label": "22"
+          },
+          {
+            "id": "q-23",
+            "label": "23"
+          },
+          {
+            "id": "q-24",
+            "label": "24"
+          },
+          {
+            "id": "q-25",
+            "label": "25"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-02",
+      "title": "阅读理解 Text 2（26–30）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "To paraphrase 18th-century statesman Edmund Burke, “all that is needed for the triumph of a misguided cause is that good people do nothing.” One such cause now seeks to end biomedical research because of the theory that animals have rights ruling out their use in research. Scientists need to respond forcefully to animal rights advocates, whose arguments are confusing the public and thereby threatening advances in health knowledge and care. Leaders of the animal rights movement target biomedical research because it depends on public funding, and few people understand the process of health care research. Hearing allegations of cruelty to animals in research settings, many are perplexed that anyone would deliberately harm an animal."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "For example, a grandmotherly woman staffing an animal rights booth at a recent street fair was distributing a brochure that encouraged readers not to use anything that comes from or is tested in animals—no meat, no fur, no medicines. Asked if she opposed immunizations, she wanted to know if vaccines come from animal research. When assured that they do, she replied, “Then I would have to say yes.” Asked what will happen when epidemics return, she said, “Don’t worry, scientists will find some way of using computers.” Such well-meaning people just don’t understand."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Scientists must communicate their message to the public in a compassionate, understandable way—in human terms, not in the language of molecular biology. We need to make clear the connection between animal research and a grandmother’s hip replacement, a father’s bypass operation, a baby’s vaccinations, and even a pet’s shots. To those who are unaware that animal research was needed to produce these treatments, as well as new treatments and vaccines, animal research seems wasteful at best and cruel at worst."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Much can be done. Scientists could “adopt” middle school classes and present their own research. They should be quick to respond to letters to the editor, lest animal rights misinformation go unchallenged and acquire a deceptive appearance of truth. Research institutions could be opened to tours, to show that laboratory animals receive humane care. Finally, because the ultimate stakeholders are patients, the health research community should actively recruit to its cause not only well-known personalities such as Stephen Cooper, who has made courageous statements about the value of animal research, but all who receive medical treatment. If good people do nothing, there is a real possibility that an uninformed citizenry will extinguish the precious embers of medical progress."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-26",
+            "number": "26",
+            "stem": "The author begins his article with Edmund Burke’s words to",
+            "options": [
+              {
+                "id": "A",
+                "text": "call on scientists to take some actions."
+              },
+              {
+                "id": "B",
+                "text": "criticize the misguided cause of animal rights."
+              },
+              {
+                "id": "C",
+                "text": "warn of the doom of biomedical research."
+              },
+              {
+                "id": "D",
+                "text": "show the triumph of the animal rights movement."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-27",
+            "number": "27",
+            "stem": "Misled people tend to think that using an animal in research is",
+            "options": [
+              {
+                "id": "A",
+                "text": "cruel but natural."
+              },
+              {
+                "id": "B",
+                "text": "inhuman and unacceptable."
+              },
+              {
+                "id": "C",
+                "text": "inevitable but vicious."
+              },
+              {
+                "id": "D",
+                "text": "pointless and wasteful."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-28",
+            "number": "28",
+            "stem": "The example of the grandmotherly woman is used to show the public’s",
+            "options": [
+              {
+                "id": "A",
+                "text": "discontent with animal research."
+              },
+              {
+                "id": "B",
+                "text": "ignorance about medical science."
+              },
+              {
+                "id": "C",
+                "text": "indifference to epidemics."
+              },
+              {
+                "id": "D",
+                "text": "anxiety about animal rights."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-29",
+            "number": "29",
+            "stem": "The author believes that, in face of the challenge from animal rights advocates, scientists should",
+            "options": [
+              {
+                "id": "A",
+                "text": "communicate more with the public."
+              },
+              {
+                "id": "B",
+                "text": "employ hi-tech means in research."
+              },
+              {
+                "id": "C",
+                "text": "feel no shame for their cause."
+              },
+              {
+                "id": "D",
+                "text": "strive to develop new cures."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-30",
+            "number": "30",
+            "stem": "From the text we learn that Stephen Cooper is",
+            "options": [
+              {
+                "id": "A",
+                "text": "a well-known humanist."
+              },
+              {
+                "id": "B",
+                "text": "a medical practitioner."
+              },
+              {
+                "id": "C",
+                "text": "an enthusiast in animal rights."
+              },
+              {
+                "id": "D",
+                "text": "a supporter of animal research."
+              }
+            ],
+            "correctOptionId": "D"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-26",
+            "label": "26"
+          },
+          {
+            "id": "q-27",
+            "label": "27"
+          },
+          {
+            "id": "q-28",
+            "label": "28"
+          },
+          {
+            "id": "q-29",
+            "label": "29"
+          },
+          {
+            "id": "q-30",
+            "label": "30"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-03",
+      "title": "阅读理解 Text 3（31–35）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "In recent years, railroads have been combining with each other, merging into supersystems, causing heightened concerns about monopoly. As recently as 1995, the top four railroads accounted for under 70 percent of the total ton-miles moved by rails. Next year, after a series of mergers is completed, just four railroads will control well over 90 percent of all the freight moved by major rail carriers."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Supporters of the new supersystems argue that these mergers will allow for substantial cost reductions and better coordinated service. Any threat of monopoly, they argue, is removed by fierce competition from trucks. But many shippers complain that for heavy bulk commodities traveling long distances, such as coal, chemicals, and grain, trucking is too costly and the railroads therefore have them by the throat."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The vast consolidation within the rail industry means that most shippers are served by only one rail company. Railroads typically charge such “captive” shippers 20 to 30 percent more than they do when another railroad is competing for the business. Shippers who feel they are being overcharged have the right to appeal to the federal government’s Surface Transportation Board for rate relief, but the process is expensive, time consuming, and will work only in truly extreme cases."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Railroads justify rate discrimination against captive shippers on the grounds that in the long run it reduces everyone’s cost. If railroads charged all customers the same average rate, they argue, shippers who have the option of switching to trucks or other forms of transportation would do so, leaving remaining customers to shoulder the cost of keeping up the line. It’s a theory to which many economists subscribe, but in practice it often leaves railroads in the position of determining which companies will flourish and which will fail. “Do we really want railroads to be the arbiters of who wins and who loses in the marketplace?” asks Martin Bercovici, a Washington lawyer who frequently represents shippers."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Many captive shippers also worry they will soon be hit with a round of huge rate increases. The railroad industry as a whole, despite its brightening fortunes, still does not earn enough to cover the cost of the capital it must invest to keep up with its surging traffic. Yet railroads continue to borrow billions to acquire one another, with Wall Street cheering them on. Consider the $10.2 billion bid by Norfolk Southern and CSX to acquire Conrail this year. Conrail’s net railway operating income in 1996 was just $427 million, less than half of the carrying costs of the transaction. Who’s going to pay for the rest of the bill? Many captive shippers fear that they will, as Norfolk Southern and CSX increase their grip on the market."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-31",
+            "number": "31",
+            "stem": "According to those who support mergers, railway monopoly is unlikely because",
+            "options": [
+              {
+                "id": "A",
+                "text": "cost reduction is based on competition."
+              },
+              {
+                "id": "B",
+                "text": "services call for cross-trade coordination."
+              },
+              {
+                "id": "C",
+                "text": "outside competitors will continue to exist."
+              },
+              {
+                "id": "D",
+                "text": "shippers will have the railway by the throat."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-32",
+            "number": "32",
+            "stem": "What is many captive shippers’ attitude towards the consolidation in the rail industry?",
+            "options": [
+              {
+                "id": "A",
+                "text": "Indifferent."
+              },
+              {
+                "id": "B",
+                "text": "Supportive."
+              },
+              {
+                "id": "C",
+                "text": "Indignant."
+              },
+              {
+                "id": "D",
+                "text": "Apprehensive."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-33",
+            "number": "33",
+            "stem": "It can be inferred from Paragraph 3 that",
+            "options": [
+              {
+                "id": "A",
+                "text": "shippers will be charged less without a rival railroad."
+              },
+              {
+                "id": "B",
+                "text": "there will soon be only one railroad company nationwide."
+              },
+              {
+                "id": "C",
+                "text": "overcharged shippers are unlikely to appeal for rate relief."
+              },
+              {
+                "id": "D",
+                "text": "a government board ensures fair play in railway business."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-34",
+            "number": "34",
+            "stem": "The word “arbiters” (Line 7, Paragraph 4) most probably refers to those",
+            "options": [
+              {
+                "id": "A",
+                "text": "who work as coordinators."
+              },
+              {
+                "id": "B",
+                "text": "who function as judges."
+              },
+              {
+                "id": "C",
+                "text": "who supervise transactions."
+              },
+              {
+                "id": "D",
+                "text": "who determine the price."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-35",
+            "number": "35",
+            "stem": "According to the text, the cost increase in the rail industry is mainly caused by",
+            "options": [
+              {
+                "id": "A",
+                "text": "the continuing acquisition."
+              },
+              {
+                "id": "B",
+                "text": "the growing traffic."
+              },
+              {
+                "id": "C",
+                "text": "the cheering Wall Street."
+              },
+              {
+                "id": "D",
+                "text": "the shrinking market."
+              }
+            ],
+            "correctOptionId": "A"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-31",
+            "label": "31"
+          },
+          {
+            "id": "q-32",
+            "label": "32"
+          },
+          {
+            "id": "q-33",
+            "label": "33"
+          },
+          {
+            "id": "q-34",
+            "label": "34"
+          },
+          {
+            "id": "q-35",
+            "label": "35"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-04",
+      "title": "阅读理解 Text 4（36–40）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "It is said that in England death is pressing, in Canada inevitable and in California optional. Small wonder. Americans’ life expectancy has nearly doubled over the past century. Failing hips can be replaced, clinical depression controlled, cataracts removed in a 30-minute surgical procedure. Such advances offer the aging population a quality of life that was unimaginable when I entered medicine 50 years ago. But not even a great health-care system can cure death—and our failure to confront that reality now threatens this greatness of ours."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Death is normal; we are genetically programmed to disintegrate and perish, even under ideal conditions. We all understand that at some level, yet as medical consumers we treat death as a problem to be solved. Shielded by third-party payers from the cost of our care, we demand everything that can possibly be done for us, even if it’s useless. The most obvious example is late-stage cancer care. Physicians—frustrated by their inability to cure the disease and fearing loss of hope in the patient—too often offer aggressive treatment far beyond what is scientifically justified."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "In 1950, the U.S. spent $12.7 billion on health care. In 2002, the cost will be $1,540 billion. Anyone can see this trend is unsustainable. Yet few seem willing to try to reverse it. Some scholars conclude that a government with finite resources should simply stop paying for medical care that sustains life beyond a certain age—say 83 or so. Former Colorado governor Richard Lamm has been quoted as saying that the old and infirm “have a duty to die and get out of the way” so that younger, healthier people can realize their potential."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "I would not go that far. Energetic people now routinely work through their 60s and beyond, and remain dazzlingly productive. At 78, Viacom chairman Sumner Redstone jokingly claims to be 53. Supreme Court Justice Sandra Day O’Connor is in her 70s, and former surgeon general C. Everett Koop chairs an Internet start-up in his 80s. These leaders are living proof that prevention works and that we can manage the health problems that come naturally with age. As a mere 68-year-old, I wish to age as productively as they have."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Yet there are limits to what a society can spend in this pursuit. As a physician, I know the most costly and dramatic measures may be ineffective and painful. I also know that people in Japan and Sweden, countries that spend far less on medical care, have achieved longer, healthier lives than we have. As a nation, we may be overfunding the quest for unlikely cures while underfunding research on humbler therapies that could improve people’s lives."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-36",
+            "number": "36",
+            "stem": "What is implied in the first sentence?",
+            "options": [
+              {
+                "id": "A",
+                "text": "Americans are better prepared for death than other people."
+              },
+              {
+                "id": "B",
+                "text": "Americans enjoy a higher life quality than ever before."
+              },
+              {
+                "id": "C",
+                "text": "Americans are over-confident of their medical technology."
+              },
+              {
+                "id": "D",
+                "text": "Americans take a vain pride in their long life expectancy."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-37",
+            "number": "37",
+            "stem": "The author uses the example of cancer patients to show that",
+            "options": [
+              {
+                "id": "A",
+                "text": "medical resources are often wasted."
+              },
+              {
+                "id": "B",
+                "text": "doctors are helpless against fatal diseases."
+              },
+              {
+                "id": "C",
+                "text": "some treatments are too aggressive."
+              },
+              {
+                "id": "D",
+                "text": "medical costs are becoming unaffordable."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-38",
+            "number": "38",
+            "stem": "The author’s attitude toward Richard Lamm’s remark is one of",
+            "options": [
+              {
+                "id": "A",
+                "text": "strong disapproval."
+              },
+              {
+                "id": "B",
+                "text": "reserved consent."
+              },
+              {
+                "id": "C",
+                "text": "slight contempt."
+              },
+              {
+                "id": "D",
+                "text": "enthusiastic support."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-39",
+            "number": "39",
+            "stem": "In contrast to the U.S., Japan and Sweden are funding their medical care",
+            "options": [
+              {
+                "id": "A",
+                "text": "more flexibly."
+              },
+              {
+                "id": "B",
+                "text": "more extravagantly."
+              },
+              {
+                "id": "C",
+                "text": "more cautiously."
+              },
+              {
+                "id": "D",
+                "text": "more reasonably."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-40",
+            "number": "40",
+            "stem": "The text intends to express the idea that",
+            "options": [
+              {
+                "id": "A",
+                "text": "medicine will further prolong people’s lives."
+              },
+              {
+                "id": "B",
+                "text": "life beyond a certain limit is not worth living."
+              },
+              {
+                "id": "C",
+                "text": "death should be accepted as a fact of life."
+              },
+              {
+                "id": "D",
+                "text": "excessive demands increase the cost of health care."
+              }
+            ],
+            "correctOptionId": "C"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-36",
+            "label": "36"
+          },
+          {
+            "id": "q-37",
+            "label": "37"
+          },
+          {
+            "id": "q-38",
+            "label": "38"
+          },
+          {
+            "id": "q-39",
+            "label": "39"
+          },
+          {
+            "id": "q-40",
+            "label": "40"
+          }
+        ]
+      }
+    },
+    {
+      "id": "translation-01",
+      "title": "分句翻译（41–45）",
+      "extension": {
+        "development": "segment-translation-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text carefully and then translate the underlined segments into Chinese. Your translation should be written clearly on ANSWER SHEET 2. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Human beings in all times and places think about their world and wonder at their place in it. Humans are thoughtful and creative, possessed of insatiable curiosity. (41) "
+                },
+                {
+                  "type": "text",
+                  "text": "Furthermore, humans have the ability to modify the environment in which they live, thus subjecting all other life forms to their own peculiar ideas and fancies.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " Therefore, it is important to study humans in all their richness and diversity in a calm and systematic manner, with the hope that the knowledge resulting from such studies can lead humans to a more harmonious way of living with themselves and with all other life forms on this planet Earth."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "“Anthropology” derives from the Greek words anthropos “human” and logos “the study of.” By its very name, anthropology encompasses the study of all humankind."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Anthropology is one of the social sciences. (42) "
+                },
+                {
+                  "type": "text",
+                  "text": "Social science is that branch of intellectual enquiry which seeks to study humans and their endeavors in the same reasoned, orderly, systematic, and dispassioned manner that natural scientists use for the study of natural phenomena.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Social science disciplines include geography, economics, political science, psychology, and sociology. Each of these social sciences has a subfield or specialization which lies particularly close to anthropology."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "All the social sciences focus upon the study of humanity. Anthropology is a field-study oriented discipline which makes extensive use of the comparative method in analysis. (43) "
+                },
+                {
+                  "type": "text",
+                  "text": "The emphasis on data gathered first-hand, combined with a cross-cultural perspective brought to the analysis of cultures past and present, makes this study a unique and distinctly important social science.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Anthropological analyses rest heavily upon the concept of culture. Sir Edward Tylor’s formulation of the concept of culture was one of the great intellectual achievements of 19th century science. (44) "
+                },
+                {
+                  "type": "text",
+                  "text": "Tylor defined culture as “...that complex whole which includes belief, art, morals, law, custom, and any other capabilities and habits acquired by man as a member of society.”",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " This insight, so profound in its simplicity, opened up an entirely new way of perceiving and understanding human life. Implicit within Tylor’s definition is the concept that culture is learned, shared, and patterned behavior."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "(45) "
+                },
+                {
+                  "type": "text",
+                  "text": "Thus, the anthropological concept of “culture,” like the concept of “set” in mathematics, is an abstract concept which makes possible immense amounts of concrete research and understanding.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-41",
+            "number": "41",
+            "segment": "Furthermore, humans have the ability to modify the environment in which they live, thus subjecting all other life forms to their own peculiar ideas and fancies."
+          },
+          {
+            "id": "q-42",
+            "number": "42",
+            "segment": "Social science is that branch of intellectual enquiry which seeks to study humans and their endeavors in the same reasoned, orderly, systematic, and dispassioned manner that natural scientists use for the study of natural phenomena."
+          },
+          {
+            "id": "q-43",
+            "number": "43",
+            "segment": "The emphasis on data gathered first-hand, combined with a cross-cultural perspective brought to the analysis of cultures past and present, makes this study a unique and distinctly important social science."
+          },
+          {
+            "id": "q-44",
+            "number": "44",
+            "segment": "Tylor defined culture as “...that complex whole which includes belief, art, morals, law, custom, and any other capabilities and habits acquired by man as a member of society.”"
+          },
+          {
+            "id": "q-45",
+            "number": "45",
+            "segment": "Thus, the anthropological concept of “culture,” like the concept of “set” in mathematics, is an abstract concept which makes possible immense amounts of concrete research and understanding."
+          }
+        ],
+        "pointsPerItem": 2.0,
+        "maxScore": 10,
+        "assessment": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "41. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "而且，人类有能力改变他们所生存的环境，从而让所有其他生命形态服从于人类自己独特的想法和想象。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "42. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "社会科学是知识探索的一个分支，它力图像自然科学家研究自然现象那样，用缜密、有序、系统、冷静的方法来研究人类及其行为。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "43. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "重视收集第一手资料，加上在对过去和当今文化的分析中引入跨文化视角，使得这一研究成为一门独特而又非常重要的社会科学。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "44. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "泰勒把文化定义为“…一个复合整体，它包括信仰、艺术、道德、法律、 风俗以及人类作为一个社会成员所获得的任何其他能力和习惯 ”。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "45. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "因此，像数学中 “ 集合 ” 的概念一样，人类学中 “ 文化 ” 的概念属于抽象概念，这使得大量具体研究和认识成为可能。"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-41",
+            "label": "41"
+          },
+          {
+            "id": "q-42",
+            "label": "42"
+          },
+          {
+            "id": "q-43",
+            "label": "43"
+          },
+          {
+            "id": "q-44",
+            "label": "44"
+          },
+          {
+            "id": "q-45",
+            "label": "45"
+          }
+        ]
+      }
+    },
+    {
+      "id": "writing-46",
+      "title": "2003英语图画／图表作文",
+      "extension": {
+        "development": "english-writing-2026-dev"
+      },
+      "data": {
+        "formatVersion": 1,
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "46. Study the following set of drawings carefully and write an essay in which you should"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "1) describe the set of drawings, interpret its meaning, and"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "2) point out its implications in our life."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "You should write about 200 words neatly on ANSWER SHEET 2. (20 points)"
+                }
+              ]
+            },
+            {
+              "type": "image",
+              "attrs": {
+                "assetId": "462d58b2e7ef21a43c1eb2b3ed7794c156e79bdc2114afd733bd94f2969e8e20",
+                "alt": "2003年作文原题图表"
+              }
+            }
+          ]
+        },
+        "referenceAnswer": null,
+        "rubric": null,
+        "wordCount": {
+          "target": 200
+        },
+        "maxScore": 20
+      },
+      "outline": {
+        "level": "question",
+        "label": "46"
+      }
+    }
+  ]
+}

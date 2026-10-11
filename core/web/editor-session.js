@@ -18,6 +18,10 @@ export function createEditorSession({ensureActive,persistDraft}={}) {
       entry.container?.remove();
     },
     get isDirty() { return [...entries.values()].some(entry => entry.plugin?.isDirty||entry.changed); },
+    confirmSourceVersion(before,after) {
+      if(typeof before!=='string'||typeof after!=='string')return;
+      for(const entry of entries.values())if(entry.value?.sourceVersion===before)entry.value.sourceVersion=after;
+    },
     async suspend(id) {
       const entry=entries.get(id);if(!entry?.plugin)return;
       const snapshot=await entry.plugin.exportDraft();
@@ -25,7 +29,7 @@ export function createEditorSession({ensureActive,persistDraft}={}) {
       // Persist the unvalidated working form before releasing its runtime.
       if(persistDraft)await persistDraft(id,entry,snapshot);
       entry.draft=persistDraft?null:structuredClone(snapshot.draft);entry.changed=snapshot.changed;
-      if(persistDraft)entry.value={revision:entry.value.revision,contentVersion:entry.value.contentVersion,draftVersion:entry.value.draftVersion};
+      if(persistDraft)entry.value={revision:entry.value.revision,contentVersion:entry.value.contentVersion,sourceVersion:entry.value.sourceVersion,draftVersion:entry.value.draftVersion};
       entry.plugin.destroy();entry.plugin=null;entry.container?.remove();entry.container=null;
     },
     async hasChanges() {

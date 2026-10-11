@@ -1,3 +1,4 @@
+import {installFrameCapture} from '../web/frame-capture.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -8,6 +9,22 @@ import {resolveExtensionApi} from '../web/api-bridges.js';
 const frameSource=readFileSync(new URL('../web/frame.js',import.meta.url),'utf8');
 const bootstrapSource=bootstrapV1.toString();
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
+
+test('display capture accepts only its frame and session, keeps extension isolation and disposes pending requests',async()=>{
+  const f=hostFixture();f.receive({kind:'registered'});await f.mounted.ready;
+  assert.equal(f.frame.attributes.sandbox,'allow-scripts');
+  let settled=false;const pending=f.mounted.captureRegion().then(value=>{settled=true;return value;});await tick();
+  const id=f.sent.at(-1).id,reply={kind:'captured-region',id,ok:true,html:'<div>题干</div>',width:704,height:900};
+  f.receive(reply,{source:{}});f.receive(reply,{session:'foreign'});await tick();assert.equal(settled,false);
+  f.receive(reply);assert.equal((await pending).html,'<div>题干</div>');
+  const closed=f.mounted.captureRegion();await tick();f.mounted.destroy();await assert.rejects(closed,/已关闭/);assert.equal(f.timers.size,0);
+});
+
+test('display capture rejects invalid geometry and has a bounded timeout',async()=>{
+  const f=hostFixture();f.receive({kind:'registered'});await f.mounted.ready;
+  const invalid=f.mounted.captureRegion();await tick();f.receive({kind:'captured-region',id:f.sent.at(-1).id,ok:true,html:'<div/>',width:Infinity,height:1});await assert.rejects(invalid,/截图失败/);
+  const timeout=f.mounted.captureRegion();await tick();for(const callback of f.timers.values())callback();await assert.rejects(timeout,/超时/);f.mounted.destroy();
+});
 
 test('flush invokes unsent-input hook and propagates failures to the host',async()=>{
   const fixture=iframeFixture();let flushed=0;
@@ -35,7 +52,7 @@ function iframeFixture(context={question:{id:'q1'}},bootOptions={}) {
   let nextTimer=0;
   const parent={postMessage:message=>sent.push(structuredClone(message))};
   const sandbox={
-    parent,Promise,structuredClone,
+    parent,Promise,structuredClone,installFrameCapture,
     document:{body:{scrollHeight:100},documentElement:{scrollHeight:100}},
     ResizeObserver:class {observe(){}},
     setTimeout(callback){const id=++nextTimer;timers.set(id,callback);return id;},
@@ -58,7 +75,7 @@ function hostFixture(context={question:{id:'q1'}}) {
     remove(){this.removed=true;},
   };
   const sandbox={
-    Promise,structuredClone,
+    Promise,structuredClone,installFrameCapture,
     makeRequestId:()=>`fixture-${++nextId}`,
     resolveExtensionApi,
     document:{createElement:()=>frame},

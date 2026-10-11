@@ -6,7 +6,7 @@ import {fileURLToPath} from 'node:url';
 import {JSDOM} from 'jsdom';
 
 const root=new URL('../../',import.meta.url),read=path=>readFileSync(new URL(path,root),'utf8'),plain=value=>JSON.parse(JSON.stringify(value));
-const packagePath='extensions/基础题型/short-answer-1.3.0/',previousPath='core/test/fixtures/legacy-extensions/short-answer-1.2.2/';
+const packagePath='core/test/fixtures/legacy-extensions/short-answer-1.3.0/',previousPath='core/test/fixtures/legacy-extensions/short-answer-1.2.2/';
 const sample=JSON.parse(read(packagePath+'examples.json')).questions[0];
 const doc=text=>({type:'doc',content:[{type:'paragraph',content:[{type:'text',text}]}]});
 const tick=()=>new Promise(resolve=>setImmediate(resolve));

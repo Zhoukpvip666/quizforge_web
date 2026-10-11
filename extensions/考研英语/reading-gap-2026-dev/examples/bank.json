@@ -1,0 +1,464 @@
+{
+  "formatVersion": 1,
+  "id": "examples",
+  "title": "阅读选填 · 2012代表题",
+  "features": {
+    "editing": true,
+    "whiteboard": true,
+    "history": true,
+    "exam": true
+  },
+  "extension": {
+    "development": "reading-gap-2026-dev"
+  },
+  "questions": [
+    {
+      "id": "reading-b-2012",
+      "title": "阅读选填 · 2012代表题",
+      "extension": {
+        "development": "reading-gap-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "In the following text, some sentences have been removed. For Questions 41-45, choose the most suitable one from the list A-G to fit into each of the numbered blanks. There are two extra choices, which do not fit in any of the blanks. Mark your answers on ANSWER SHEET 1. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Think of those fleeting moments when you look out of an aeroplane window and realise that you are flying, higher than a bird. Now think of your laptop, thinner than a brown-paper envelope, or your cellphone in the palm of your hand. Take a moment or two to wonder at those marvels. You are the lucky inheritor of a dream come true."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The second half of the 20th century saw a collection of geniuses, warriors, entrepreneurs and visionaries labour to create a fabulous machine that could function as a typewriter and printing press, studio and theatre, paintbrush and gallery, piano and radio, the mail as well as the mail carrier. (41)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The networked computer is an amazing device, the first media machine that serves as the mode of production, means of distribution, site of reception, and place of praise and critique. The computer is the 21st century’s culture machine."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "But for all the reasons there are to celebrate the computer, we must also act with caution. (42) I call it a secret war for two reasons. First, most people do not realise that there are strong commercial agendas at work to keep them in passive consumption mode. Second, the majority of people who use networked computers to upload are not even aware of the significance of what they are doing."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "All animals download, but only a few upload. Beavers build dams and birds make nests. Yet for the most part, the animal kingdom moves through the world downloading. Humans are unique in their capacity to not only make tools but then turn around and use them to create superfluous material goods—paintings, sculpture and architecture—and superfluous experiences—music, literature, religion and philosophy. (43)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "For all the possibilities of our new culture machines, most people are still stuck in download mode. Even after the advent of widespread social media, a pyramid of production remains, with a small number of people uploading material, a slightly larger group commenting on or modifying that content, and a huge percentage remaining content to just consume. (44)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Television is a one-way tap flowing into our homes. The hardest task that television asks of anyone is to turn the power off after he has turned it on. (45)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "What counts as meaningful uploading? My definition revolves around the concept of “stickiness”—creations and experiences to which others adhere."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[A] Of course, it is precisely these superfluous things that define human culture and ultimately what it is to be human. Downloading and consuming culture requires great skills, but failing to move beyond downloading is to strip oneself of a defining constituent of humanity."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[B] Applications like tumblr.com, which allow users to combine pictures, words and other media in creative ways and then share them, have the potential to add stickiness by amusing, entertaining and enlightening others."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[C] Not only did they develop such a device but by the turn of the millennium they had also managed to embed it in a worldwide system accessed by billions of people every day."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[D] This is because the networked computer has sparked a secret war between downloading and uploading—between passive consumption and active creation—whose outcome will shape our collective future in ways we can only begin to imagine."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[E] The challenge the computer mounts to television thus bears little similarity to one format being replaced by another in the manner of record players being replaced by CD players."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[F] One reason for the persistence of this pyramid of production is that for the past half-century, much of the world’s media culture has been defined by a single medium—television—and television is defined by downloading."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[G] The networked computer offers the first chance in 50 years to reverse the flow, to encourage thoughtful downloading and, even more importantly, meaningful uploading."
+                }
+              ]
+            }
+          ]
+        },
+        "paragraphIds": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E",
+          "F",
+          "G"
+        ],
+        "slots": [
+          {
+            "id": "slot-41",
+            "locked": false,
+            "correctParagraphId": "C"
+          },
+          {
+            "id": "slot-42",
+            "locked": false,
+            "correctParagraphId": "D"
+          },
+          {
+            "id": "slot-43",
+            "locked": false,
+            "correctParagraphId": "A"
+          },
+          {
+            "id": "slot-44",
+            "locked": false,
+            "correctParagraphId": "F"
+          },
+          {
+            "id": "slot-45",
+            "locked": false,
+            "correctParagraphId": "G"
+          }
+        ],
+        "parts": [
+          {
+            "id": "q-41",
+            "number": "41",
+            "slotId": "slot-41"
+          },
+          {
+            "id": "q-42",
+            "number": "42",
+            "slotId": "slot-42"
+          },
+          {
+            "id": "q-43",
+            "number": "43",
+            "slotId": "slot-43"
+          },
+          {
+            "id": "q-44",
+            "number": "44",
+            "slotId": "slot-44"
+          },
+          {
+            "id": "q-45",
+            "number": "45",
+            "slotId": "slot-45"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-41",
+            "label": "41"
+          },
+          {
+            "id": "q-42",
+            "label": "42"
+          },
+          {
+            "id": "q-43",
+            "label": "43"
+          },
+          {
+            "id": "q-44",
+            "label": "44"
+          },
+          {
+            "id": "q-45",
+            "label": "45"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-b-2010",
+      "title": "阅读选填 · 2010代表题",
+      "extension": {
+        "development": "reading-gap-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "For Questions 41-45, choose the most suitable paragraphs from the list A-G and fill them into the numbered boxes to form a coherent text. Paragraph E has been correctly placed. There is one paragraph which dose not fit in with the text. Mark your answers on ANSWER SHEET1. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[A] The first and more important is the consumer’s growing preference for eating out: the consumption of food and drink in places other than homes has risen from about 32 percent of total consumption in 1995 to 35 percent in 2000 and is expected to approach 38 percent by 2005. This development is boosting wholesale demand from the food service segment by 4 to 5 percent a year across Europe, compared with growth in retail demand of 1 to 2 percent. Meanwhile, as the recession is looming large, people are getting anxious. They tend to keep a tighter hold on their purse and consider eating at home a realistic alternative."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[B] Retail sales of food and drink in Europe’s largest markets are at a standstill, leaving European grocery retailers hungry for opportunities to grow. Most leading retailers have already tried e-commerce, with limited success, and expansion abroad. But almost all have ignored the big, profitable opportunity in their own backyard: the wholesale food and drink trade, which appears to be just the kind of market retailers need."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[C] Will such variations bring about a change in the overall structure of the food and drink market? Definitely not. The functioning of the market is based on flexible trends dominated by potential buyers. In other words, it is up to the buyer, rather than the seller, to decide what to buy. At any rate, this change will ultimately be acclaimed by an ever-growing number of both domestic and international consumers, regardless of how long the current consumer pattern will take hold."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[D] All in all, this clearly seems to be a market in which big retailers could profitably apply their gigantic scale, existing infrastructure, and proven skills in the management of product ranges, logistics, and marketing intelligence. Retailers that master the intricacies of wholesaling in Europe may well expect to rake in substantial profits thereby. At least, that is how it looks as a whole. Closer inspection reveals important differences among the biggest national markets, especially in their customer segments and wholesale structures, as well as the competitive dynamics of individual food and drink categories. Big retailers must understand these differences before they can identify the segments of European wholesaling in which their particular abilities might unseat smaller but entrenched competitors. New skills and unfamiliar business models are needed too."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[E] Despite variations in detail, wholesale markets in the countries that have been closely examined—France, Germany, Italy, and Spain—are made out of the same building blocks. Demand comes mainly from two sources: independent mom-and-pop grocery stores which, unlike large retail chains, are too small to buy straight from producers, and food service operators that cater to consumers when they don’t eat at home. Such food service operators range from snack machines to large institutional catering ventures, but most of these businesses are known in the trade as “horeca”: hotels, restaurants and cafés. Overall, Europe’s wholesale market for food and drink is growing at the same sluggish pace as the retail market, but the figures, when added together, mask two opposing trends."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[F] For example, wholesale food and drink sales came to $268 billion in France, Germany, Italy, Spain, and the United Kingdom in 2000—more than 40 percent of retail sales. Moreover, average overall margins are higher in wholesale than in retail; wholesale demand from the food service sector is growing quickly as more Europeans eat out more often; and changes in the competitive dynamics of this fragmented industry are at last making it feasible for wholesalers to consolidate."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[G] However, none of these requirements should deter large retailers (and even some large food producers and existing wholesalers) from trying their hand, for those that master the intricacies of wholesaling in Europe stand to reap considerable gains."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "41. 42. 43. 44. E 45."
+                }
+              ]
+            }
+          ]
+        },
+        "paragraphIds": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "F",
+          "G"
+        ],
+        "slots": [
+          {
+            "id": "slot-41",
+            "locked": false,
+            "correctParagraphId": "B"
+          },
+          {
+            "id": "slot-42",
+            "locked": false,
+            "correctParagraphId": "F"
+          },
+          {
+            "id": "slot-43",
+            "locked": false,
+            "correctParagraphId": "D"
+          },
+          {
+            "id": "slot-44",
+            "locked": false,
+            "correctParagraphId": "G"
+          },
+          {
+            "id": "slot-45",
+            "locked": false,
+            "correctParagraphId": "A"
+          }
+        ],
+        "parts": [
+          {
+            "id": "q-41",
+            "number": "41",
+            "slotId": "slot-41"
+          },
+          {
+            "id": "q-42",
+            "number": "42",
+            "slotId": "slot-42"
+          },
+          {
+            "id": "q-43",
+            "number": "43",
+            "slotId": "slot-43"
+          },
+          {
+            "id": "q-44",
+            "number": "44",
+            "slotId": "slot-44"
+          },
+          {
+            "id": "q-45",
+            "number": "45",
+            "slotId": "slot-45"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-41",
+            "label": "41"
+          },
+          {
+            "id": "q-42",
+            "label": "42"
+          },
+          {
+            "id": "q-43",
+            "label": "43"
+          },
+          {
+            "id": "q-44",
+            "label": "44"
+          },
+          {
+            "id": "q-45",
+            "label": "45"
+          }
+        ]
+      }
+    }
+  ]
+}

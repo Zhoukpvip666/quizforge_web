@@ -119,8 +119,7 @@ final class HistoryRounds {
                 || !result.path("maxScore").isNumber() || !Double.isFinite(result.path("maxScore").asDouble()) || result.path("maxScore").decimalValue().signum() < 0) throw new IOException("Invalid grade result");
         if (status.equals("pending")) {
             if (!result.has("score") || !result.path("score").isNull() || !result.has("correct") || !result.path("correct").isNull()) throw new IOException("Invalid pending grade result");
-        } else if (!result.path("score").isNumber() || !Double.isFinite(result.path("score").asDouble()) || result.path("score").decimalValue().signum() < 0
-                || result.path("score").decimalValue().compareTo(result.path("maxScore").decimalValue()) > 0 || !result.path("correct").isBoolean()) throw new IOException("Invalid grade result");
+        } else if (!result.path("score").isNumber() || !Double.isFinite(result.path("score").asDouble()) || !result.path("correct").isBoolean()) throw new IOException("Invalid grade result");
     }
 
     static void validate(JsonNode record) throws IOException {
@@ -200,9 +199,10 @@ final class HistoryRounds {
                 validateOutlineStates(row, answered);
                 if (!row.path("id").asText().equals(outline.get(i).path("id").asText()) || !row.path("score").isNumber() || !row.path("maxScore").isNumber()
                         || !row.path("submitted").isBoolean() || row.path("submitted").asBoolean() != answered
+                        || (row.has("status") && !row.path("status").equals(record.path("questions").get(i).at("/payload/state/status")))
                         || (row.has("gradingStatus") && !row.path("gradingStatus").asText().equals(answered ? "graded" : "unsubmitted"))
-                        || row.path("score").decimalValue().signum() < 0 || row.path("maxScore").decimalValue().signum() < 0
-                        || row.path("score").decimalValue().compareTo(row.path("maxScore").decimalValue()) > 0 || (!answered && row.path("score").decimalValue().signum() != 0)) throw new IOException("Invalid frozen question score");
+                        || !Double.isFinite(row.path("score").asDouble()) || !Double.isFinite(row.path("maxScore").asDouble()) || row.path("maxScore").decimalValue().signum() < 0
+                        || (!answered && row.path("score").decimalValue().signum() != 0)) throw new IOException("Invalid frozen question score");
                 summaryScore = summaryScore.add(row.path("score").decimalValue()); summaryMax = summaryMax.add(row.path("maxScore").decimalValue());
             }
             if (!summary.path("score").isNumber() || !summary.path("maxScore").isNumber() || summary.path("score").decimalValue().compareTo(summaryScore) != 0

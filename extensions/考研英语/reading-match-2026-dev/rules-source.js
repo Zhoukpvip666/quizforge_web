@@ -1,0 +1,12 @@
+import {validateDocument} from '../../../core/shared/richtext/1.1.2/src/document.js';
+const object=v=>v&&typeof v==='object'&&!Array.isArray(v),half=v=>Number.isFinite(v)&&Number.isInteger(v*2),submitted=s=>s?.submitted||s?.status==='submitted';
+const uniform=d=>(typeof d.explanation==='string'||validateDocument(d.explanation))&&half(d.pointsPerItem)&&d.pointsPerItem>0&&d.maxScore===d.pointsPerItem*d.parts.length&&d.maxScore<=100000&&new Set(d.parts.map(p=>p.id)).size===d.parts.length&&validateDocument(d.stem,{requireContent:true});
+const validResponses=(a,d,check)=>object(a?.responses)&&Object.entries(a.responses).every(([id,v])=>{const p=d.parts.find(p=>p.id===id);return p&&typeof v==='string'&&check(v,p);});
+const hasAnswer=a=>Object.values(a.responses).some(v=>v.trim());
+QF.defineType({
+project(data,state){return {stem:data.stem,paragraphIds:data.paragraphIds,pointsPerItem:data.pointsPerItem,maxScore:data.maxScore,parts:data.parts,slots:data.slots.map(s=>({id:s.id,locked:s.locked,...(s.locked||state?.submitted?{correctParagraphId:s.correctParagraphId}:{})})),...(state?.submitted?{explanation:data.explanation}:{})};},
+validateQuestion(d){return uniform(d)&&d.slots.length===5&&d.paragraphIds.length===7&&d.parts.length===5&&d.slots.every(s=>!s.locked)&&new Set(d.slots.map(s=>s.id)).size===d.slots.length&&new Set(d.slots.map(s=>s.correctParagraphId)).size===d.slots.length&&d.slots.every(s=>d.paragraphIds.includes(s.correctParagraphId))&&new Set(d.parts.map(p=>p.slotId)).size===5&&d.parts.every(p=>d.slots.some(s=>s.id===p.slotId&&!s.locked));},
+validateAnswer(a,d){const values=Object.values(a?.responses||{}).filter(Boolean);return validResponses(a,d,v=>v===''||d.paragraphIds.includes(v)&&!d.slots.some(s=>s.locked&&s.correctParagraphId===v))&&new Set(values).size===values.length;},
+grade(d,a){if(!hasAnswer(a))throw new Error('请先作答。');const score=d.parts.reduce((n,p)=>n+(a.responses[p.id]===d.slots.find(s=>s.id===p.slotId).correctParagraphId?d.pointsPerItem:0),0);return {gradingStatus:'graded',score,maxScore:d.maxScore,correct:score===d.maxScore,feedback:null};},
+getScore(d,s){return {score:submitted(s)?s.result.score:0,maxScore:d.maxScore,outlineStates:d.parts.map(p=>({id:p.id,status:!submitted(s)?(s.answer?.responses?.[p.id]?.trim()?'draft':'unanswered'):s.answer?.responses?.[p.id]===d.slots.find(x=>x.id===p.slotId).correctParagraphId?'correct':'incorrect'}))};}
+});

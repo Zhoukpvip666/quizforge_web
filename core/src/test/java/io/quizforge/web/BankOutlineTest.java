@@ -88,7 +88,9 @@ class BankOutlineTest {
         for (int i = 0; i < 101; i++) items.addObject().put("id", "p" + i).put("label", String.valueOf(i));
         ((ObjectNode) tooMany.path("questions").get(0)).set("outline", outline); fixture.write("question-banks/bank.json", tooMany.toString());
         assertEquals("INVALID_OUTLINE_ITEMS", library.catalog().at("/banks/0/errorCode").asText());
-        assertFalse(Files.exists(root.resolve(".state")));
+        if (Files.exists(root.resolve(".state"))) try (var files = Files.walk(root.resolve(".state"))) {
+            assertTrue(files.filter(Files::isRegularFile).allMatch(file -> file.startsWith(root.resolve(".state/validation-cache/v1"))));
+        }
     }
 
     @Test void partsWithoutDeclaredCapabilityFailButDoNotRequireAGenerationHook() throws Exception {

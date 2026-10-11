@@ -12,7 +12,7 @@
 
 用户许可新题型设计后，在指定开发叶直接制作少量代表题，展示未提交、提交后与编辑状态，再等待对应 UI/交互确认。UI 阶段允许少量本地演示脚本，但必须标注“界面演示”，不调用真实保存、判分、AI 或上传来伪装功能完成。基础加载、注册和投影是显示骨架；真实作答保存、提交判分及编辑保存在确认后实现。未实现动作可禁用并提示原因。保存文件后，当前可见样例热刷新；输入与未保存修改不能被刷新悄悄丢弃。
 
-`examples` 是普通题库格式，ID 为 `examples`，仅使用自身 manifest 的精确 `id/version`，可含多道同题型变体。新样例省略 features 或将 editing、whiteboard、history 全写 true，不问关闭项。普通测试题库显式用 `{"development":"实际叶名"}`，可与正式精确绑定混用；正式题库不会自动切到开发版。
+`examples` 是普通题库格式，ID 为 `examples`，仅使用自身 manifest 的精确 `id/version`，可含多道同题型变体。新样例省略 features 或将 editing、whiteboard、history、exam 全写 true，不问关闭项。普通测试题库显式用 `{"development":"实际叶名"}`，每题可绑定不同的开发版拓展，并可与正式精确绑定混用，无需拆库或提前发布。宿主跟踪所有关联开发拓展的文件变化，逐题使用各自的页面、编辑器和规则；测试数据仍隔离保存，规则变化只重置受影响题目的当前作答，历史快照保留。正式题库不会自动切到开发版。
 
 旧用户目录只读兼容：旧 `mode:"ui"` / `mode:"runtime"` 不再选择公开执行管线；旧 marker 的 entry/script/style/examples/editor/assets 可以补足尚未完成的 manifest 声明，manifest 已有字段优先。没有 manifest 的旧 UI 页面仍能显示，宿主内部可适配旧样例读取；新 Agent 不创建旧 QF_PREVIEW 页面、不重写旧用户文件。旧无样例目录只能展示占位设计，不能称为已验收题型。
 

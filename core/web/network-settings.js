@@ -6,6 +6,7 @@ export function bindNetworkSettings({request,beforeSave,onSaved,document=globalT
   const closeButton=get('close'),cancelButton=get('cancel'),saveButton=get('save');
   const fields=get('fields'),enabled=get('enabled'),publicEnabled=get('public-enabled'),publicFields=get('public-fields'),publicUrl=get('public-url'),port=get('port'),password=get('password');
   const status=get('status'),passwordHint=get('password-hint'),addresses=get('addresses'),urls=get('urls'),error=get('error');
+  const ipv6Status=get('ipv6-status'),ipv6Addresses=get('ipv6-addresses'),ipv6Urls=get('ipv6-urls');
   let settings=null,loading=false,saving=false,epoch=0;
   const listeners=[];
   const listen=(node,event,handler)=>{node.addEventListener(event,handler);listeners.push(()=>node.removeEventListener(event,handler));};
@@ -18,6 +19,7 @@ export function bindNetworkSettings({request,beforeSave,onSaved,document=globalT
     const unavailable=loading||saving||!settings||settings.canManage===false;
     enabled.disabled=unavailable;publicEnabled.disabled=unavailable||typeof settings?.publicEnabled!=='boolean';publicUrl.disabled=publicEnabled.disabled;port.disabled=unavailable;password.disabled=unavailable;
     saveButton.disabled=unavailable;closeButton.disabled=saving;cancelButton.disabled=saving;
+    for(const button of ipv6Urls.children)button.disabled=unavailable;
     saveButton.textContent=saving?'正在保存…':'保存设置';
     form.setAttribute('aria-busy',String(loading||saving));
   }
@@ -40,6 +42,15 @@ export function bindNetworkSettings({request,beforeSave,onSaved,document=globalT
     if(next.publicEnabled&&next.publicUrl)validUrls.push(next.publicUrl);
     for(const value of validUrls){const line=document.createElement('code');line.textContent=value;urls.append(line);}
     addresses.hidden=!validUrls.length;
+    ipv6Status.textContent=typeof next.ipv6Supported!=='boolean'?'当前服务尚未提供 IPv6 状态，请重启服务后查看。':next.ipv6Supported?'连接端口支持 IPv4 和 IPv6，共用上述开关和密码。':'当前系统未启用 IPv6，连接端口使用 IPv4。';
+    ipv6Urls.replaceChildren();
+    const candidates=(next.publicIpv6Urls||[]).filter(value=>typeof value==='string');
+    for(const value of candidates){
+      const line=document.createElement('button');line.type='button';line.className='network-settings-ipv6-address';line.textContent=value;line.disabled=next.canManage===false;
+      line.addEventListener('click',()=>{publicUrl.value=value;publicUrl.focus();});ipv6Urls.append(line);
+    }
+    ipv6Addresses.hidden=!candidates.length;
+    if(next.ipv6Supported&&!candidates.length)ipv6Status.textContent+=' 未检测到本机公网 IPv6 地址。';
     if(next.error)showError(new Error(next.error));
     else if(typeof next.publicEnabled!=='boolean')showError(new Error('当前服务尚不支持公网连接。请保存作答，关闭原服务并重新启动。'));
     lock();
@@ -48,7 +59,7 @@ export function bindNetworkSettings({request,beforeSave,onSaved,document=globalT
   async function open() {
     if(dialog.open||loading||saving)return;
     const current=++epoch;
-    settings=null;loading=true;fields.hidden=true;addresses.hidden=true;urls.replaceChildren();error.hidden=true;password.value='';
+    settings=null;loading=true;fields.hidden=true;addresses.hidden=true;ipv6Addresses.hidden=true;urls.replaceChildren();ipv6Urls.replaceChildren();error.hidden=true;password.value='';
     status.textContent='正在读取设置…';lock();dialog.showModal();
     try {
       const next=await request(SETTINGS_PATH);
@@ -71,7 +82,7 @@ export function bindNetworkSettings({request,beforeSave,onSaved,document=globalT
       try {
         const address=new URL(nextPublicUrl);
         if(!['http:','https:'].includes(address.protocol)||address.username||address.password||address.pathname!=='/'||address.search||address.hash)throw new Error();
-      } catch {showError(new Error('请填写完整的公网访问地址，如 https://quiz.example.com/，不包含路径或查询参数。'));publicUrl.focus();return;}
+      } catch {showError(new Error('请填写完整的公网访问地址，如 https://quiz.example.com/ 或 http://[IPv6地址]:端口/，不包含路径或查询参数。'));publicUrl.focus();return;}
     }
     const body={enabled:enabled.checked,publicEnabled:publicEnabled.checked,publicUrl:nextPublicUrl,port:nextPort};
     if(hasPassword)body.password=nextPassword;

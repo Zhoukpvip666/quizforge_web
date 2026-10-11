@@ -132,4 +132,55 @@ class AiAutoStartTest {
         assertEquals(1, submitted.body().at("/state/result/score").asDouble()); assertTrue(fixture.get(ServerTest.QUESTION + "/ai/current").body().path("task").isNull());
         assertEquals(0, calls.get()); fixture.finishCurrent("auto-ordinary-finish"); assertEquals(0, calls.get());
     }
+
+    @Test void submitAutomaticallyGradesAllDeclaredChildrenAndReceiptReplayDoesNotScheduleAgain() throws Exception {
+        fixture.write("extensions/generic/rules.js", """
+                QF.defineType({
+                  project(data){return {public:data.public};},
+                  grade(){return {gradingStatus:'graded',score:0,maxScore:5,correct:false,feedback:null,parts:{}};},
+                  prepareAiGrading(data,answer,context){
+                    const input=id=>({protocolVersion:1,question:[{type:'text',text:id}],answer:[{type:'text',text:answer.value}],referenceAnswer:[{type:'text',text:data.secret}],maxScore:2.5,scoreStep:0.5});
+                    if(context.automatic)return {targets:['part-1','part-2'].map(id=>({targetId:id,input:input(id)}))};
+                    if(!['part-1','part-2'].includes(context.targetId))throw Error('invalid target');
+                    return input(context.targetId);
+                  },
+                  review(data,answer,value,context){const parts={...context.state.result.parts,[value.targetId]:Math.min(value.score,2.5)};const score=Object.values(parts).reduce((a,b)=>a+b,0);return {gradingStatus:'graded',score,maxScore:5,correct:score===5,feedback:value.feedback,parts};},
+                  getScore(data,state){return {score:state.submitted?state.result.score:0,maxScore:5};}
+                });
+                """);
+        fixture.start(null); configure(false);
+        ObjectNode first = fixture.action("auto-child-disabled", 0, "submit", fixture.answer("yes"));
+        var disabled = fixture.post(ServerTest.QUESTION + "/actions", first);
+        assertEquals(200, disabled.status()); assertEquals(0, calls.get());
+        assertTrue(fixture.get(ServerTest.QUESTION + "/ai/current?targetId=part-1").body().path("task").isNull());
+        configure(true);
+        var retried = fixture.post(ServerTest.QUESTION + "/actions", fixture.action("auto-child-reanswer", disabled.body().at("/state/revision").asLong(), "retry", Json.object()));
+        assertEquals(200, retried.status());
+        var submit = fixture.action("auto-child-enabled", retried.body().at("/state/revision").asLong(), "submit", fixture.answer("yes"));
+        var submitted = fixture.post(ServerTest.QUESTION + "/actions", submit);
+        assertEquals(200, submitted.status(), submitted.body().toString()); assertTrue(firstCall.await(10, TimeUnit.SECONDS));
+        assertEquals(0, submitted.body().at("/state/result/score").asDouble());
+        JsonNode pending = fixture.get(ServerTest.QUESTION + "/ai/current?targetId=part-2").body().path("task");
+        assertEquals("part-2", pending.path("targetId").asText()); assertEquals("queued", pending.path("status").asText());
+        JsonNode summary = fixture.get(COLLECTION + "/summary").body();
+        ObjectNode finish = Json.object().put("requestId", "auto-child-early-finish").put("summaryVersion", summary.path("summaryVersion").asText()); finish.set("roundId", summary.path("roundId"));
+        assertEquals(409, fixture.post(COLLECTION + "/finish", finish).status());
+        releaseFirst.countDown();
+        for (String id : new String[]{"part-1", "part-2"}) {
+            long end = System.nanoTime() + TimeUnit.SECONDS.toNanos(20); JsonNode task;
+            do { task = fixture.get(ServerTest.QUESTION + "/ai/current?targetId=" + id).body().path("task");
+                if (task.path("status").asText().equals("confirmed")) break;
+                assertTrue(List.of("queued", "running", "succeeded").contains(task.path("status").asText()), task.toString()); Thread.sleep(40);
+            } while (System.nanoTime() < end);
+            assertEquals("confirmed", task.path("status").asText(), task.toString());
+        }
+        assertEquals(5, fixture.get(ServerTest.QUESTION).body().at("/state/result/score").asDouble());
+        assertEquals(2, fixture.get(ServerTest.QUESTION).body().at("/state/result/aiAssessments").size());
+        var replay = fixture.post(ServerTest.QUESTION + "/actions", submit);
+        assertEquals(submitted.body(), replay.body()); assertEquals(2, calls.get());
+        fixture.finishCurrent("auto-child-finish-complete");
+        String historyId = fixture.get(COLLECTION + "/history").body().at("/records/0/id").asText();
+        JsonNode history = fixture.get(COLLECTION + "/history/" + historyId).body();
+        assertEquals(5, history.at("/summary/score").asDouble()); assertEquals(2, history.at("/questions/0/payload/state/result/aiAssessments").size());
+    }
 }

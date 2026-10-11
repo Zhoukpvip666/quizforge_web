@@ -23,7 +23,7 @@ class OutlineStatesTest {
                 if(state.revision===2 && !state.submitted) throw Error('unexpected whiteboard recompute');
                 return {score:state.submitted?state.result.score:0,maxScore:1,
                   outlineStates:state.submitted?state.result.feedback.outlineStates:
-                    [{id:'part-21',status:'unanswered'},{id:'part-22',status:'unanswered'},{id:'not-in-outline',status:'unanswered'}]};
+                    [{id:'part-21',status:state.answer?.value?'draft':'unanswered'},{id:'part-22',status:'unanswered'},{id:'not-in-outline',status:'unanswered'}]};
               },
               grade(data,answer){const correct=answer.value===data.expected;
                 return {gradingStatus:'graded',score:correct?1:0,maxScore:1,correct,
@@ -53,13 +53,18 @@ class OutlineStatesTest {
         fixture.start(null);
         assertEquals("unanswered", details(fixture.get(ServerTest.QUESTION).body()).get(0).path("status").asText());
         var draft = fixture.post(ServerTest.QUESTION + "/actions", fixture.action("child-draft-001", 0, "draft", fixture.answer("yes")));
-        assertEquals(200, draft.status(), draft.body().toString()); assertEquals("unanswered", details(draft.body()).get(0).path("status").asText());
+        assertEquals(200, draft.status(), draft.body().toString()); assertEquals("draft", details(draft.body()).get(0).path("status").asText());
+        assertEquals("unanswered", details(draft.body()).get(1).path("status").asText());
+        JsonNode draftSummary = fixture.get(BASE + "/summary").body();
+        assertEquals("draft", draftSummary.at("/questions/0/status").asText());
+        assertEquals("draft", draftSummary.at("/questions/0/outlineStates/0/status").asText());
+        assertEquals(0, draftSummary.path("submittedCount").asInt()); assertEquals(0, draftSummary.path("score").asInt());
         ObjectNode ink = Json.object(); ink.set("draft", Json.MAPPER.readTree("""
                 {"schemaVersion":1,"viewport":{"x":0,"y":0,"zoom":1},"strokes":[],"paper":{"color":"#ffffff","pattern":"plain"}}
                 """));
         var whiteboard = fixture.post(ServerTest.QUESTION + "/actions", fixture.action("child-ink-001", 1, "whiteboard", ink));
         assertEquals(200, whiteboard.status(), whiteboard.body().toString()); assertEquals(details(draft.body()), details(whiteboard.body()));
-        assertEquals("unanswered", fixture.get(BASE).body().at("/states/q1/outlineStates/0/status").asText());
+        assertEquals("draft", fixture.get(BASE).body().at("/states/q1/outlineStates/0/status").asText());
         assertEquals("unanswered", fixture.get(BASE).body().at("/states/q2/outlineStates/0/status").asText());
         var submitted = fixture.post(ServerTest.QUESTION + "/actions", fixture.action("child-submit-001", 2, "submit", fixture.answer("yes")));
         assertEquals(200, submitted.status(), submitted.body().toString()); assertEquals(2, details(submitted.body()).size());
@@ -71,6 +76,20 @@ class OutlineStatesTest {
         assertEquals(200, retry.status()); assertEquals("unanswered", details(retry.body()).get(0).path("status").asText()); assertEquals(frozen, fixture.get(BASE + "/history/" + historyId).body());
         fixture.server.close(); fixture.server = null; fixture.start(null);
         assertEquals(details(retry.body()), details(fixture.get(ServerTest.QUESTION).body())); assertEquals(frozen, fixture.get(BASE + "/history/" + historyId).body());
+    }
+
+    @Test void unsubmittedChildDraftIsFrozenInHistoryAndSurvivesServerRestart() throws Exception {
+        fixture.start(null);
+        assertEquals(200, fixture.post(ServerTest.QUESTION + "/actions", fixture.action("frozen-draft-001", 0, "draft", fixture.answer("yes"))).status());
+        fixture.finishCurrent("frozen-finish-001");
+        String id = fixture.get(BASE + "/history").body().at("/records/0/id").asText();
+        JsonNode frozen = fixture.get(BASE + "/history/" + id).body();
+        assertEquals("draft", frozen.at("/questions/0/payload/state/outlineStates/0/status").asText());
+        assertEquals("draft", frozen.at("/summary/questions/0/status").asText());
+        assertEquals("draft", frozen.at("/summary/questions/0/outlineStates/0/status").asText());
+        assertEquals(0, frozen.at("/summary/score").asInt()); assertEquals(0, frozen.at("/summary/submittedCount").asInt());
+        fixture.server.close(); fixture.server = null; fixture.start(null);
+        assertEquals(frozen, fixture.get(BASE + "/history/" + id).body());
     }
 
     @Test void pendingAndManualReviewUpdateChildStatesWithoutChangingParentSubmissionUnit() throws Exception {

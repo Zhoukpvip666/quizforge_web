@@ -39,8 +39,8 @@ function singleTypeDeclaration(value,location){
   if(['types','packageFormatVersion','typeId'].some(field=>own(value,field)))fail(location,'MULTI_TYPE_EXTENSION_NOT_SUPPORTED');
 }
 function collectionFeatures(document,location,examples=false){
-  if(!own(document,'features'))return {editing:true,whiteboard:true,history:true};
-  const value=document.features,where=location+'/features',allowed=['editing','whiteboard','history'];
+  if(!own(document,'features'))return {editing:true,whiteboard:true,history:true,exam:true};
+  const value=document.features,where=location+'/features',allowed=['editing','whiteboard','history','exam'];
   if(!fields(value,allowed)||Object.values(value).some(flag=>typeof flag!=='boolean'))fail(where,'INVALID_COLLECTION_FEATURES');
   const result=Object.fromEntries(allowed.map(name=>[name,own(value,name)?value[name]:true]));
   if(examples&&allowed.some(name=>result[name]===false))report.warnings.push({location:where,code:'EXAMPLE_FEATURES_SHOULD_BE_ENABLED'});
@@ -48,7 +48,7 @@ function collectionFeatures(document,location,examples=false){
 }
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const sdkVersion=value=>typeof value==='string'&&/^\d{1,4}\.\d{1,4}\.\d{1,4}$/.test(value);
-const richTextCapabilities=new Set(['basic-formatting','images','advanced-formatting','tables','math','image-resize']);
+const richTextCapabilities=new Set(['basic-formatting','images','advanced-formatting','tables','math','image-resize','camera-capture']);
 const staticAssetTypes=new Set(['png','jpg','jpeg','webp','gif','svg','woff','woff2','ttf','otf']);
 const integer=(value,min)=>Number.isInteger(value)&&value>=min&&value<=2147483647;
 const fields=(value,names)=>object(value)&&Object.keys(value).every(name=>names.includes(name));
@@ -61,7 +61,7 @@ async function richTextRegistry(coreRoot,required=false){
   if(!await optionalExists(file,where)){if(required)fail(where,'RICHTEXT_SERVICE_UNAVAILABLE');return null;}
   const value=await jsonFile(file,256*1024,where),code='INVALID_RICHTEXT_SERVICE';
   if(!fields(value,['schemaVersion','api','defaultProfile','profiles'])||value.schemaVersion!==1||!fields(value.api,['major','minor','documentFormat'])||!integer(value.api.major,1)||!integer(value.api.minor,0)||!integer(value.api.documentFormat,1)||typeof value.defaultProfile!=='string'||!Array.isArray(value.profiles)||!value.profiles.length||value.profiles.length>2)fail(where,code);
-  if(value.api.major!==1||value.api.minor!==0||value.api.documentFormat!==1)fail(where,code);
+  if(value.api.major!==1||value.api.minor>1||value.api.documentFormat!==1)fail(where,code);
   const profiles=new Map(),aliases=new Map();
   for(let i=0;i<value.profiles.length;i++){
     const profile=value.profiles[i],location=where+'/profiles/'+i;
@@ -218,7 +218,7 @@ async function extensionIndex(roots,allowDevelopment=false){
         if(++nodes>1000)fail(label,'EXTENSION_DIRECTORY_LIMIT');
         const development=await optionalExists(path.join(directory,'development.json'),where+'/development.json');
         const hasManifest=await optionalExists(path.join(directory,'manifest.json'),where+'/manifest.json');
-        if(!development&&!hasManifest){if(depth>=4)fail(where,'EXTENSION_GROUP_DEPTH_LIMIT');await visit(directory,depth+1);continue;}
+        if(!development&&!hasManifest){if(depth>=1)fail(where,'EXTENSION_GROUP_DEPTH_LIMIT');await visit(directory,depth+1);continue;}
         if(++count>200)fail(label,'EXTENSION_COUNT_LIMIT');
         // A leaf marker keeps the directory out of the formal identity index.
         if(development){

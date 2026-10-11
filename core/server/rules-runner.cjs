@@ -58,10 +58,15 @@ process.stdin.on('end', () => {
     const ajv = new Ajv({ allErrors: false, strict: true, validateFormats: false });
     const validQuestion = ajv.compile(development && !request.questionSchema ? true : JSON.parse(read(request.questionSchema)));
     const validAnswer = ajv.compile(development && !request.answerSchema ? true : JSON.parse(read(request.answerSchema)));
-    const context = vm.createContext(Object.create(null), { codeGeneration: { strings: false, wasm: false } });
+    let context;
     const run = code => vm.runInContext(code, context, { timeout: 650, displayErrors: false });
-    api.register(run, development);
-    new vm.Script(read(request.rules), { filename: 'extension-rules.js' }).runInContext(context, { timeout: 650, displayErrors: false });
+    const source = new vm.Script(read(request.rules), { filename: 'extension-rules.js' });
+    const resetContext = () => {
+      context = vm.createContext(Object.create(null), { codeGeneration: { strings: false, wasm: false } });
+      api.register(run, development);
+      source.runInContext(context, { timeout: 650, displayErrors: false });
+    };
+    resetContext();
     if (!run('Boolean(__type)')) throw new Error('Missing rule registration');
     const canOutlineItems = run('typeof __type.getOutlineItems === "function"');
     const outlineError = () => { const error = new Error('Invalid outline items or undeclared outline-items capability'); error.code = 'INVALID_OUTLINE_ITEMS'; throw error; };
@@ -87,7 +92,7 @@ process.stdin.on('end', () => {
       if (!result || typeof result !== 'object' || Array.isArray(result) || (Object.hasOwn(result, 'gradingStatus') && typeof result.gradingStatus !== 'string') || !['pending','graded'].includes(status) || !Number.isFinite(result.maxScore) || result.maxScore < 0 || !Object.hasOwn(result, 'feedback')) throw new Error('Invalid grade result');
       if (status === 'pending') {
         if (!allowPending || result.score !== null || result.correct !== null) throw new Error('Invalid pending grade result');
-      } else if (!Number.isFinite(result.score) || result.score < 0 || result.score > result.maxScore || typeof result.correct !== 'boolean') throw new Error('Invalid grade result');
+      } else if (!Number.isFinite(result.score) || typeof result.correct !== 'boolean') throw new Error('Invalid grade result');
       return status;
     };
     const validateAiScore = (score, result) => {
@@ -100,13 +105,14 @@ process.stdin.on('end', () => {
     const validateOutlineStates = (items, submitted) => {
       const invalid = () => { const error = new Error('Invalid outlineStates returned by getScore'); error.code = 'INVALID_OUTLINE_STATES'; throw error; };
       if (!Array.isArray(items) || items.length > 100) invalid();
-      const ids = new Set(), statuses = new Set(['unanswered','correct','incorrect']);
+      const ids = new Set(), statuses = new Set(['unanswered','draft','correct','incorrect']);
       for (const item of items) {
         if (!item || typeof item !== 'object' || Array.isArray(item) || Object.keys(item).length !== 2
             || !Object.hasOwn(item, 'id') || !Object.hasOwn(item, 'status')
             || typeof item.id !== 'string' || item.id.length === 0 || item.id.length > 128 || item.id !== item.id.trim()
             || /[\u0000-\u001f\u007f-\u009f<>]/u.test(item.id) || ids.has(item.id)
-            || !statuses.has(item.status) || !submitted && item.status !== 'unanswered') invalid();
+            || !statuses.has(item.status) || !submitted && !['unanswered','draft'].includes(item.status)
+            || submitted && item.status === 'draft') invalid();
         ids.add(item.id);
       }
       return items;
@@ -116,7 +122,16 @@ process.stdin.on('end', () => {
       output = { canAiGrade: run('typeof __type.prepareAiGrading === "function" && typeof __type.review === "function"'), canOutlineItems };
     } else if (request.op === 'validateBank') {
       if (!Array.isArray(request.questions) || request.questions.length > 10000) throw new Error('Invalid question list');
-      for (const question of request.questions) validateQ(question);
+      // Catalog startup may share Node/AJV across original bank chunks, but
+      // each chunk must retain the fresh VM globals of its former process.
+      const offsets = request.contextResetOffsets ?? [];
+      if (!Array.isArray(offsets) || offsets.length > request.questions.length
+          || offsets.some((offset, index) => !Number.isInteger(offset) || offset <= 0 || offset >= request.questions.length || index > 0 && offset <= offsets[index - 1])) throw new Error('Invalid validation boundaries');
+      let nextReset = 0;
+      for (let index = 0; index < request.questions.length; index++) {
+        if (index === offsets[nextReset]) { resetContext(); nextReset++; }
+        validateQ(request.questions[index]);
+      }
       output = { valid: true };
     } else if (request.op === 'outlineBatch') {
       if (requestedMinor < 1 || request.outlineItemsDeclared !== true) outlineError();
@@ -152,7 +167,7 @@ process.stdin.on('end', () => {
           ? invoke('__type.getScore(__input.data, __input.state)')
           : state.submitted ? { score: state.result?.score, maxScore: state.result?.maxScore }
           : { score: 0, maxScore: project('__type.project(__input.data, {submitted:false,result:null})')?.maxScore };
-        if (!score || typeof score !== 'object' || Array.isArray(score) || !Number.isFinite(score.maxScore) || score.maxScore < 0 || (gradingStatus === 'pending' ? score.score !== null : !Number.isFinite(score.score) || score.score < 0 || score.score > score.maxScore)) {
+        if (!score || typeof score !== 'object' || Array.isArray(score) || !Number.isFinite(score.maxScore) || score.maxScore < 0 || (gradingStatus === 'pending' ? score.score !== null : !Number.isFinite(score.score))) {
           if (development && !run('typeof __type.getScore === "function"')) notImplemented('getScore');
           const error = new Error('Extension must provide finite score and maxScore through getScore'); error.code = 'SCORE_UNAVAILABLE'; throw error;
         }
@@ -187,15 +202,14 @@ process.stdin.on('end', () => {
       if (request.op === 'prepareAiGrading') {
         if (!run('typeof __type.prepareAiGrading === "function" && typeof __type.review === "function"')) throw new Error('AI grading is unavailable');
         validateResult(request.state?.result);
-        set({ data: request.data, answer: request.answer, state: request.state });
-        const gradingInput = invoke('__type.prepareAiGrading(__input.data, __input.answer)');
-        const score = run('typeof __type.getScore === "function"') ? invoke('__type.getScore(__input.data, __input.state)') : {score:request.state.result.score,maxScore:request.state.result.maxScore};
-        validateAiScore(score, request.state.result);
-        output = { gradingInput, maxScore: score?.maxScore };
+        set({ data: request.data, answer: request.answer, state: request.state, context: {state: request.state, ...(request.targetId == null ? {} : {targetId: request.targetId}), ...(request.automatic === true ? {automatic:true} : {})} });
+        const gradingInput = invoke('__type.prepareAiGrading(__input.data, __input.answer, __input.context)');
+        // AI input is independent of the parent score; review owns adoption.
+        output = { gradingInput };
       } else if (request.op === 'submit' || request.op === 'review') {
         if (request.op === 'review' && (!request.review || typeof request.review !== 'object' || Array.isArray(request.review) || !Number.isFinite(request.review.score) || !run('typeof __type.review === "function"'))) throw new Error('Invalid review request');
-        set({ data: request.data, answer: request.answer, review: request.review });
-        const result = invoke(request.op === 'review' ? '__type.review(__input.data, __input.answer, __input.review)' : '__type.grade(__input.data, __input.answer)');
+        set({ data: request.data, answer: request.answer, review: request.review, context: {state: request.state} });
+        const result = invoke(request.op === 'review' ? '__type.review(__input.data, __input.answer, __input.review, __input.context)' : '__type.grade(__input.data, __input.answer)');
         validateResult(result, request.op !== 'review');
         set({ data: request.data, state: { submitted: true, result } });
         if (request.op === 'review' && run('typeof __type.prepareAiGrading === "function"')) {
@@ -206,7 +220,17 @@ process.stdin.on('end', () => {
       } else if (request.op === 'project') {
         set({ data: request.data, state: request.state });
         output = { projected: project('__type.project(__input.data, __input.state)') };
-      } else if (request.op === 'validateAnswer') output = { valid: true };
+      } else if (request.op === 'validateAnswer') {
+        output = { valid: true };
+        if (request.projectAfterValidation === true) {
+          // Answer validation and public projection formerly ran in separate Node
+          // processes. Keep their VM globals separate while paying startup/AJV once.
+          resetContext();
+          validateQ(request.data);
+          set({ data: request.data, state: { submitted: false, result: null } });
+          output.projected = project('__type.project(__input.data, __input.state)');
+        }
+      }
       else throw new Error('Unknown rule operation');
     }
     if (request.withCapabilities === true) output.capabilities = {canAiGrade:run('typeof __type.prepareAiGrading === "function" && typeof __type.review === "function"'),canOutlineItems};

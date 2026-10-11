@@ -1,0 +1,2058 @@
+{
+  "formatVersion": 1,
+  "id": "kaoyan-english2-2021",
+  "title": "2021年考研英语（二）真题",
+  "description": "依据原卷与附录制作；作文范文与评分细则留空。",
+  "features": {
+    "editing": true,
+    "whiteboard": true,
+    "history": true,
+    "exam": true
+  },
+  "questions": [
+    {
+      "id": "cloze-01",
+      "title": "完形填空（1–20）",
+      "extension": {
+        "development": "english-cloze-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Choose the best word(s) for each numbered blank and mark A, B, C or D on the ANSWER SHEET. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "It’s not difficult to set targets for staff. It is much harder, [[1]] , to understand their negative consequences. Most work-related behaviors have multiple components. [[2]] one and the others become distorted."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Travel on a London bus and you’ll [[3]] see how this works with drivers. Watch people get on and show their tickets. Are they carefully inspected? Never. Do people get on without paying? Of course! Are there inspectors to [[4]] that people have paid? Possibly, but very few. And people who run for the bus? They are [[5]] . How about jumping lights? Buses do so almost as frequently as cyclists."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Why? Because the target is [[6]] . People complained that buses were late and infrequent. [[7]] , the number of buses and bus lanes were increased, and drivers were [[8]] or punished according to the time they took. And drivers hit these targets. But they [[9]] hit cyclists. If the target was changed to [[10]] , you would have more inspectors and more sensitive pricing. If the criterion changed to safety, you would get more [[11]] drivers who obeyed traffic laws. But both these criteria would be at the expense of time."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "There is another [[12]] : people became immensely inventive in hitting targets. Have you [[13]] that you can leave on a flight an hour late but still arrive on time? Tailwinds? Of course not! Airlines have simply changed the time a [[14]] is meant to take. A one-hour flight is now billed as a two-hour flight."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The [[15]] of the story is simple. Most jobs are multidimensional, with multiple criteria. Choose one criterion and you may well [[16]] others. Everything can be done faster and made cheaper, but there is a [[17]] . Setting targets can and does have unforeseen negative consequences."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "This is not an argument against target-setting. But it is an argument for exploring consequences first. All good targets should have multiple criteria [[18]] critical factors such as time, money, quality and customer feedback. The trick is not only to [[19]] just one or even two dimensions of the objective, but also to understand how to help people better [[20]] the objective."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-1",
+            "number": "1",
+            "options": [
+              {
+                "id": "A",
+                "text": "therefore"
+              },
+              {
+                "id": "B",
+                "text": "however"
+              },
+              {
+                "id": "C",
+                "text": "again"
+              },
+              {
+                "id": "D",
+                "text": "moreover"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-2",
+            "number": "2",
+            "options": [
+              {
+                "id": "A",
+                "text": "Emphasize"
+              },
+              {
+                "id": "B",
+                "text": "Identify"
+              },
+              {
+                "id": "C",
+                "text": "Assess"
+              },
+              {
+                "id": "D",
+                "text": "Explain"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-3",
+            "number": "3",
+            "options": [
+              {
+                "id": "A",
+                "text": "nearly"
+              },
+              {
+                "id": "B",
+                "text": "curiously"
+              },
+              {
+                "id": "C",
+                "text": "eagerly"
+              },
+              {
+                "id": "D",
+                "text": "quickly"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-4",
+            "number": "4",
+            "options": [
+              {
+                "id": "A",
+                "text": "claim"
+              },
+              {
+                "id": "B",
+                "text": "prove"
+              },
+              {
+                "id": "C",
+                "text": "check"
+              },
+              {
+                "id": "D",
+                "text": "recall"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-5",
+            "number": "5",
+            "options": [
+              {
+                "id": "A",
+                "text": "threatened"
+              },
+              {
+                "id": "B",
+                "text": "ignored"
+              },
+              {
+                "id": "C",
+                "text": "mocked"
+              },
+              {
+                "id": "D",
+                "text": "blamed"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-6",
+            "number": "6",
+            "options": [
+              {
+                "id": "A",
+                "text": "punctuality"
+              },
+              {
+                "id": "B",
+                "text": "hospitality"
+              },
+              {
+                "id": "C",
+                "text": "competition"
+              },
+              {
+                "id": "D",
+                "text": "innovation"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-7",
+            "number": "7",
+            "options": [
+              {
+                "id": "A",
+                "text": "Yet"
+              },
+              {
+                "id": "B",
+                "text": "So"
+              },
+              {
+                "id": "C",
+                "text": "Besides"
+              },
+              {
+                "id": "D",
+                "text": "Still"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-8",
+            "number": "8",
+            "options": [
+              {
+                "id": "A",
+                "text": "hired"
+              },
+              {
+                "id": "B",
+                "text": "trained"
+              },
+              {
+                "id": "C",
+                "text": "rewarded"
+              },
+              {
+                "id": "D",
+                "text": "grouped"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-9",
+            "number": "9",
+            "options": [
+              {
+                "id": "A",
+                "text": "only"
+              },
+              {
+                "id": "B",
+                "text": "rather"
+              },
+              {
+                "id": "C",
+                "text": "once"
+              },
+              {
+                "id": "D",
+                "text": "also"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-10",
+            "number": "10",
+            "options": [
+              {
+                "id": "A",
+                "text": "comfort"
+              },
+              {
+                "id": "B",
+                "text": "revenue"
+              },
+              {
+                "id": "C",
+                "text": "efficiency"
+              },
+              {
+                "id": "D",
+                "text": "security"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-11",
+            "number": "11",
+            "options": [
+              {
+                "id": "A",
+                "text": "friendly"
+              },
+              {
+                "id": "B",
+                "text": "quiet"
+              },
+              {
+                "id": "C",
+                "text": "cautious"
+              },
+              {
+                "id": "D",
+                "text": "diligent"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-12",
+            "number": "12",
+            "options": [
+              {
+                "id": "A",
+                "text": "purpose"
+              },
+              {
+                "id": "B",
+                "text": "problem"
+              },
+              {
+                "id": "C",
+                "text": "prejudice"
+              },
+              {
+                "id": "D",
+                "text": "policy"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-13",
+            "number": "13",
+            "options": [
+              {
+                "id": "A",
+                "text": "reported"
+              },
+              {
+                "id": "B",
+                "text": "revealed"
+              },
+              {
+                "id": "C",
+                "text": "admitted"
+              },
+              {
+                "id": "D",
+                "text": "noticed"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-14",
+            "number": "14",
+            "options": [
+              {
+                "id": "A",
+                "text": "break"
+              },
+              {
+                "id": "B",
+                "text": "trip"
+              },
+              {
+                "id": "C",
+                "text": "departure"
+              },
+              {
+                "id": "D",
+                "text": "transfer"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-15",
+            "number": "15",
+            "options": [
+              {
+                "id": "A",
+                "text": "moral"
+              },
+              {
+                "id": "B",
+                "text": "background"
+              },
+              {
+                "id": "C",
+                "text": "style"
+              },
+              {
+                "id": "D",
+                "text": "form"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-16",
+            "number": "16",
+            "options": [
+              {
+                "id": "A",
+                "text": "interpret"
+              },
+              {
+                "id": "B",
+                "text": "criticize"
+              },
+              {
+                "id": "C",
+                "text": "sacrifice"
+              },
+              {
+                "id": "D",
+                "text": "tolerate"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-17",
+            "number": "17",
+            "options": [
+              {
+                "id": "A",
+                "text": "task"
+              },
+              {
+                "id": "B",
+                "text": "secret"
+              },
+              {
+                "id": "C",
+                "text": "product"
+              },
+              {
+                "id": "D",
+                "text": "cost"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-18",
+            "number": "18",
+            "options": [
+              {
+                "id": "A",
+                "text": "leading to"
+              },
+              {
+                "id": "B",
+                "text": "calling for"
+              },
+              {
+                "id": "C",
+                "text": "relating to"
+              },
+              {
+                "id": "D",
+                "text": "accounting for"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-19",
+            "number": "19",
+            "options": [
+              {
+                "id": "A",
+                "text": "specify"
+              },
+              {
+                "id": "B",
+                "text": "predict"
+              },
+              {
+                "id": "C",
+                "text": "restore"
+              },
+              {
+                "id": "D",
+                "text": "create"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-20",
+            "number": "20",
+            "options": [
+              {
+                "id": "A",
+                "text": "modify"
+              },
+              {
+                "id": "B",
+                "text": "review"
+              },
+              {
+                "id": "C",
+                "text": "present"
+              },
+              {
+                "id": "D",
+                "text": "achieve"
+              }
+            ],
+            "correctOptionId": "D"
+          }
+        ],
+        "pointsPerItem": 0.5,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-1",
+            "label": "1"
+          },
+          {
+            "id": "q-2",
+            "label": "2"
+          },
+          {
+            "id": "q-3",
+            "label": "3"
+          },
+          {
+            "id": "q-4",
+            "label": "4"
+          },
+          {
+            "id": "q-5",
+            "label": "5"
+          },
+          {
+            "id": "q-6",
+            "label": "6"
+          },
+          {
+            "id": "q-7",
+            "label": "7"
+          },
+          {
+            "id": "q-8",
+            "label": "8"
+          },
+          {
+            "id": "q-9",
+            "label": "9"
+          },
+          {
+            "id": "q-10",
+            "label": "10"
+          },
+          {
+            "id": "q-11",
+            "label": "11"
+          },
+          {
+            "id": "q-12",
+            "label": "12"
+          },
+          {
+            "id": "q-13",
+            "label": "13"
+          },
+          {
+            "id": "q-14",
+            "label": "14"
+          },
+          {
+            "id": "q-15",
+            "label": "15"
+          },
+          {
+            "id": "q-16",
+            "label": "16"
+          },
+          {
+            "id": "q-17",
+            "label": "17"
+          },
+          {
+            "id": "q-18",
+            "label": "18"
+          },
+          {
+            "id": "q-19",
+            "label": "19"
+          },
+          {
+            "id": "q-20",
+            "label": "20"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-01",
+      "title": "阅读理解 Text 1（21–25）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "“Reskilling” is something that sounds like a buzzword but is actually a requirement if we plan to have a future in which a lot of would-be workers do not get left behind. We know we are moving into a period where the jobs in demand will change rapidly, as will the requirements of the jobs that remain. Research by the World Economic Forum finds that on average 42 per cent of the “core skills” within job roles will change by 2022. That is a very short timeline."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The question of who should pay for reskilling is a thorny one. For individual companies, the temptation is always to let go of workers whose skills are no longer in demand and replace them with those whose skills are. That does not always happen. AT&T is often given as the gold standard of a company that decided to do a massive reskilling program rather than go with a fire-and- hire strategy. Other companies had also pledged to create their own plans. When the skills mismatch is in the broader economy, though, the focus usually turns to government to handle. Efforts in Canada and elsewhere have been arguably languid at best, and have given us a situation where we frequently hear of employers begging for workers, even at times and in regions where unemployment is high."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "With the pandemic, unemployment is very high indeed. In February, at 3.5 per cent and 5.5 per cent respectively, unemployment rates in Canada and the United States were at generational lows and worker shortages were everywhere. As of May, those rates had spiked up to 13.3 per cent and 13.7 per cent, and although many worker shortages had disappeared, not all had done so. In the medical filed, to take an obvious example, the pandemic meant that there were still clear shortages of doctors, nurses and other medical personnel."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Of course, it is not like you can take an unemployed waiter and train him to be a doctor in a few weeks. But even if you cannot close that gap, maybe you can close others, and doing so would be to the benefit of all concerned. That seems to be the case in Sweden: When forced to furlough 90 per cent of their cabin staff, Scandinavian Airlines decided to start up a short retraining program that reskilled the laid-off workers to support hospital staff. The effort was a collective one and involved other companies as well as a Swedish university."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-21",
+            "number": "21",
+            "stem": "Research by the World Economic Forum suggests",
+            "options": [
+              {
+                "id": "A",
+                "text": "a controversy about the “core skills”."
+              },
+              {
+                "id": "B",
+                "text": "an increase in full-time employment."
+              },
+              {
+                "id": "C",
+                "text": "an urgent demand for new job skills."
+              },
+              {
+                "id": "D",
+                "text": "a steady growth of job opportunities."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-22",
+            "number": "22",
+            "stem": "AT&T is cited to show",
+            "options": [
+              {
+                "id": "A",
+                "text": "an immediate need for government support."
+              },
+              {
+                "id": "B",
+                "text": "an alternative to the fire-and-hire strategy."
+              },
+              {
+                "id": "C",
+                "text": "the characteristics of reskilling programs."
+              },
+              {
+                "id": "D",
+                "text": "the importance of staff appraisal standards."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-23",
+            "number": "23",
+            "stem": "Efforts to resolve the skills mismatch in Canada",
+            "options": [
+              {
+                "id": "A",
+                "text": "have appeared to be insufficient."
+              },
+              {
+                "id": "B",
+                "text": "have driven up labour costs."
+              },
+              {
+                "id": "C",
+                "text": "have proved to be inconsistent."
+              },
+              {
+                "id": "D",
+                "text": "have met with fierce opposition."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-24",
+            "number": "24",
+            "stem": "We can learn from Paragraph 3 that there was",
+            "options": [
+              {
+                "id": "A",
+                "text": "a sign of economic recovery."
+              },
+              {
+                "id": "B",
+                "text": "a call for policy adjustment."
+              },
+              {
+                "id": "C",
+                "text": "a change in hiring practices."
+              },
+              {
+                "id": "D",
+                "text": "a lack of medical workers."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-25",
+            "number": "25",
+            "stem": "Scandinavian Airlines decided to",
+            "options": [
+              {
+                "id": "A",
+                "text": "create job vacancies for the unemployed."
+              },
+              {
+                "id": "B",
+                "text": "retrain their cabin staff for better services."
+              },
+              {
+                "id": "C",
+                "text": "prepare their laid-off workers for other jobs."
+              },
+              {
+                "id": "D",
+                "text": "finance their staff’s college education."
+              }
+            ],
+            "correctOptionId": "C"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-21",
+            "label": "21"
+          },
+          {
+            "id": "q-22",
+            "label": "22"
+          },
+          {
+            "id": "q-23",
+            "label": "23"
+          },
+          {
+            "id": "q-24",
+            "label": "24"
+          },
+          {
+            "id": "q-25",
+            "label": "25"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-02",
+      "title": "阅读理解 Text 2（26–30）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "With the global population predicted to hit close to 10 billion by 2050, and forecasts that agricultural production in some regions will need to nearly double to keep pace, food security is increasingly making headlines. In the UK, it has become a big talking point recently too, for a rather particular reason: Brexit."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Brexit is seen by some as an opportunity to reverse a recent trend towards the UK importing food. The country produces only about 60 per cent of the food it eats, down from almost three-quarters in the late 1980s. A move back to self-sufficiency, the argument goes, would boost the farming industry, political sovereignty and even the nation’s health. Sounds great—but how feasible is this vision?"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "According to a report on UK food production from the University of Leeds, UK, 85 per cent of the country’s total land area is associated with meat and dairy production. That supplies 80 per cent of what is consumed, so even covering the whole country in livestock farms wouldn’t allow us to cover all our meat and dairy needs."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "There are many caveats to those figures, but they are still grave. To become much more self-sufficient, the UK would need to drastically reduce its consumption of animal foods, and probably also farm more intensively—meaning fewer green fields, and more factory-style production."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "But switching to a mainly plant-based diet wouldn’t help. There is a good reason why the UK is dominated by animal husbandry: most of its terrain doesn’t have the right soil or climate to grow crops on a commercial basis. Just 25 per cent of the country’s land is suitable for crop-growing, most of which is already occupied by arable fields. Even if we converted all the suitable land to fields of fruit and veg—which would involve taking out all the nature reserves and removing thousands of people from their homes—we would achieve only a 30 per cent boost in crop production."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Just 23 per cent of the fruit and vegetables consumed in the UK are currently home-grown, so even with the most extreme measures we could meet only 30 per cent of our fresh produce needs. That is before we look for the space to grow the grains, sugars, seeds and oils that provide us with the vast bulk of our current calorie intake."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-26",
+            "number": "26",
+            "stem": "Some people argue that food self-sufficiency in the UK would",
+            "options": [
+              {
+                "id": "A",
+                "text": "be hindered by its population growth."
+              },
+              {
+                "id": "B",
+                "text": "contribute to the nation’s well-being."
+              },
+              {
+                "id": "C",
+                "text": "become a priority of the government."
+              },
+              {
+                "id": "D",
+                "text": "pose a challenge to its farming industry."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-27",
+            "number": "27",
+            "stem": "The report by the University of Leeds shows that in the UK",
+            "options": [
+              {
+                "id": "A",
+                "text": "farmland has been inefficiently utilized."
+              },
+              {
+                "id": "B",
+                "text": "factory-style production needs reforming."
+              },
+              {
+                "id": "C",
+                "text": "most land is used for meat and dairy production."
+              },
+              {
+                "id": "D",
+                "text": "more green fields will be converted for farming."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-28",
+            "number": "28",
+            "stem": "Crop-growing in the UK is restricted due to",
+            "options": [
+              {
+                "id": "A",
+                "text": "its farming technology."
+              },
+              {
+                "id": "B",
+                "text": "its dietary tradition."
+              },
+              {
+                "id": "C",
+                "text": "its natural conditions."
+              },
+              {
+                "id": "D",
+                "text": "its commercial interests."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-29",
+            "number": "29",
+            "stem": "It can be learned from the last paragraph that British people",
+            "options": [
+              {
+                "id": "A",
+                "text": "rely largely on imports for fresh produce."
+              },
+              {
+                "id": "B",
+                "text": "enjoy a steady rise in fruit consumption."
+              },
+              {
+                "id": "C",
+                "text": "are seeking effective ways to cut calorie intake."
+              },
+              {
+                "id": "D",
+                "text": "are trying to grow new varieties of grains."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-30",
+            "number": "30",
+            "stem": "The author’s attitude to food self-sufficiency in the UK is",
+            "options": [
+              {
+                "id": "A",
+                "text": "defensive."
+              },
+              {
+                "id": "B",
+                "text": "doubtful."
+              },
+              {
+                "id": "C",
+                "text": "tolerant."
+              },
+              {
+                "id": "D",
+                "text": "optimistic."
+              }
+            ],
+            "correctOptionId": "B"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-26",
+            "label": "26"
+          },
+          {
+            "id": "q-27",
+            "label": "27"
+          },
+          {
+            "id": "q-28",
+            "label": "28"
+          },
+          {
+            "id": "q-29",
+            "label": "29"
+          },
+          {
+            "id": "q-30",
+            "label": "30"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-03",
+      "title": "阅读理解 Text 3（31–35）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "When Microsoft bought task management app Wunderlist and mobile calendar Sunrise in 2015, it picked two newcomers that were attracting considerable buzz in Silicon Valley. Microsoft’s own Office dominates the market for “productivity” software, but the start-ups represented a new wave of technology designed from the ground up for the smartphone world."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Both apps, however, were later scrapped after Microsoft said it had used their best features in its own products. Their teams of engineers stayed on, making them two of the many “acqui-hires” that the biggest companies have used to feed their great hunger for tech talent."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "To Microsoft’s critics, the fates of Wunderlist and Sunrise are examples of a remorseless drive by Big Tech to chew up any innovative companies that lie in their path. “They bought the seedlings and closed them down,” complained Paul Arnold, a partner at San Francisco-based Switch Ventures, putting an end to businesses that might one day turn into competitors. Microsoft declined to comment."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Like other start-up investors, Mr. Arnold’s own business often depends on selling start-ups to larger tech companies, though he admits to mixed feelings about the result: “I think these things are good for me, if I put my selfish hat on. But are they good for the American economy? I don’t know.”"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The U.S. Federal Trade Commission says it wants to find the answer to that question. This week, it asked the five most valuable U.S. tech companies for information about their many small acquisitions over the past decade. Although only a research project at this stage, the request has raised the prospect of regulators wading into early-stage tech markets that until now have been beyond their reach."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Given their combined market value of more than $5.5 trillion, rifling through such small deals—many of them much less prominent than Wunderlist and Sunrise—might seem beside the point. Between them, the five tech companies have spent an average of only $3.4 billion a year on sub-$1 billion acquisitions over the past five years—a drop in the ocean compared with their massive financial reserves, and the more than $130 billion of venture capital that was invested in the U.S. last year."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "However, critics say the big companies use such deals to buy their most threatening potential competitors before their businesses have a chance to gain momentum, in some cases as part of a “buy and kill” tactic to simply close them down."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-31",
+            "number": "31",
+            "stem": "What is true about Wunderlist and Sunrise after their acquisitions?",
+            "options": [
+              {
+                "id": "A",
+                "text": "Their products were re-priced."
+              },
+              {
+                "id": "B",
+                "text": "Their market values declined."
+              },
+              {
+                "id": "C",
+                "text": "Their tech features improved."
+              },
+              {
+                "id": "D",
+                "text": "Their engineers were retained."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-32",
+            "number": "32",
+            "stem": "Microsoft’s critics believe that the big tech companies tend to",
+            "options": [
+              {
+                "id": "A",
+                "text": "eliminate their potential competitors."
+              },
+              {
+                "id": "B",
+                "text": "exaggerate their product quality."
+              },
+              {
+                "id": "C",
+                "text": "treat new tech talent unfairly."
+              },
+              {
+                "id": "D",
+                "text": "ignore public opinions."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-33",
+            "number": "33",
+            "stem": "Paul Arnold is concerned that small acquisitions might",
+            "options": [
+              {
+                "id": "A",
+                "text": "weaken big tech companies."
+              },
+              {
+                "id": "B",
+                "text": "harm the national economy."
+              },
+              {
+                "id": "C",
+                "text": "worsen market competition."
+              },
+              {
+                "id": "D",
+                "text": "discourage start-up investors."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-34",
+            "number": "34",
+            "stem": "The U.S. Federal Trade Commission intends to",
+            "options": [
+              {
+                "id": "A",
+                "text": "limit Big Tech’s expansion."
+              },
+              {
+                "id": "B",
+                "text": "examine small acquisitions."
+              },
+              {
+                "id": "C",
+                "text": "encourage research collaboration."
+              },
+              {
+                "id": "D",
+                "text": "supervise start-ups’ operations."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-35",
+            "number": "35",
+            "stem": "For the five biggest tech companies, their small acquisitions have",
+            "options": [
+              {
+                "id": "A",
+                "text": "generated considerable profits."
+              },
+              {
+                "id": "B",
+                "text": "raised few management challenges."
+              },
+              {
+                "id": "C",
+                "text": "set an example for future deals."
+              },
+              {
+                "id": "D",
+                "text": "brought little financial pressure."
+              }
+            ],
+            "correctOptionId": "D"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-31",
+            "label": "31"
+          },
+          {
+            "id": "q-32",
+            "label": "32"
+          },
+          {
+            "id": "q-33",
+            "label": "33"
+          },
+          {
+            "id": "q-34",
+            "label": "34"
+          },
+          {
+            "id": "q-35",
+            "label": "35"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-04",
+      "title": "阅读理解 Text 4（36–40）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "We’re fairly good at judging people based on first impressions, thin slices of experience ranging from a glimpse of a photo to a five-minute interaction, and deliberation can be not only extraneous but intrusive. In one study of the ability she called “thin slicing,” the late psychologist Nalini Ambady asked participants to watch silent 10-second video clips of professors and to rate the instructor’s overall effectiveness. Their ratings correlated strongly with students’ end-of-semester ratings. Another set of participants had to count backward from 1,000 by nines as they watched the clips, occupying their conscious working memory. Their ratings were just as accurate, demonstrating the intuitive nature of the social processing."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Critically, another group was asked to spend a minute writing down reasons for their judgment, before giving the rating. Accuracy dropped dramatically. Ambady suspected that deliberation focused them on vivid but misleading cues, such as certain gestures or utterances, rather than letting the complex interplay of subtle signals form a holistic impression. She found similar interference when participants watched 15-second clips of pairs of people and judged whether they were strangers, friends, or dating partners."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Other research shows we’re better at detecting deception from thin slices when we rely on intuition instead of reflection. “It’s as if you’re driving a stick shift,” says Judith Hall, a psychologist at Northeastern University, “and if you start thinking about it too much, you can’t remember what you’re doing. But if you go on automatic pilot, you’re fine. Much of our social life is like that.”"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Thinking too much can also harm our ability to form preferences. College students’ ratings of strawberry jams and college courses aligned better with experts’ opinions when the students weren’t asked to analyze their rationale. And people made car-buying decisions that were both objectively better and more personally satisfying when asked to focus on their feelings rather than on details, but only if the decision was complex—when they had a lot of information to process."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Intuition’s special powers are unleashed only in certain circumstances. In one study, participants completed a battery of eight tasks, including four that tapped reflective thinking (discerning rules, comprehending vocabulary) and four that tapped intuition and creativity (generating new products or figures of speech). Then they rated the degree to which they had used intuition (“gut feelings,” “hunches,” “my heart”). Use of their gut hurt their performance on the first four tasks, as expected, and helped them on the rest. Sometimes the heart is smarter than the head."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-36",
+            "number": "36",
+            "stem": "Nalini Ambady’s study deals with",
+            "options": [
+              {
+                "id": "A",
+                "text": "the reliability of first impressions."
+              },
+              {
+                "id": "B",
+                "text": "people’s ability to influence others."
+              },
+              {
+                "id": "C",
+                "text": "instructor-student interaction."
+              },
+              {
+                "id": "D",
+                "text": "the power of people’s memory."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-37",
+            "number": "37",
+            "stem": "In Ambady’s study, rating accuracy dropped when participants",
+            "options": [
+              {
+                "id": "A",
+                "text": "discussed with one another."
+              },
+              {
+                "id": "B",
+                "text": "gave the rating in limited time."
+              },
+              {
+                "id": "C",
+                "text": "watched shorter video clips."
+              },
+              {
+                "id": "D",
+                "text": "focused on specific details."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-38",
+            "number": "38",
+            "stem": "Judith Hall mentions driving to show that",
+            "options": [
+              {
+                "id": "A",
+                "text": "deception is difficult to detect."
+              },
+              {
+                "id": "B",
+                "text": "memory can be selective."
+              },
+              {
+                "id": "C",
+                "text": "social skills must be cultivated."
+              },
+              {
+                "id": "D",
+                "text": "reflection can be distracting."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-39",
+            "number": "39",
+            "stem": "When you are making complex decisions, it is advisable to",
+            "options": [
+              {
+                "id": "A",
+                "text": "collect enough data."
+              },
+              {
+                "id": "B",
+                "text": "list your preferences."
+              },
+              {
+                "id": "C",
+                "text": "follow your feelings."
+              },
+              {
+                "id": "D",
+                "text": "seek expert advice."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-40",
+            "number": "40",
+            "stem": "What can we learn from the last paragraph?",
+            "options": [
+              {
+                "id": "A",
+                "text": "Intuition may affect reflective tasks."
+              },
+              {
+                "id": "B",
+                "text": "Generating new products takes time."
+              },
+              {
+                "id": "C",
+                "text": "Vocabulary comprehension needs creativity."
+              },
+              {
+                "id": "D",
+                "text": "Objective thinking may boost intuitiveness."
+              }
+            ],
+            "correctOptionId": "A"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-36",
+            "label": "36"
+          },
+          {
+            "id": "q-37",
+            "label": "37"
+          },
+          {
+            "id": "q-38",
+            "label": "38"
+          },
+          {
+            "id": "q-39",
+            "label": "39"
+          },
+          {
+            "id": "q-40",
+            "label": "40"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-b-01",
+      "title": "阅读匹配（41–45）",
+      "extension": {
+        "development": "reading-match-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text and answer the questions by choosing the most suitable subheading from the list A-G for each numbered paragraph (41-45). There are two extra subheadings which you do not need to use. Mark your answers on the ANSWER SHEET. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[A] Stay calm."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[B] Stay humble."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[C] Be realistic about the risks."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[D] Identify a shared goal."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[E] Decide whether to wait."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[F] Ask permission to disagree."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[G] Don’t make judgments. How to Disagree with Someone More Powerful than You"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Your boss proposes a new initiative you think won’t work. Your senior colleague outlines a project timeline you believe is unrealistic. What do you say when you disagree with someone who has more power than you do? How do you decide whether it’s worth speaking up? And if you do, what exactly should you say? Here’s how to disagree with someone more powerful than you."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "41._________________"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "You may decide it’s best to hold off on voicing your opinion. Maybe you haven’t finished thinking the problem through, or you want to get a clearer sense of what the group thinks. If you think other people are going to disagree, too, you might want to gather your army first. People can contribute experience or information to your thinking—all the things that would make the disagreement stronger or more valid. It’s also a good idea to delay the conversation if you are in a meeting or other public space. Discussing the issue in private will make the powerful person feel less threatened."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "42._________________"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Before you share your thoughts, think about what the powerful person cares about—it may be the credibility of their team or getting a project done on time. You’re more likely to be heard if you can connect your disagreement to a higher purpose. State it overtly, contextualizing your statements so that you’re seen not as a disagreeable subordinate but as a colleague who’s trying to advance a common objective. The discussion will then become more like a chess game than a boxing match."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "43._________________"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "This step may sound overly deferential, but it’s a smart way to give the powerful person psychological safety and control. You can say something like, “I know we seem to be moving toward a first-quarter commitment here. I have reasons to think that won’t work. I’d like to lay out my reasoning. Would that be OK?” This gives the person a choice, allowing him to verbally opt in. And, assuming he says yes, it will make you feel more confident about voicing your disagreement."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "44._________________"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "You might feel your heart racing or your face turning red, but do whatever you can to remain neutral in both your words and actions. When your body language communicates reluctance or anxiety, it undercuts the message. It sends a mixed message, and your counterpart gets to choose what signals to read. Deep breaths can help, as can speaking more slowly and deliberately. When we feel panicky, we tend to talk louder and faster. Simply slowing the pace and talking in an even tone helps calm the other person cool down and does the same for you. It also makes you seem confident, even if you aren’t."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "45._________________"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Emphasize that you’re only offering your opinion, not gospel truth. It may be a well-informed, well-researched opinion, but it’s still an opinion, so talk tentatively and slightly understate your confidence. Instead of saying, “If we set an end-of-quarter deadline, we’ll never make it,” say, “This is just my opinion, but I don’t see how we will make that deadline.” Having asserted your position (as a position, not as a fact), demonstrate equal curiosity about other views. Remind the person that this is your point of view, and then invite critique. Be open to hearing other opinions."
+                }
+              ]
+            }
+          ]
+        },
+        "paragraphIds": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E",
+          "F",
+          "G"
+        ],
+        "slots": [
+          {
+            "id": "slot-41",
+            "locked": false,
+            "correctParagraphId": "E"
+          },
+          {
+            "id": "slot-42",
+            "locked": false,
+            "correctParagraphId": "D"
+          },
+          {
+            "id": "slot-43",
+            "locked": false,
+            "correctParagraphId": "F"
+          },
+          {
+            "id": "slot-44",
+            "locked": false,
+            "correctParagraphId": "A"
+          },
+          {
+            "id": "slot-45",
+            "locked": false,
+            "correctParagraphId": "B"
+          }
+        ],
+        "parts": [
+          {
+            "id": "q-41",
+            "number": "41",
+            "slotId": "slot-41"
+          },
+          {
+            "id": "q-42",
+            "number": "42",
+            "slotId": "slot-42"
+          },
+          {
+            "id": "q-43",
+            "number": "43",
+            "slotId": "slot-43"
+          },
+          {
+            "id": "q-44",
+            "number": "44",
+            "slotId": "slot-44"
+          },
+          {
+            "id": "q-45",
+            "number": "45",
+            "slotId": "slot-45"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-41",
+            "label": "41"
+          },
+          {
+            "id": "q-42",
+            "label": "42"
+          },
+          {
+            "id": "q-43",
+            "label": "43"
+          },
+          {
+            "id": "q-44",
+            "label": "44"
+          },
+          {
+            "id": "q-45",
+            "label": "45"
+          }
+        ]
+      }
+    },
+    {
+      "id": "translation-46",
+      "title": "全文翻译（46）",
+      "extension": {
+        "development": "full-translation-2026-dev"
+      },
+      "data": {
+        "formatVersion": 1,
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Translate the following text into Chinese. Write your translation on the ANSWER SHEET. (15 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "We tend to think that friends and family members are our biggest sources of connection, laughter, and warmth. While that may well be true, researchers have also recently found that interacting with strangers actually brings a boost in mood and feelings of belonging that we didn’t expect."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "In one series of studies, researchers instructed Chicago-area commuters using public transportation to strike up a conversation with someone near them. On average, participants who followed this instruction felt better than those who had been told to stand or sit in silence. The researchers also argued that when we shy away from casual interactions with strangers, it is often due to a misplaced anxiety that they might not want to talk to us. Much of the time, however, this belief is false. As it turns out, many people are actually perfectly willing to talk— and may even be flattered to receive your attention."
+                }
+              ]
+            }
+          ]
+        },
+        "referenceAnswer": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "我们往往认为，朋友和家人是联系、欢笑和温暖的最大来源。这很可能不错，但研究人员最近也发现，与陌生人交流其实也会带来情绪提升和归属感，这是我们原来没想到的。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "在一系列研究中，研究人员让芝加哥地区使用公共交通的通勤者与旁边的乘客攀谈。总体来说，遵从交谈指令的人的感觉要好于按要求默默站着或坐着的人。研究人员还指出，我们之所以回避与陌生人闲聊，常常是出于一种不必要的担心，以为他们可能不想跟我们说话。然而，这种想法很多时候是错的。事实表明，很多人其实非常乐意交谈，甚至还会因为得到你的关注而感到荣幸。"
+                }
+              ]
+            }
+          ]
+        },
+        "rubric": null,
+        "maxScore": 15
+      },
+      "outline": {
+        "level": "question",
+        "label": "46"
+      }
+    },
+    {
+      "id": "writing-47",
+      "title": "2021英语（二）应用文写作",
+      "extension": {
+        "development": "english-writing-2026-dev"
+      },
+      "data": {
+        "formatVersion": 1,
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Suppose you are organizing an online meeting. Write an e-mail to Jack, an international student, to"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "1) invite him to participate, and"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "2) tell him the details."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "You should write about 100 words on the ANSWER SHEET."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Do not use your own name. Use “Li Ming” instead. (10 points)"
+                }
+              ]
+            }
+          ]
+        },
+        "referenceAnswer": null,
+        "rubric": null,
+        "wordCount": {
+          "target": 100
+        },
+        "maxScore": 10
+      },
+      "outline": {
+        "level": "question",
+        "label": "47"
+      }
+    },
+    {
+      "id": "writing-48",
+      "title": "2021英语（二）图表作文",
+      "extension": {
+        "development": "english-writing-2026-dev"
+      },
+      "data": {
+        "formatVersion": 1,
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Write an essay based on the chart below. In your writing, you should"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "1) interpret the chart, and"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "2) give your comments."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "You should write about 150 words on the ANSWER SHEET. (15 points)"
+                }
+              ]
+            },
+            {
+              "type": "image",
+              "attrs": {
+                "assetId": "07a571b8f1145faddeebb892b946db9900ba5ae04e2218f3a11a34b38acc04bc",
+                "alt": "2021英语二作文原题图表"
+              }
+            }
+          ]
+        },
+        "referenceAnswer": null,
+        "rubric": null,
+        "wordCount": {
+          "target": 150
+        },
+        "maxScore": 15
+      },
+      "outline": {
+        "level": "question",
+        "label": "48"
+      }
+    }
+  ]
+}

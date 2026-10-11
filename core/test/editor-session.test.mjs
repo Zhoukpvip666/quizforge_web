@@ -81,3 +81,27 @@ test('removing a clean editor and destroying a session release every retained fr
   assert.equal(second.destroyed,true);assert.equal(second.removed,true);
   assert.equal(session.values().length,0);assert.equal(session.isDirty,false);
 });
+
+test('confirmed source changes advance only editors opened from the same snapshot',async()=>{
+  const session=createEditorSession({persistDraft:async()=>{}}),first=entry({changed:true}),second=entry({changed:true}),older=entry({changed:true});
+  first.value={revision:1,contentVersion:'question-1',sourceVersion:'source-1'};
+  second.value={revision:2,contentVersion:'question-2',sourceVersion:'source-1'};
+  older.value={revision:3,contentVersion:'question-3',sourceVersion:'source-0'};
+  second.plugin.exportDraft=async()=>({supported:true,changed:true,draft:{unfinished:''}});
+  session.add('q1',first);session.add('q2',second);session.add('q3',older);
+  await session.suspend('q2');
+  session.confirmSourceVersion('source-1','source-2');
+  assert.equal(first.value.sourceVersion,'source-2');assert.equal(second.value.sourceVersion,'source-2');assert.equal(older.value.sourceVersion,'source-0');
+  assert.equal(first.value.contentVersion,'question-1');assert.equal(second.value.contentVersion,'question-2');assert.equal(second.changed,true);
+  session.confirmSourceVersion(undefined,undefined);assert.equal(older.value.sourceVersion,'source-0');
+});
+
+test('partial saves preserve the confirmed source version for the remaining retry',async()=>{
+  const session=createEditorSession(),first=entry({changed:true}),second=entry({changed:true});
+  first.value={contentVersion:'question-1',sourceVersion:'source-1'};second.value={contentVersion:'question-2',sourceVersion:'source-1'};
+  session.add('q1',first);session.add('q2',second);const sources=[];
+  await assert.rejects(session.saveAll(async change=>{sources.push(change.entry.value.sourceVersion);if(change.id==='q2')throw new Error('connection lost');return {previousSourceVersion:'source-1',sourceVersion:'source-2'};},(change,value)=>{session.confirmSourceVersion(value.previousSourceVersion,value.sourceVersion);change.entry.form.changed=false;}),error=>error.savedCount===1);
+  assert.deepEqual(sources,['source-1','source-2']);assert.equal(second.value.sourceVersion,'source-2');assert.equal(second.form.changed,true);
+  const count=await session.saveAll(async change=>{assert.equal(change.id,'q2');assert.equal(change.entry.value.sourceVersion,'source-2');return {previousSourceVersion:'source-2',sourceVersion:'source-3'};},(change,value)=>{session.confirmSourceVersion(value.previousSourceVersion,value.sourceVersion);change.entry.form.changed=false;});
+  assert.equal(count,1);assert.equal(second.value.sourceVersion,'source-3');assert.equal(session.isDirty,false);
+});

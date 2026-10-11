@@ -1,0 +1,40 @@
+{
+  "id": "quizforge.english-writing",
+  "version": "1.0.0",
+  "name": "英语作文",
+  "description": "富文本编辑、真实作答保存与提交；开发版功能验收中。",
+  "requiresApi": {
+    "major": 1,
+    "minMinor": 2,
+    "capabilities": [
+      "practice",
+      "editor",
+      "editor-drafts",
+      "score",
+      "manual-review",
+      "resources",
+      "richtext",
+      "lifecycle",
+      "ai-grading"
+    ]
+  },
+  "requiresRichText": {
+    "major": 1,
+    "minMinor": 1,
+    "documentFormat": 1,
+    "documentProfile": "advanced-v1",
+    "capabilities": [
+      "basic-formatting",
+      "images",
+      "image-resize",
+      "camera-capture"
+    ]
+  },
+  "entry": "practice.html",
+  "script": "practice.js",
+  "style": "practice.css",
+  "rules": "rules.js",
+  "questionSchema": "question.schema.json",
+  "answerSchema": "answer.schema.json",
+  "examples": "examples/bank.json"
+}

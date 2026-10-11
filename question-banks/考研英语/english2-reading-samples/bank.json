@@ -1,0 +1,625 @@
+{
+  "formatVersion": 1,
+  "id": "kaoyan-english2-reading-samples",
+  "title": "英语二阅读B · 验收代表题",
+  "description": "仅含2010正误判断与2026双列表格匹配代表题，非完整真题。",
+  "features": {
+    "editing": true,
+    "whiteboard": true,
+    "history": true,
+    "exam": true
+  },
+  "questions": [
+    {
+      "id": "reading-b-2010-sample",
+      "title": "2010英语二阅读B · 正误判断",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text and decide whether each of the statements is true or false. Choose T if the statement is true or F if the statement is not true. Mark your answers on the ANSWER SHEET. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Copying Birds May Save Aircraft Fuel"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Both Boeing and Airbus have trumpeted the efficiency of their newest aircraft, the 787 and A350 respectively. Their clever designs and lightweight composites certainly make a difference. But a group of researchers at Stanford University, led by Ilan Kroo, has suggested that airlines could take a more naturalistic approach to cutting jet-fuel use and it would not require them to buy new aircraft."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The answer, says Dr. Kroo, lies with birds. Since 1914, scientists have known that birds flying in formation—a V-shape—expend less energy. The air flowing over a bird’s wings curls upwards behind the wingtips, a phenomenon known as upwash. Other birds flying in the upwash experience reduced drag, and spend less energy propelling themselves. Peter Lissaman, an aeronautics expert who was formerly at Caltech and the University of Southern California, has suggested that a formation of 25 birds might enjoy a range increase of 71%."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "When applied to aircraft, the principles are not substantially different. Dr. Kroo and his team modelled what would happen if three passenger jets departing from Los Angeles, San Francisco and Las Vegas were to assemble over Utah, assume an inverted V-formation, occasionally change places so all could have a turn in the most favorable positions, and proceed to London. They found that the aircraft consumed as much as 15% less fuel (coupled with a reduction in carbon- dioxide output). Nitrogen-oxide emissions during the cruising portions of the flight fell by around a quarter."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "There are, of course, knots to be worked out. One consideration is safety, or at least the perception of it. Would passengers feel comfortable travelling in companion? Dr. Kroo points out that the aircraft could be separated by several nautical miles, and would not be in the intimate groupings favored by display teams like the Red Arrows. A passenger peering out of the window might not even see the other planes. Whether the separation distances involved would satisfy air-traffic-control regulations is another matter, although a working group at the International Civil Aviation Organization has included the possibility of formation flying in a blueprint for new operational guidelines."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "It remains to be seen how weather conditions affect the air flows that make formation flight more efficient. In zones of increased turbulence, the planes’ wakes will decay more quickly and the effect will diminish. Dr. Kroo says this is one of the areas his team will investigate further. It might also be hard for airlines to co-ordinate the departure times and destinations of passenger aircraft in a way that would allow them to gain from formation flight. Cargo aircraft, in contrast, might be easier to reschedule, as might routine military flights."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "As it happens, America’s armed forces are on the case already. Earlier this year the country’s Defense Advanced Research Projects Agency announced plans to pay Boeing to investigate formation flight, though the programme has yet to begin. There are reports that some military aircraft flew in formation when they were low on fuel during the Second World War, but Dr. Lissaman says they are unsubstantiated. “My father was an RAF pilot and my cousin the skipper of a Lancaster lost over Berlin,” he adds. So he should know."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-41",
+            "number": "41",
+            "stem": "Findings of the Stanford University researchers will promote the sales of new Boeing and Airbus aircraft.",
+            "options": [
+              {
+                "id": "T",
+                "text": "True"
+              },
+              {
+                "id": "F",
+                "text": "False"
+              }
+            ],
+            "correctOptionId": "F"
+          },
+          {
+            "id": "q-42",
+            "number": "42",
+            "stem": "The upwash experience may save propelling energy as well as reducing resistance.",
+            "options": [
+              {
+                "id": "T",
+                "text": "True"
+              },
+              {
+                "id": "F",
+                "text": "False"
+              }
+            ],
+            "correctOptionId": "T"
+          },
+          {
+            "id": "q-43",
+            "number": "43",
+            "stem": "Formation flight is more comfortable because passengers can not see the other planes.",
+            "options": [
+              {
+                "id": "T",
+                "text": "True"
+              },
+              {
+                "id": "F",
+                "text": "False"
+              }
+            ],
+            "correctOptionId": "F"
+          },
+          {
+            "id": "q-44",
+            "number": "44",
+            "stem": "The role that weather plays in formation flight has not yet been clearly defined.",
+            "options": [
+              {
+                "id": "T",
+                "text": "True"
+              },
+              {
+                "id": "F",
+                "text": "False"
+              }
+            ],
+            "correctOptionId": "T"
+          },
+          {
+            "id": "q-45",
+            "number": "45",
+            "stem": "It has been documented that during World War II, America’s armed forces once tried formation flight to save fuel.",
+            "options": [
+              {
+                "id": "T",
+                "text": "True"
+              },
+              {
+                "id": "F",
+                "text": "False"
+              }
+            ],
+            "correctOptionId": "F"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-41",
+            "label": "41"
+          },
+          {
+            "id": "q-42",
+            "label": "42"
+          },
+          {
+            "id": "q-43",
+            "label": "43"
+          },
+          {
+            "id": "q-44",
+            "label": "44"
+          },
+          {
+            "id": "q-45",
+            "label": "45"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-b-2026-sample",
+      "title": "2026英语二阅读B · 双列表格匹配",
+      "extension": {
+        "development": "reading-match-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text and match each of the numbered items in the left column to its corresponding information in the right column. There are two extra choices in the right column. Mark your answers on the ANSWER SHEET. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "In an effort to support restoration programmes, specialists are developing supplies of seeds and seedlings, maintaining gene banks and sequencing the genomes of indigenous trees and other crops. Their work deals with one of the problems that could block major restoration efforts in different parts of the world."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "“Where’s the planting material going to come from? That’s one big bottleneck,” says genetic-resources specialist Ramni Jamnadass."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Asia is arguably the region most neglected by global efforts to increase diversity in restoration and to study native species. Christopher Kettle, Biodiversity International’s director for forest genetic resources and restoration in Rome, says that the need for infrastructure—things such as mechanisms for collecting and storing seeds, and nurseries to raise seedlings—might be most desperate here because many trees are ‘masting’ species, which don’t produce seeds every year. People need to be ready. “Otherwise, you miss the boat, you lose all the seed and you’ve got to wait another seven years,” says Kettle. “This is a really, really critical issue for restoration in Southeast Asia, because many of the most important timber species and tree species—the ones that will lock up the most carbon—they’re all masting species.”"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Climate change is a driving factor in the push to restore forests, but it also raises questions, such as where trees can thrive in the future. Climate change is also expected to alter relationships between trees, insects, diseases and other forest species. “Insects that today are a minor problem may become a major problem if they can produce three or four generations in a year,” says John Stanturf. This remains a significant knowledge gap. “We know enough to know that this is a concern, but we don’t know enough about how to respond to it yet. That’s a great area to be doing research.” So is soil, says Cindy Prescott, a forest ecologist at the University of British Columbia in Vancouver. “If you don’t look at the soil at the start, you can spend a lot of money and time putting in species that aren’t going to survive there.”"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "With so much research left to do, leaders in the field have been doing some soul-searching, and acknowledging that restoration can be motivated by— and designed to meet—different needs. “When you talk about conservation or restoration, the first question has to be restoration by whom, for whom?” says Daniel Janzen, a biologist at the University of Pennsylvania."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The question can have more than one answer. Much of the global funding for restoration is dedicated to developing it as a tool to mitigate climate change, notes restoration ecologist Pedro Brancalion. “But if you ask a farmer in Brazil if he or she is concerned about climate change, they would say, ‘No, I am concerned about water,’” he says. Their interests as stewards of the land need to be better integrated with those who have the money to support restoration."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "That has been the strongest lesson of all for forest ecologist Robin Chazdon. Restoration is about more than what gets planted in the ground, she says. “Yes, it’s about forests, but it’s really about people. They are the agents of restoration.”"
+                }
+              ]
+            },
+            {
+              "type": "table",
+              "content": [
+                {
+                  "type": "tableRow",
+                  "content": [
+                    {
+                      "type": "tableCell",
+                      "content": [
+                        {
+                          "type": "paragraph"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tableCell",
+                      "content": [
+                        {
+                          "type": "paragraph",
+                          "content": [
+                            {
+                              "type": "text",
+                              "text": "[A] People must pay attention to the fact that some kinds of trees do not produce seeds annually."
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "tableRow",
+                  "content": [
+                    {
+                      "type": "tableCell",
+                      "content": [
+                        {
+                          "type": "paragraph",
+                          "content": [
+                            {
+                              "type": "text",
+                              "text": "41. Ramni Jamnadass"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tableCell",
+                      "content": [
+                        {
+                          "type": "paragraph",
+                          "content": [
+                            {
+                              "type": "text",
+                              "text": "[B] Soil is an important element to be taken into account in forest restoration."
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "tableRow",
+                  "content": [
+                    {
+                      "type": "tableCell",
+                      "content": [
+                        {
+                          "type": "paragraph",
+                          "content": [
+                            {
+                              "type": "text",
+                              "text": "42. Christopher Kettle"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tableCell",
+                      "content": [
+                        {
+                          "type": "paragraph",
+                          "content": [
+                            {
+                              "type": "text",
+                              "text": "[C] The purpose of restoration efforts may be different from the real needs of the people involved."
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "tableRow",
+                  "content": [
+                    {
+                      "type": "tableCell",
+                      "content": [
+                        {
+                          "type": "paragraph",
+                          "content": [
+                            {
+                              "type": "text",
+                              "text": "43. John Stanturf"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tableCell",
+                      "content": [
+                        {
+                          "type": "paragraph",
+                          "content": [
+                            {
+                              "type": "text",
+                              "text": "[D] Human factors, as well as trees planted, should be emphasized in forest restoration."
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "tableRow",
+                  "content": [
+                    {
+                      "type": "tableCell",
+                      "content": [
+                        {
+                          "type": "paragraph",
+                          "content": [
+                            {
+                              "type": "text",
+                              "text": "44. Pedro Brancalion"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tableCell",
+                      "content": [
+                        {
+                          "type": "paragraph",
+                          "content": [
+                            {
+                              "type": "text",
+                              "text": "[E] The supply of seeds is a tough problem that has to be dealt with."
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "tableRow",
+                  "content": [
+                    {
+                      "type": "tableCell",
+                      "content": [
+                        {
+                          "type": "paragraph",
+                          "content": [
+                            {
+                              "type": "text",
+                              "text": "45. Robin Chazdon"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tableCell",
+                      "content": [
+                        {
+                          "type": "paragraph",
+                          "content": [
+                            {
+                              "type": "text",
+                              "text": "[F] When it comes to restoration, we have to stay with an awareness of whose interests to serve."
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "tableRow",
+                  "content": [
+                    {
+                      "type": "tableCell",
+                      "content": [
+                        {
+                          "type": "paragraph"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tableCell",
+                      "content": [
+                        {
+                          "type": "paragraph",
+                          "content": [
+                            {
+                              "type": "text",
+                              "text": "[G] Some creatures in the forest that multiply fast can become a great threat to forest restoration."
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "paragraphIds": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E",
+          "F",
+          "G"
+        ],
+        "slots": [
+          {
+            "id": "slot-41",
+            "locked": false,
+            "correctParagraphId": "E"
+          },
+          {
+            "id": "slot-42",
+            "locked": false,
+            "correctParagraphId": "A"
+          },
+          {
+            "id": "slot-43",
+            "locked": false,
+            "correctParagraphId": "G"
+          },
+          {
+            "id": "slot-44",
+            "locked": false,
+            "correctParagraphId": "C"
+          },
+          {
+            "id": "slot-45",
+            "locked": false,
+            "correctParagraphId": "D"
+          }
+        ],
+        "parts": [
+          {
+            "id": "q-41",
+            "number": "41",
+            "slotId": "slot-41"
+          },
+          {
+            "id": "q-42",
+            "number": "42",
+            "slotId": "slot-42"
+          },
+          {
+            "id": "q-43",
+            "number": "43",
+            "slotId": "slot-43"
+          },
+          {
+            "id": "q-44",
+            "number": "44",
+            "slotId": "slot-44"
+          },
+          {
+            "id": "q-45",
+            "number": "45",
+            "slotId": "slot-45"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-41",
+            "label": "41"
+          },
+          {
+            "id": "q-42",
+            "label": "42"
+          },
+          {
+            "id": "q-43",
+            "label": "43"
+          },
+          {
+            "id": "q-44",
+            "label": "44"
+          },
+          {
+            "id": "q-45",
+            "label": "45"
+          }
+        ]
+      }
+    }
+  ]
+}

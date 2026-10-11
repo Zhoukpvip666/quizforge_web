@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {JSDOM} from 'jsdom';
 const coreRoot=new URL('../',import.meta.url),root=new URL('../../',import.meta.url),read=path=>readFileSync(new URL(path,path.startsWith('shared/')?coreRoot:root),'utf8');
-const sample=JSON.parse(read('question-banks/short-answer-demo/bank.json')).questions[1],plain=value=>JSON.parse(JSON.stringify(value));
+const sample=JSON.parse(read('core/test/fixtures/legacy-banks/short-answer-demo/bank.json')).questions[1],plain=value=>JSON.parse(JSON.stringify(value));
 const doc=text=>({type:'doc',content:[{type:'paragraph',content:[{type:'text',text}]}]}),tick=()=>new Promise(resolve=>setTimeout(resolve,25));
 async function fixture(t,{mode='practice',status='unanswered',answer=null,result=null,saveFailure=false}={}){
   const dom=new JSDOM(read('core/test/fixtures/legacy-extensions/short-answer/practice.html'),{runScripts:'outside-only',pretendToBeVisual:true,url:'http://localhost/'});t.after(()=>dom.window.close());dom.window.eval(read('shared/richtext/1.0.0/richtext.js'));const api=dom.window.QFRichText;

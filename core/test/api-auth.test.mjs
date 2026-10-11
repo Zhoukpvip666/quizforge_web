@@ -39,3 +39,11 @@ test('expired session opens reconnect without replaying writes, while failed log
   await assert.rejects(f.request('/api/auth/login',{method:'POST',body:'{}'}),error=>error.status===401);
   assert.deepEqual(f.events,['quizforge-auth-required']);
 });
+
+test('qbank transfers keep binary upload headers and return the download blob',async()=>{
+  const blob=new Blob(['package']),f=fixture({ok:true,blob:async()=>blob,json:async()=>({ok:true})});
+  await f.request('/api/library/import',{method:'POST',body:blob,headers:{'Content-Type':'application/vnd.quizforge.qbank'}});
+  assert.equal(f.calls[0].options.body,blob);assert.equal(f.calls[0].options.headers['Content-Type'],'application/vnd.quizforge.qbank');
+  assert.equal(await f.request('/api/library/export',{method:'POST',body:'{}',responseType:'blob'}),blob);
+  assert.equal(f.calls[1].options.headers.Accept,'application/vnd.quizforge.qbank');assert.equal(f.calls[1].options.responseType,undefined);
+});

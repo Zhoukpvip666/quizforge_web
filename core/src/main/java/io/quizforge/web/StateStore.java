@@ -33,7 +33,8 @@ final class StateStore {
     private final Map<String, CachedOutline> outlineCache = new LinkedHashMap<>(16, 0.75f, true);
     private long outlineCachedBytes;
     record AiSnapshot(String stateKey, String roundId, String questionFingerprint, String extensionFingerprint,
-                      String answerHash, long submissionGeneration, long gradingGeneration, ObjectNode gradingInput) { }
+                      String answerHash, long submissionGeneration, long gradingGeneration, ObjectNode gradingInput,
+                      String targetId, long targetGeneration) { }
     private final byte[] stampKey = new byte[32];
     StateStore(Path root, RuleEngine rules) throws IOException {
         this(root, rules, root);
@@ -50,6 +51,7 @@ final class StateStore {
         edits = new EditJournal(root, stateRoot); if (!memoryOnly) edits.recover();
     }
     boolean memoryOnly() { return memoryOnly; }
+    StateStore temporary(Path root) throws IOException { return memory(root, rules, root); }
     synchronized long memoryBytes() { return cachedBytes + outlineCachedBytes; }
     synchronized void clearMemory() { cache.clear(); cachedBytes = 0; outlineCache.clear(); outlineCachedBytes = 0; aiSupport.clear(); }
     synchronized ObjectNode overview(Library.Collection collection) {
@@ -135,6 +137,7 @@ final class StateStore {
                 next.put(key, version + 1);
             }
             next.put("status", "unanswered"); next.putNull("answer"); next.putNull("result"); next.putNull("draft"); next.putNull("aiTaskId");
+            next.remove(List.of("aiTaskIds", "aiTargetGenerations"));
             next.putArray("receipts"); next.remove("outlineStates");
             ((ObjectNode) replacement.path("questions")).set(question.id(), next);
         }
@@ -167,7 +170,7 @@ final class StateStore {
             boolean awaiting = gradingStatus.equals("pending");
             java.math.BigDecimal earned = answered && !awaiting ? value.path("score").decimalValue() : java.math.BigDecimal.ZERO;
             score = score.add(earned); maxScore = maxScore.add(value.path("maxScore").decimalValue()); if (answered) { submitted++; if (awaiting) pending++; else graded++; }
-            ObjectNode row = Json.object().put("id", collection.questions().get(i).id()).put("maxScore", value.path("maxScore").decimalValue()).put("submitted", answered).put("gradingStatus", gradingStatus);
+            ObjectNode row = Json.object().put("id", collection.questions().get(i).id()).put("maxScore", value.path("maxScore").decimalValue()).put("submitted", answered).put("status", states.get(i).path("status").asText()).put("gradingStatus", gradingStatus);
             cacheOutline(collection, collection.questions().get(i), states.get(i), value);
             if (value.has("outlineStates") && !collection.questions().get(i).outlineItems().isEmpty()) row.set("outlineStates", OutlineStates.visible(value.get("outlineStates"), collection.questions().get(i), answered));
             if (awaiting) row.putNull("score"); else row.put("score", earned); rows.add(row);
@@ -212,11 +215,15 @@ final class StateStore {
         ObjectNode state = questionState(load(collection), collection, question), result = Json.object();
         ObjectNode raw = Json.object().put("id", question.id()).put("title", question.title()); raw.set("data", question.data().deepCopy()); result.set("question", raw);
         Library.Extension extension = collection.extensionFor(question);
-        result.set("extension", extensionMetadata(extension)); result.put("revision", state.path("revision").asLong()).put("contentVersion", stamp(collection, question, state).path("contentVersion").asText());
+        String version=stamp(collection,question,state).path("contentVersion").asText();
+        result.set("extension", extensionMetadata(extension)); result.put("revision", state.path("revision").asLong()).put("contentVersion", version).put("sourceVersion",editorSourceVersion(collection));
         result.put("draftVersion", Json.fingerprint(raw, extension.fingerprint()));
         ObjectNode editor = library.editorPage(extension); if (editor == null) result.putNull("editor"); else result.set("editor", editor); return result;
     }
     synchronized ObjectNode edit(Library library, Library.Collection collection, Library.Question question, JsonNode request) {
+        synchronized (library) { return editLocked(library, collection, question, request); }
+    }
+    private ObjectNode editLocked(Library library, Library.Collection collection, Library.Question question, JsonNode request) {
         collection.features().requireEditing();
         if (request == null || !request.isObject()) throw ApiException.bad("Edit must be an object");
         String requestId = Json.id(request, "requestId"); if (requestId.length() < 8) throw ApiException.bad("requestId must have at least 8 characters");
@@ -227,6 +234,11 @@ final class StateStore {
         }
         JsonNode revision = request.get("revision"); if (revision == null || !revision.isIntegralNumber() || !revision.canConvertToLong() || revision.asLong() < 0) throw ApiException.bad("Invalid revision");
         String version = Json.text(request, "contentVersion", 64); if (!version.matches("[a-f0-9]{64}")) throw ApiException.bad("Invalid contentVersion");
+        String beforeSourceVersion=editorSourceVersion(collection);
+        if(request.has("sourceVersion")){
+            String sourceVersion=Json.text(request,"sourceVersion",64);if(!sourceVersion.matches("[a-f0-9]{64}"))throw ApiException.bad("Invalid sourceVersion");
+            if(!sourceVersion.equals(beforeSourceVersion))throw new ApiException(409,"CONTENT_CONFLICT","Collection content changed; reload the editor before saving");
+        }
         if (!version.equals(stamp(collection, question, current).path("contentVersion").asText())) throw new ApiException(409, "CONTENT_CONFLICT", "Question content changed; reload the editor before saving");
         if (revision.asLong() != current.path("revision").asLong()) throw new ApiException(409, "REVISION_CONFLICT", "Question practice changed; reload the editor before saving");
         if (revision.asLong() == Long.MAX_VALUE) throw new ApiException(409, "REVISION_LIMIT", "Question revision limit reached");
@@ -236,10 +248,11 @@ final class StateStore {
         ObjectNode replacement = persisted.deepCopy(), next = current.deepCopy();
         if (changed) { next.put("status", "unanswered"); next.putNull("answer"); next.putNull("result"); next.putNull("draft"); next.set("receipts", Json.MAPPER.createArrayNode()); }
         next.put("gradingGeneration", generation(current, "gradingGeneration") + 1); next.putNull("aiTaskId");
+        next.remove(List.of("aiTaskIds", "aiTargetGenerations"));
         if (changed) next.put("submissionGeneration", generation(current, "submissionGeneration") + 1);
         if (changed) interruptRound(replacement, "content-edited");
         next.put("revision", revision.asLong() + 1).put("fingerprint", plan.question().fingerprint()); ((ObjectNode) replacement.path("questions")).set(question.id(), next);
-        ObjectNode result = Json.object(); result.set("payload", response(plan.collection(), plan.question(), next, null)); result.set("collection", overviewValue(plan.collection(), replacement));
+        ObjectNode result = Json.object().put("previousSourceVersion",beforeSourceVersion).put("sourceVersion",editorSourceVersion(plan.collection())); result.set("payload", response(plan.collection(), plan.question(), next, null)); result.set("collection", overviewValue(plan.collection(), replacement));
         ArrayNode receipts = replacement.has("editReceipts") ? (ArrayNode) replacement.get("editReceipts") : replacement.putArray("editReceipts");
         ObjectNode receipt = Json.object().put("id", requestId).put("questionId", question.id()); receipt.set("request", request.deepCopy()); receipt.set("response", result.deepCopy()); receipts.add(receipt);
         while (receipts.size() > 32 || (receipts.size() > 1 && encodedSize(receipts) > 16 * 1024 * 1024)) receipts.remove(0);
@@ -247,6 +260,7 @@ final class StateStore {
         catch (IOException e) { cache.clear(); cachedBytes = 0; throw new ApiException(503, "EDIT_PENDING", "Edit could not finish. Recovery journal is preserved; retry the same request after storage is available"); }
         return result;
     }
+    private String editorSourceVersion(Library.Collection collection){return opaqueVersion("edit-source",collection.stateKey(),Library.catalogRevision(collection));}
     synchronized ObjectNode history(String kind, String id, String historyId) {
         if (memoryOnly) throw new ApiException(403, "HISTORY_DISABLED", "Practice is temporary in this page session");
         recoverEdits(); var records = new java.util.ArrayList<JsonNode>(); String prefix = kind + ":" + id + ":";
@@ -328,6 +342,7 @@ final class StateStore {
                 state.put("revision", state.path("revision").asLong() + 1).put("fingerprint", question.fingerprint())
                         .put("gradingGeneration", generation(state, "gradingGeneration") + 1).putNull("aiTaskId");
                 state.set("receipts", Json.MAPPER.createArrayNode());
+                state.remove(List.of("aiTaskIds", "aiTargetGenerations"));
             }
             migrated.add(state); questions.set(question.id(), state); submitted |= state.path("status").asText().equals("submitted");
         }
@@ -380,7 +395,7 @@ final class StateStore {
             if (changed || completed) {
                 if (state.path("revision").asLong() == Long.MAX_VALUE) throw new ApiException(409, "REVISION_LIMIT", "Saved revision cannot be upgraded");
                 state.put("revision", state.path("revision").asLong() + 1).put("fingerprint", question.fingerprint());
-                state.set("receipts", Json.MAPPER.createArrayNode()); state.remove("aiTaskId");
+                state.set("receipts", Json.MAPPER.createArrayNode()); state.remove(List.of("aiTaskId", "aiTaskIds", "aiTargetGenerations"));
             }
             if (changed && !state.path("answer").isNull()) {
                 ObjectNode input = Json.object().put("op", "validateAnswer"); input.set("data", question.data()); input.set("answer", state.path("answer"));
@@ -457,21 +472,39 @@ final class StateStore {
                 if (current.path("status").asText().equals("submitted")) throw new ApiException(409, "ALREADY_SUBMITTED", "Retry before changing a submitted answer");
                 if (!data.has("answer")) throw ApiException.bad("Missing answer");
                 ObjectNode request = Json.object().put("op", name.equals("submit") ? "submit" : "validateAnswer").put("withCapabilities", true); request.set("data", question.data()); request.set("answer", data.get("answer"));
+                if (name.equals("draft")) request.put("projectAfterValidation", true);
                 JsonNode evaluated = rules.run(collection.extensionFor(question), request);
                 rememberAiSupport(collection.extensionFor(question), evaluated);
                 next.set("answer", data.get("answer").deepCopy()); next.put("status", name.equals("submit") ? "submitted" : "draft");
-                if (name.equals("submit")) { next.set("result", evaluated.get("result")); projected = evaluated.get("projected"); next.put("submissionGeneration", generation(current, "submissionGeneration") + 1).put("gradingGeneration", generation(current, "gradingGeneration") + 1).putNull("aiTaskId"); }
-                else next.putNull("result");
+                if (name.equals("submit")) { next.set("result", evaluated.get("result")); projected = evaluated.get("projected"); next.put("submissionGeneration", generation(current, "submissionGeneration") + 1).put("gradingGeneration", generation(current, "gradingGeneration") + 1).putNull("aiTaskId"); next.remove(List.of("aiTaskIds", "aiTargetGenerations")); }
+                else { next.putNull("result"); projected = evaluated.get("projected"); }
             }
-            case "retry" -> { next.put("status", "unanswered"); next.putNull("answer"); next.putNull("result"); next.put("submissionGeneration", generation(current, "submissionGeneration") + 1).put("gradingGeneration", generation(current, "gradingGeneration") + 1).putNull("aiTaskId"); }
+            case "retry" -> { next.put("status", "unanswered"); next.putNull("answer"); next.putNull("result"); next.put("submissionGeneration", generation(current, "submissionGeneration") + 1).put("gradingGeneration", generation(current, "gradingGeneration") + 1).putNull("aiTaskId"); next.remove(List.of("aiTaskIds", "aiTargetGenerations")); }
             case "review" -> {
                 if (!reviewAvailable(collection, question, current, persisted))
                     throw new ApiException(409, "REVIEW_UNAVAILABLE", "只能调整当前未完成练习中已提交题目的评分。");
                 JsonNode review = data.get("review"); if (review == null || !review.isObject()) throw ApiException.bad("Missing review");
-                finite(review, "score", 0, current.at("/result/maxScore").asDouble());
+                if (!review.path("score").isNumber() || !Double.isFinite(review.path("score").asDouble())) throw ApiException.bad("Invalid score");
+                String targetId = AiGradingProtocol.targetId(review);
                 ObjectNode request = Json.object().put("op", "review").put("withCapabilities", true); request.set("data", question.data()); request.set("answer", current.path("answer")); request.set("review", review);
-                JsonNode evaluated = rules.run(collection.extensionFor(question), request); rememberAiSupport(collection.extensionFor(question), evaluated); next.set("result", AiGradingProtocol.decorateReview((ObjectNode) evaluated.get("result"), current.path("result"), trustedAi)); projected = evaluated.get("projected");
-                next.put("gradingGeneration", generation(current, "gradingGeneration") + 1); if (trustedAi == null) next.putNull("aiTaskId");
+                ObjectNode reviewState = publicState(current); reviewState.put("submitted", true); request.set("state", reviewState);
+                JsonNode evaluated = rules.run(collection.extensionFor(question), request); rememberAiSupport(collection.extensionFor(question), evaluated);
+                ObjectNode evaluatedResult = (ObjectNode) evaluated.get("result");
+                if (targetId != null && trustedAi == null) {
+                    evaluatedResult = evaluatedResult.deepCopy(); evaluatedResult.remove("aiAssessment");
+                    ObjectNode assessments = current.at("/result/aiAssessments").isObject() ? ((ObjectNode) current.at("/result/aiAssessments")).deepCopy() : Json.object();
+                    assessments.remove(targetId); evaluatedResult.set("aiAssessments", assessments); evaluatedResult.put("gradingSource", "manual");
+                    next.set("result", evaluatedResult);
+                } else next.set("result", AiGradingProtocol.decorateReview(evaluatedResult, current.path("result"), trustedAi));
+                projected = evaluated.get("projected");
+                if (targetId == null) {
+                    next.put("gradingGeneration", generation(current, "gradingGeneration") + 1); next.remove(List.of("aiTaskIds", "aiTargetGenerations"));
+                    if (trustedAi == null) next.putNull("aiTaskId");
+                } else {
+                    targetMap(next, "aiTargetGenerations", targetId).put(targetId, targetGeneration(current, targetId) + 1);
+                    next.putNull("aiTaskId");
+                    if (trustedAi == null && next.path("aiTaskIds").isObject()) ((ObjectNode) next.path("aiTaskIds")).remove(targetId);
+                }
             }
             case "whiteboard" -> { collection.features().requireWhiteboard(); JsonNode draft = data.get("draft"); validateDraft(draft); next.set("draft", draft.deepCopy()); }
             default -> throw ApiException.bad("Unknown action");
@@ -510,6 +543,7 @@ final class StateStore {
         CachedState loaded = cache.get(collection.stateKey());
         result.set("capabilities", loaded == null ? Json.object().put("canReview", false).put("canAiGrade", false) : reviewCapabilities(collection, question, state, loaded.value()));
         if (state.path("aiTaskId").isTextual()) result.set("aiTask", Json.object().put("taskId", state.path("aiTaskId").asText())); else result.putNull("aiTask");
+        if (state.path("aiTaskIds").isObject()) result.set("aiTasks", state.path("aiTaskIds").deepCopy());
         result.set("extension", extensionMetadata(collection.extensionFor(question))); return result;
     }
     private static boolean reviewAvailable(Library.Collection collection, Library.Question question, ObjectNode state, ObjectNode persisted) {
@@ -539,22 +573,67 @@ final class StateStore {
         aiSupport.put(extension.fingerprint(), value); while (aiSupport.size() > 32) aiSupport.remove(aiSupport.keySet().iterator().next()); return value;
     }
     synchronized String currentAiTaskId(Library.Collection collection, Library.Question question) {
-        JsonNode value = questionState(load(collection), collection, question).path("aiTaskId"); return value.isTextual() ? value.asText() : null;
+        return currentAiTaskId(collection, question, null);
+    }
+    synchronized String currentAiTaskId(Library.Collection collection, Library.Question question, String targetId) {
+        return aiTaskId(questionState(load(collection), collection, question), targetId);
+    }
+    synchronized List<String> currentAiTaskIds(Library.Collection collection, Library.Question question) {
+        ObjectNode state = questionState(load(collection), collection, question); var ids = new java.util.ArrayList<String>();
+        String whole = aiTaskId(state, null); if (whole != null) ids.add(whole);
+        state.path("aiTaskIds").elements().forEachRemaining(value -> { if (value.isTextual()) ids.add(value.asText()); }); return ids;
+    }
+    private static String aiTaskId(JsonNode state, String targetId) {
+        JsonNode value = targetId == null ? state.path("aiTaskId") : state.path("aiTaskIds").path(targetId); return value.isTextual() ? value.asText() : null;
+    }
+    private static long targetGeneration(JsonNode state, String targetId) {
+        long value = state.path("aiTargetGenerations").path(targetId).asLong();
+        if (value == Long.MAX_VALUE) throw new ApiException(409, "REVISION_LIMIT", "Question target grading generation limit reached"); return value;
+    }
+    private static ObjectNode targetMap(ObjectNode state, String name, String targetId) {
+        ObjectNode map = state.path(name).isObject() ? (ObjectNode) state.path(name) : state.putObject(name);
+        if (!map.has(targetId) && map.size() >= 256) throw new ApiException(413, "AI_TARGET_LIMIT", "当前题目的评分目标数量已达到上限。"); return map;
     }
     synchronized AiSnapshot prepareAiGrading(Library.Collection collection, Library.Question question, JsonNode request) {
+        return prepareAiGrading(collection, question, request, false).getFirst();
+    }
+    synchronized List<AiSnapshot> prepareAutomaticAiGrading(Library.Collection collection, Library.Question question, JsonNode request) {
+        return prepareAiGrading(collection, question, request, true);
+    }
+    private List<AiSnapshot> prepareAiGrading(Library.Collection collection, Library.Question question, JsonNode request, boolean automatic) {
+        String targetId = AiGradingProtocol.targetId(request);
         ObjectNode persisted = load(collection), state = questionState(persisted, collection, question);
         if (!reviewAvailable(collection, question, state, persisted) || !supportsAi(collection.extensionFor(question))) throw new ApiException(409, "AI_GRADING_UNAVAILABLE", "当前题目不能进行 AI 评分，请先提交答案。");
         if (request != null && request.has("contentVersion") && !request.path("contentVersion").asText().equals(stamp(collection, question, state).path("contentVersion").asText())) throw new ApiException(409, "CONTENT_CONFLICT", "题目已更新，请重新打开后评分。");
         ObjectNode input = Json.object().put("op", "prepareAiGrading"); input.set("data", question.data()); input.set("answer", state.path("answer"));
+        if (automatic) input.put("automatic", true);
+        if (targetId != null) input.put("targetId", targetId);
         ObjectNode ruleState = publicState(state); ruleState.put("submitted", true); input.set("state", ruleState);
         JsonNode prepared = rules.run(collection.extensionFor(question), input); JsonNode document = prepared.path("gradingInput");
-        AiGradingProtocol.validateInput(document, state.at("/result/maxScore"), prepared.path("maxScore"));
+        if (automatic && document.isObject() && document.has("targets")) {
+            JsonNode targets = document.path("targets");
+            if (document.size() != 1 || !targets.isArray() || targets.size() > 256) throw new ApiException(422, "INVALID_AI_INPUT", "自动评分清单须为最多 256 个小题的 targets 数组。");
+            var snapshots = new java.util.ArrayList<AiSnapshot>(); var ids = new java.util.HashSet<String>();
+            for (JsonNode target : targets) {
+                if (!target.isObject() || target.size() != 2 || !target.path("targetId").isTextual() || !AiGradingProtocol.validTargetId(target.path("targetId").asText()) || !target.has("input") || !ids.add(target.path("targetId").asText()))
+                    throw new ApiException(422, "INVALID_AI_INPUT", "自动评分的小题必须包含唯一有效的 targetId 和 input。");
+                snapshots.add(aiSnapshot(collection, question, persisted, state, target.path("input"), target.path("targetId").asText()));
+            }
+            return List.copyOf(snapshots);
+        }
+        return List.of(aiSnapshot(collection, question, persisted, state, document, targetId));
+    }
+    private static AiSnapshot aiSnapshot(Library.Collection collection, Library.Question question, ObjectNode persisted, ObjectNode state, JsonNode document, String targetId) {
+        AiGradingProtocol.validateInput(document);
+        document = AiGradingProtocol.normalizeInput(document);
         return new AiSnapshot(collection.stateKey(), activeRound(persisted).path("id").asText(), question.fingerprint(), collection.extensionFor(question).fingerprint(),
-                Json.fingerprint(state.path("answer"), "quizforge-ai-answer-v1"), generation(state, "submissionGeneration"), generation(state, "gradingGeneration"), (ObjectNode) document.deepCopy());
+                Json.fingerprint(state.path("answer"), "quizforge-ai-answer-v1"), generation(state, "submissionGeneration"), generation(state, "gradingGeneration"), (ObjectNode) document.deepCopy(), targetId, targetId == null ? 0 : targetGeneration(state, targetId));
     }
     synchronized void bindAiTask(Library.Collection collection, Library.Question question, AiSnapshot snapshot, String taskId) {
         assertAiCurrent(collection, question, snapshot, null); ObjectNode persisted = load(collection), replacement = persisted.deepCopy(), next = questionState(replacement, collection, question).deepCopy();
-        next.put("aiTaskId", taskId); ((ObjectNode) replacement.path("questions")).set(question.id(), next); long bytes = persist(collection, replacement); remember(collection, replacement, bytes);
+        if (snapshot.targetId() == null) { next.put("aiTaskId", taskId); next.remove("aiTaskIds"); }
+        else { targetMap(next, "aiTaskIds", snapshot.targetId()).put(snapshot.targetId(), taskId); next.putNull("aiTaskId"); }
+        ((ObjectNode) replacement.path("questions")).set(question.id(), next); long bytes = persist(collection, replacement); remember(collection, replacement, bytes);
     }
     synchronized boolean aiCurrent(Library.Collection collection, Library.Question question, AiSnapshot snapshot, String taskId) {
         try { assertAiCurrent(collection, question, snapshot, taskId); return true; } catch (ApiException error) { if (List.of("AI_RESULT_STALE", "COLLECTION_CHANGED").contains(error.code)) return false; throw error; }
@@ -564,7 +643,8 @@ final class StateStore {
         if (!collection.stateKey().equals(snapshot.stateKey()) || !question.fingerprint().equals(snapshot.questionFingerprint()) || !collection.extensionFor(question).fingerprint().equals(snapshot.extensionFingerprint())
                 || active == null || !active.path("id").asText().equals(snapshot.roundId()) || !reviewAvailable(collection, question, state, persisted)
                 || generation(state, "submissionGeneration") != snapshot.submissionGeneration() || generation(state, "gradingGeneration") != snapshot.gradingGeneration()
-                || !Json.fingerprint(state.path("answer"), "quizforge-ai-answer-v1").equals(snapshot.answerHash()) || (taskId != null && !state.path("aiTaskId").asText().equals(taskId)))
+                || (snapshot.targetId() != null && targetGeneration(state, snapshot.targetId()) != snapshot.targetGeneration())
+                || !Json.fingerprint(state.path("answer"), "quizforge-ai-answer-v1").equals(snapshot.answerHash()) || (taskId != null && !taskId.equals(aiTaskId(state, snapshot.targetId()))))
             throw new ApiException(409, "AI_RESULT_STALE", "题目、答案或评分已变化，这份 AI 建议不能覆盖当前结果。");
     }
     synchronized ObjectNode confirmAi(Library.Collection collection, Library.Question question, AiSnapshot snapshot, String taskId,
@@ -579,6 +659,7 @@ final class StateStore {
         ObjectNode action = Json.object().put("requestId", requestId).put("revision", current.path("revision").asLong()).put("action", "review");
         action.put("contentVersion", stamp(collection, question, current).path("contentVersion").asText());
         ObjectNode review = Json.object().put("score", score); if (assessment.path("feedback").isTextual()) review.put("feedback", assessment.path("feedback").asText());
+        if (snapshot.targetId() != null) review.put("targetId", snapshot.targetId());
         action.set("data", Json.object().set("review", review)); ObjectNode trusted = Json.object(); trusted.set("confirmation", confirmation); trusted.set("assessment", assessment.deepCopy());
         return act(collection, question, action, trusted);
     }
@@ -780,6 +861,15 @@ final class StateStore {
         if (!state.path("draft").isNull()) validateDraft(state.path("draft"));
         for (String key : List.of("submissionGeneration", "gradingGeneration")) if (state.has(key) && (!state.path(key).isIntegralNumber() || !state.path(key).canConvertToLong() || state.path(key).asLong() < 0)) throw new IOException("Invalid grading generation");
         if (state.has("aiTaskId") && !state.path("aiTaskId").isNull() && (!state.path("aiTaskId").isTextual() || !state.path("aiTaskId").asText().matches("[a-f0-9]{64}"))) throw new IOException("Invalid AI task ID");
+        for (String key : List.of("aiTaskIds", "aiTargetGenerations")) if (state.has(key)) {
+            JsonNode map = state.path(key); if (!map.isObject() || map.size() > 256) throw new IOException("Invalid AI targets");
+            var entries = map.fields(); while (entries.hasNext()) {
+                var entry = entries.next(); JsonNode value = entry.getValue();
+                if (!AiGradingProtocol.validTargetId(entry.getKey()) || (key.equals("aiTaskIds")
+                        ? !value.isTextual() || !value.asText().matches("[a-f0-9]{64}")
+                        : !value.isIntegralNumber() || !value.canConvertToLong() || value.asLong() < 0)) throw new IOException("Invalid AI target entry");
+            }
+        }
         if (state.path("status").asText().equals("submitted")) HistoryRounds.validateResult(state.path("result"));
         else if (!state.path("result").isNull()) throw new IOException("Unsubmitted question has a result");
         for (JsonNode receipt : state.path("receipts")) if (!receipt.path("id").isTextual() || !receipt.path("request").isObject() || !receipt.path("response").isObject()) throw new IOException("Invalid receipt");

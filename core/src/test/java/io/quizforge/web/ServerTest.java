@@ -119,6 +119,33 @@ class ServerTest {
         ObjectNode data = Json.object(); data.set("draft", Json.MAPPER.readTree("{\"schemaVersion\":1,\"viewport\":{\"x\":0,\"y\":0,\"zoom\":100},\"strokes\":[],\"paper\":{\"color\":\"#ffffff\",\"pattern\":\"grid\"}}"));
         assertEquals(400, post(QUESTION + "/actions", action("bad-00003", 0, "whiteboard", data)).status); assertEquals(0, get(QUESTION).body.at("/state/revision").asLong());
     }
+    @Test void draftProjectionIsIsolatedFromAnswerValidation() throws Exception {
+        write("extensions/generic/rules.js", """
+                let seenAnswer = false;
+                QF.defineType({
+                  validateAnswer(answer){seenAnswer=true;return true;},
+                  project(data,state){if(seenAnswer)throw Error('validator contaminated projection');return state.submitted?{reveal:data.secret}:{public:data.public};},
+                  grade(){return {score:0,maxScore:1,correct:false};}
+                });
+                """);
+        start(null); assertEquals(200, get(QUESTION).status);
+        Reply saved = post(QUESTION + "/actions", action("draft-fresh-vm", 0, "draft", answer("yes")));
+        assertEquals(200, saved.status); assertEquals("yes", saved.body.at("/state/answer/value").asText());
+        assertFalse(saved.body.at("/question/data").has("reveal"));
+    }
+    @Test void draftProjectionFailureDoesNotPersistTheAnswer() throws Exception {
+        write("extensions/generic/rules.js", """
+                QF.defineType({project(){throw Error('unavailable projection');},grade(){return {score:0,maxScore:1,correct:false};}});
+                """);
+        start(null);
+        Reply rejected = post(QUESTION + "/actions", action("draft-project-failure", 0, "draft", answer("no")));
+        assertEquals(422, rejected.status);
+        Reply remaining = get(QUESTION + "/stamp"); assertEquals(200, remaining.status);
+        assertEquals(0, remaining.body.path("revision").asInt());
+        try (var files = Files.list(root.resolve(".state"))) {
+            assertFalse(files.anyMatch(path -> path.getFileName().toString().matches("[a-f0-9]{64}\\.json")));
+        }
+    }
     @Test void concurrentWritesHaveOneWinner() throws Exception {
         start(null); get(QUESTION);
         var a = java.util.concurrent.CompletableFuture.supplyAsync(() -> { try { return post(QUESTION + "/actions", action("race-0001", 0, "draft", answer("yes"))); } catch (Exception e) { throw new RuntimeException(e); } });
@@ -149,6 +176,15 @@ class ServerTest {
         assertEquals(0, bounded.run(extension, Json.object()).path("unexpected").asInt());
     }
     Path savedFile() throws IOException { try (var files = Files.list(root.resolve(".state"))) { return files.filter(p -> p.toString().endsWith(".json")).findFirst().orElseThrow(); } }
+    java.util.Map<Path, byte[]> stateFileBytes() throws IOException {
+        var result = new java.util.LinkedHashMap<Path, byte[]>();
+        try (var paths = Files.walk(root.resolve(".state"))) { for (Path path : paths.filter(Files::isRegularFile).filter(path -> !path.startsWith(root.resolve(".state/validation-cache"))).sorted().toList()) result.put(path, Files.readAllBytes(path)); }
+        return result;
+    }
+    void assertStateFileBytes(java.util.Map<Path, byte[]> expected) throws IOException {
+        var actual = stateFileBytes(); assertEquals(expected.keySet(), actual.keySet());
+        for (Path path : expected.keySet()) assertArrayEquals(expected.get(path), actual.get(path), path.toString());
+    }
     @Test void changedQuestionRefusesStoredGradeAndReplayWithoutChangingStateBytes() throws Exception {
         start(null); ObjectNode submittedRequest = action("submit-001", 0, "submit", answer("yes")); Reply submitted = post(QUESTION + "/actions", submittedRequest); assertEquals(200, submitted.status);
         Path state = savedFile(); byte[] originalBytes = Files.readAllBytes(state);
@@ -257,7 +293,7 @@ class ServerTest {
         Files.write(state, stateBytes); assertEquals(saved.body, get(QUESTION).body); assertEquals(saved.body, post(QUESTION + "/actions", savedRequest).body); assertArrayEquals(stateBytes, Files.readAllBytes(state));
     }
     ObjectNode editRequest(String requestId, JsonNode editor, String title, JsonNode data) {
-        ObjectNode request = Json.object().put("requestId", requestId).put("revision", editor.path("revision").asLong()).put("contentVersion", editor.path("contentVersion").asText()).put("title", title); request.set("data", data.deepCopy()); return request;
+        ObjectNode request = Json.object().put("requestId", requestId).put("revision", editor.path("revision").asLong()).put("contentVersion", editor.path("contentVersion").asText()).put("title", title); if(editor.has("sourceVersion"))request.set("sourceVersion",editor.get("sourceVersion")); request.set("data", data.deepCopy()); return request;
     }
     @Test void historyGroupsCollectionSubmissionsWithoutDuplicateReplayAndSurvivesRemoval() throws Exception {
         start(null); assertEquals(0, get("/api/collections/bank/bank/history").body.path("records").size());
@@ -285,8 +321,12 @@ class ServerTest {
         JsonNode noEditor = get(QUESTION + "/editor").body; assertTrue(noEditor.path("editor").isNull()); assertEquals("answer-secret", noEditor.at("/question/data/secret").asText()); assertEquals(1, noEditor.path("revision").asInt());
         write("extensions/generic/editor.json", "{\"entry\":\"editor.html\",\"script\":\"editor.js\",\"style\":\"editor.css\"}"); write("extensions/generic/editor.html", "<textarea>editor</textarea>"); write("extensions/generic/editor.js", "QF.editor.register({onLoad(){}})"); write("extensions/generic/editor.css", "textarea{color:#123}");
         Reply editor = get(QUESTION + "/editor"); assertEquals(200, editor.status); assertEquals(4, editor.body.path("editor").size()); assertEquals(ExtensionApi.version(), editor.body.at("/editor/apiVersion")); assertEquals(stamp, get(QUESTION + "/stamp").body); assertArrayEquals(before, Files.readAllBytes(savedFile()));
-        write("extensions/generic/editor.json", "{\"entry\":\"../../question-banks/bank.json\",\"script\":\"editor.js\",\"style\":\"editor.css\"}"); assertEquals("INVALID_EDITOR", get(QUESTION + "/editor").body.at("/error/code").asText()); assertEquals(stamp, get(QUESTION + "/stamp").body);
-        assertEquals("READ_ONLY_COLLECTION", get("/api/collections/extension/generic/questions/q1/editor").body.at("/error/code").asText());
+        Path sample = root.resolve("extensions/generic/examples.json"); byte[] sampleBefore = Files.readAllBytes(sample); var stateBefore = stateFileBytes();
+        write("extensions/generic/editor.json", "{\"entry\":\"../../question-banks/bank.json\",\"script\":\"editor.js\",\"style\":\"editor.css\"}");
+        for (String question : java.util.List.of(QUESTION, "/api/collections/extension/generic/questions/q1")) {
+            Reply rejected = get(question + "/editor"); assertEquals(422, rejected.status); assertEquals("INVALID_EDITOR", rejected.body.at("/error/code").asText());
+        }
+        assertEquals(stamp, get(QUESTION + "/stamp").body); assertArrayEquals(sampleBefore, Files.readAllBytes(sample)); assertStateFileBytes(stateBefore);
     }
     @Test void validatedEditResetsOnlyModifiedQuestionAndPreservesReadonlyHistory() throws Exception {
         start(null); assertEquals(200, post(QUESTION + "/actions", action("edit-submit", 0, "submit", answer("yes"))).status);
@@ -313,7 +353,14 @@ class ServerTest {
         assertEquals(saved.body, post(QUESTION + "/edit", valid).body); ObjectNode reused = valid.deepCopy(); reused.put("title", "Another title"); assertEquals("REQUEST_ID_REUSED", post(QUESTION + "/edit", reused).body.at("/error/code").asText());
         byte[] after = Files.readAllBytes(savedFile()); server.close(); server = null; start(null); assertEquals(saved.body, post(QUESTION + "/edit", valid).body); assertArrayEquals(after, Files.readAllBytes(savedFile()));
         assertEquals(403, call("POST", QUESTION + "/edit", valid.toString(), null, "https://other.example").status);
-        assertEquals("READ_ONLY_COLLECTION", post("/api/collections/extension/generic/questions/q1/edit", valid).body.at("/error/code").asText());
+        String sampleQuestion = "/api/collections/extension/generic/questions/q1"; Reply sampleEditor = get(sampleQuestion + "/editor"); assertEquals(200, sampleEditor.status);
+        JsonNode bankEditor = get(QUESTION + "/editor").body;
+        ObjectNode crossCollection = editRequest("cross-collection-edit", sampleEditor.body, "Attempted sample edit", sampleEditor.body.at("/question/data"));
+        assertNotEquals(sampleEditor.body.path("contentVersion"), bankEditor.path("contentVersion")); crossCollection.put("contentVersion", bankEditor.path("contentVersion").asText());
+        Path sample = root.resolve("extensions/generic/examples.json"), bank = root.resolve("question-banks/bank.json");
+        byte[] sampleBefore = Files.readAllBytes(sample), bankAfter = Files.readAllBytes(bank); var stateBeforeConflict = stateFileBytes();
+        Reply rejected = post(sampleQuestion + "/edit", crossCollection); assertEquals(409, rejected.status); assertEquals("CONTENT_CONFLICT", rejected.body.at("/error/code").asText());
+        assertArrayEquals(sampleBefore, Files.readAllBytes(sample)); assertArrayEquals(bankAfter, Files.readAllBytes(bank)); assertStateFileBytes(stateBeforeConflict);
     }
     ObjectNode journal(Path state, byte[] bankBefore, byte[] bankAfter, byte[] stateBefore, byte[] stateAfter) {
         ObjectNode journal = Json.object().put("schemaVersion", 1).put("bank", "question-banks/bank.json").put("state", state.getFileName().toString());
@@ -347,6 +394,28 @@ class ServerTest {
         String changed = Files.readString(bank).replace("\"other\"", "\"newer\""); Files.writeString(bank, changed); Files.setLastModifiedTime(bank, modifiedAt); byte[] bankBefore = Files.readAllBytes(bank);
         Reply rejected = post(QUESTION + "/edit", editRequest("metadata-edit", editor, "Attempted edit", editor.at("/question/data"))); assertEquals(409, rejected.status); assertEquals("CONTENT_CONFLICT", rejected.body.at("/error/code").asText());
         assertArrayEquals(bankBefore, Files.readAllBytes(bank)); assertArrayEquals(stateBefore, Files.readAllBytes(state)); assertFalse(Files.exists(root.resolve(".state/.edit-journal.json")));
+    }
+    @Test void newerEditorCannotRebaseAnOlderSnapshotAfterExternalWholeBankChange() throws Exception {
+        start(null); JsonNode older=get(QUESTION+"/editor").body;
+        Path bank=root.resolve("question-banks/bank.json"); Files.writeString(bank,Files.readString(bank).replace("\"other\"","\"newer\""));
+        JsonNode newer=get(QUESTION+"/editor").body;
+        assertEquals(older.path("contentVersion"),newer.path("contentVersion"));
+        Reply rejected=post(QUESTION+"/edit",editRequest("old-snapshot",older,"Old snapshot edit",older.at("/question/data")));
+        assertEquals(409,rejected.status,rejected.body.toString());
+    }
+    @Test void editorsOpenedTogetherCanSaveSequentiallyAndRetryAnUnsavedQuestion() throws Exception {
+        start(null); get("/api/library/index"); String second="/api/collections/bank/bank/questions/q2";
+        JsonNode firstEditor=get(QUESTION+"/editor").body, secondEditor=get(second+"/editor").body;
+        ObjectNode bad=editRequest("multi-invalid",secondEditor,"Second edited",Json.object().put("public",""));
+        assertEquals(422,post(second+"/edit",bad).status);
+        Reply first=post(QUESTION+"/edit",editRequest("multi-first",firstEditor,"First edited",firstEditor.at("/question/data"))); assertEquals(200,first.status,first.body.toString());
+        assertEquals(secondEditor.path("sourceVersion"),first.body.path("previousSourceVersion"));
+        assertEquals(409,post(second+"/edit",editRequest("multi-stale",secondEditor,"Second edited",secondEditor.at("/question/data"))).status);
+        ((ObjectNode)secondEditor).set("sourceVersion",first.body.path("sourceVersion"));
+        Reply other=post(second+"/edit",editRequest("multi-second",secondEditor,"Second edited",secondEditor.at("/question/data"))); assertEquals(200,other.status,other.body.toString());
+        JsonNode fresh=get(second+"/editor").body;
+        assertEquals(other.body.at("/payload/stamp/contentVersion"),fresh.path("contentVersion"));
+        assertEquals(other.body.path("sourceVersion"),fresh.path("sourceVersion"));
     }
     @Test void unfinishedRoundCanReplaceOneSubmissionAndReplayDoesNotUpdateItsTimestamp() throws Exception {
         start(null); String other = "/api/collections/bank/bank/questions/q2";

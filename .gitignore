@@ -3,6 +3,7 @@ node_modules/
 .state/
 /.temp/
 /.development/
+/.trash/
 /.vscode/
 *.log
 .env

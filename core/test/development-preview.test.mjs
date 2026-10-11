@@ -1,3 +1,4 @@
+import {installFrameCapture} from '../web/frame-capture.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -9,7 +10,7 @@ import {resolveExtensionApi} from '../web/api-bridges.js';
 const frameSource=readFileSync(new URL('../web/frame.js',import.meta.url),'utf8');
 function documentFor(page,context){
   const host=new JSDOM('<main></main>');let id=0;
-  const sandbox={document:host.window.document,window:host.window,makeRequestId:()=>`fixture-${++id}`,resolveExtensionApi,inlinePageAssets,prepareLegacyPage,setTimeout,clearTimeout};
+  const sandbox={document:host.window.document,window:host.window,makeRequestId:()=>`fixture-${++id}`,resolveExtensionApi,installFrameCapture,inlinePageAssets,prepareLegacyPage,setTimeout,clearTimeout};
   vm.runInNewContext(frameSource.replace(/^import[^\r\n]*\r?\n/gm,'').replace('export function mountExtension','function mountExtension')+'\nglobalThis.mount=mountExtension;',sandbox);
   const mounted=sandbox.mount(host.window.document.querySelector('main'),{html:'',style:'',script:'',...page},context,{onError(){}});
   const html=mounted.frame.srcdoc;mounted.destroy();host.window.close();return html;

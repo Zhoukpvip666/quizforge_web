@@ -1,0 +1,208 @@
+{
+  "formatVersion": 1,
+  "id": "examples",
+  "title": "全文翻译 · 英语二代表题",
+  "description": "2010与2026原卷代表题；用于新开发版验收，非整卷题库。",
+  "features": {
+    "editing": true,
+    "whiteboard": true,
+    "history": true,
+    "exam": true
+  },
+  "extension": {
+    "id": "quizforge.full-translation",
+    "version": "1.0.0"
+  },
+  "questions": [
+    {
+      "id": "full-translation-2026-46-sample",
+      "title": "2026英语（二）全文翻译",
+      "outline": {
+        "level": "question",
+        "label": "46"
+      },
+      "data": {
+        "formatVersion": 1,
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Translate the following text into Chinese. Write your translation on the ANSWER SHEET. (15 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The influence of wearables on psychology refers to how the clothes we wear affect our thoughts, feelings, and behaviors. Clothing is not just about covering our bodies; it plays a significant role in shaping our self-perception and interactions with others."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "One aspect of this influence is self-expression. The clothes we choose can reflect our personality, mood, and identity. Whether we opt for bold, colorful outfits or prefer more understated styles, our dress choices convey messages about who we are and how we want to be perceived."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Additionally, clothing can impact our confidence levels. When we wear clothes that make us feel comfortable and confident, it can positively affect our self-esteem and overall mood."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Moreover, cultural and societal influences play a significant role in shaping our dress choices. Different cultures have their norms and expectations regarding dress, which can influence the types of clothing people wear and the meanings attributed to them."
+                }
+              ]
+            }
+          ]
+        },
+        "referenceAnswer": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "服装对心理的影响指的是我们穿的衣服如何影响我们的思想、情感和行为。衣服的作用并非只是遮蔽身体，它还在塑造我们的自我认知与社交互动方面发挥着重要作用。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "自我表达便是这种影响的一个方面。我们选择的衣服能够反映出我们自身的性格、情绪和身份特征。无论我们选择大胆鲜艳的着装，还是偏爱更低调内敛的风格，我们的穿搭选择都会传递出关于我们是谁以及我们希望被如何看待的信息。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "此外，衣服也会显著影响我们的自信程度。当我们穿着让自己感到舒适和自信的衣服时，这会积极地影响我们的自尊和整体情绪。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "此外，文化与社会影响在塑造我们的穿搭选择中起着重要的作用。不同文化对着装有着各自的规范和期望，这些都会影响人们所穿服装的类型以及服装所承载的意义。"
+                }
+              ]
+            }
+          ]
+        },
+        "rubric": null,
+        "maxScore": 15
+      }
+    },
+    {
+      "id": "full-translation-2010-46-sample",
+      "title": "2010英语（二）全文翻译",
+      "outline": {
+        "level": "question",
+        "label": "46"
+      },
+      "data": {
+        "formatVersion": 1,
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "In this part there is a text in English. Translate it into Chinese. Write your translation on the ANSWER SHEET. (15 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "“Sustainability” has become a popular word these days, but to Ted Ning, the concept will always have personal meaning. Having endured a painful period of unsustainability in his own life made it clear to him that sustainability-oriented values must be expressed through everyday action and choice."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Ning recalls spending a confusing year in the late 1990s selling insurance. He’d been through the dot-com boom and burst and, desperate for a job, signed on with a Boulder agency."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "It didn’t go well. “It was a really bad move because that’s not my passion,” says Ning, whose dilemma about the job translated, predictably, into a lack of sales. “I was miserable. I had so much anxiety that I would wake up in the middle of the night and stare at the ceiling. I had no money and needed the job. Everyone said, ‘Just wait, you’ll turn the corner, give it some time.’”"
+                }
+              ]
+            }
+          ]
+        },
+        "referenceAnswer": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "最近，“承受力”成了一个流行词汇，但对泰德·宁来说，他对这个词的涵义有自己的切身体会。在经历了一段难以承受的痛苦生活后，他清楚地认识到，以承受力为导向的价值观必须透过日常行动和抉择才能得以体现。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "宁回忆起 20 世纪 90 年代后期他卖保险时那困窘的一年。在经历了互联网泡沫的繁荣与破灭后，他急需找到一份工作，因此就与一家博尔德代理公司签了约。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "但情况并不顺利。“那真是糟糕的一步，因为它根本激不起我的工作热情，”宁说。不出所料，工作上的进退维谷造成他销售业绩不佳。“我很痛苦，异常焦虑，以至于经常半夜醒来盯着天花板发呆。我没有钱，需要这份工作。大家都说，‘等等看，情况会有好转的，给它点时间。’”"
+                }
+              ]
+            }
+          ]
+        },
+        "rubric": null,
+        "maxScore": 15
+      }
+    }
+  ]
+}

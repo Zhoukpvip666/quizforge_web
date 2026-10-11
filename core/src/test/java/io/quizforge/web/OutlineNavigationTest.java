@@ -38,22 +38,32 @@ class OutlineNavigationTest {
         hook("(data.sections||[]).map(item=>({id:item.id,label:item.label}))");
     }
     @Test void orderedMetadataIsCachedAndHistoryFreezesItWithoutCreatingChildAnswersOrScores() throws Exception {
-        composite(); byte[] bankBefore = Files.readAllBytes(root.resolve("question-banks/bank.json")); fixture.start(null);
-        JsonNode overview = fixture.get("/api/collections/bank/bank").body();
+        composite(); byte[] bankBefore = Files.readAllBytes(root.resolve("question-banks/bank.json"));
+        var outlineCalls=new java.util.concurrent.atomic.AtomicInteger();
+        var trace=com.sun.net.httpserver.HttpServer.create(new java.net.InetSocketAddress("127.0.0.1",0),0);
+        trace.createContext("/",exchange->{if(exchange.getRequestURI().getPath().equals("/outlineBatch"))outlineCalls.incrementAndGet();exchange.sendResponseHeaders(204,-1);exchange.close();});trace.start();
+        try {
+        String runner=Files.readString(root.resolve("server/rules-runner.cjs"));
+        String signal="const request = JSON.parse(input); const trace=require('node:http').request({host:'127.0.0.1',port:"+trace.getAddress().getPort()+",agent:false,path:'/'+request.op},response=>{response.resume();response.on('end',()=>trace.destroy());});trace.end();";
+        fixture.write("server/rules-runner.cjs",runner.replace("const request = JSON.parse(input);",signal));fixture.start(null);
+        var first=fixture.get("/api/collections/bank/bank");assertEquals(200,first.status());JsonNode overview = first.body();
         assertEquals(2, overview.path("questions").size()); assertTrue(overview.path("states").has("q1")); assertTrue(overview.path("states").has("q2"));
         assertEquals(2, overview.path("states").size()); assertFalse(overview.path("states").has("read-2"));
         assertEquals("read-2", overview.at("/questions/0/outlineItems/0/id").asText()); assertEquals("read-1", overview.at("/questions/0/outlineItems/1/id").asText());
         assertEquals("读写题", overview.at("/questions/0/outlineItems/2/id").asText()); assertFalse(overview.path("questions").get(1).has("outlineItems")); assertFalse(overview.toString().contains("private-child-answer"));
-        String runner = Files.readString(root.resolve("server/rules-runner.cjs")); fixture.write("server/rules-runner.cjs", runner.replace("const request = JSON.parse(input);", "const request = JSON.parse(input); if(request.op==='outlineBatch')throw Error('outline must be cached');"));
-        assertEquals(overview, fixture.get("/api/collections/bank/bank").body());
+        int checked=outlineCalls.get();assertTrue(checked>0,"The first load must execute the outline rules");
+        var second=fixture.get("/api/collections/bank/bank");assertEquals(200,second.status());assertEquals(overview,second.body());
+        assertEquals(checked,outlineCalls.get(),"Unchanged files and environment must reuse checked outlines");
         assertEquals(200, fixture.post(ServerTest.QUESTION + "/actions", fixture.action("outline-submit", 0, "submit", fixture.answer("yes"))).status());
         JsonNode summary = fixture.get("/api/collections/bank/bank/summary").body(); assertEquals(2, summary.path("questionCount").asInt()); assertEquals(1, summary.path("score").asInt()); assertEquals(2, summary.path("maxScore").asInt());
         fixture.finishCurrent("outline-finish"); String id = fixture.get("/api/collections/bank/bank/history").body().at("/records/0/id").asText(); String historyPath = "/api/collections/bank/bank/history/" + id;
         JsonNode history = fixture.get(historyPath).body(); assertEquals(overview.at("/questions/0/outlineItems"), history.at("/collection/questions/0/outlineItems"));
         assertEquals(2, history.path("questions").size()); assertEquals(2, history.path("questionCount").asInt()); assertEquals(1, history.path("submittedCount").asInt());
+        assertEquals(checked,outlineCalls.get(),"Actions and frozen history must reuse checked outlines");
         assertEquals(ExtensionApi.version(), history.at("/page/apiVersion")); byte[] stateBefore = Files.readAllBytes(fixture.savedFile()); fixture.server.close(); fixture.server = null;
         Files.delete(root.resolve("extensions/generic/rules.js")); fixture.write("server/rules-runner.cjs", "process.exit(2);"); fixture.start(null);
         assertEquals(history, fixture.get(historyPath).body()); assertArrayEquals(stateBefore, Files.readAllBytes(fixture.savedFile())); assertArrayEquals(bankBefore, Files.readAllBytes(root.resolve("question-banks/bank.json")));
+        } finally {trace.stop(0);}
     }
     @Test void missingOptionalHookAndUnchangedLegacyPackagesKeepTheirOriginalRows() throws Exception {
         Library old = library(); Library.Collection baseline = old.collection("bank", "bank"); assertTrue(baseline.questions().stream().allMatch(question -> question.outlineItems().isEmpty()));

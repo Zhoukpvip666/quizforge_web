@@ -1,5 +1,7 @@
 # 核心源码与简答 AI 评分
 
+AI 评分支持可选 `targetId`：省略时沿用整题流程，指定时按小题绑定任务。`prepareAiGrading` 的第三参数提供目标与状态；自动提交评分另带 `automatic:true`，规则可返回整题材料或 `{targets:[{targetId,input}]}` 小题清单。宿主校验完整清单后按现有有界单线程队列逐项评分，不从大纲猜目标；`review` 的第四参数提供最新状态，拓展据此合并小题成绩。宿主保存对应任务、各小题 AI 评价和汇总历史，不向模型发送路由标识。详见 `IMPLEMENTATION_CONTRACT.md` 的 AI grading upgrade。
+
 核心代码、依赖、构建产物和开发资料集中在 `core/`，题库、拓展、技能、启动入口与 README 保持产品根层。下文路径均相对于产品根目录；服务 `--root` 仍指向产品根目录，对外协议保持稳定。
 
 | 职责 | 主要源码 | 边界 |
@@ -7,12 +9,20 @@
 | 启动、HTTP、局域网鉴权 | `Main.java`、`QuizForgeServer.java` | 监听器、Host/Origin、密码、请求体与响应限制 |
 | 题库和题目路由 | `CollectionRoutes.java` | 将请求交给对应业务服务，不绕过统一写入检查 |
 | 题库和拓展包 | `Library.java` | 扫描、版本绑定、校验、页面资源和编辑计划 |
+| 轻量目录 | `LibraryIndex.java` | 仅读元数据，输出不可变候选及 pending/error 状态，不启动规则或导入图片 |
+| 集合加载与校验 | `ScopedLibraryLoader.java`、`CollectionValidation.java` | 按集合筛选依赖，完整目录与按需加载共用同一校验实现，复核实际源身份后发布 |
+| 校验调度 | `LibraryLoadCoordinator.java` | 前台、后台各一个执行通道，相同身份共享任务，过期结果和关闭时的任务不能发布 |
+| 资源与成功缓存 | `LibraryResourceImports.java`、`ValidationCache.java` | 分命名空间核实图片导入；只持久化成功校验，严格限制缓存大小、数量和环境身份 |
 | 更新兼容契约 | `ExtensionApi.java` | API v1.0／v1.1／v1.2、Manifest 需求和题库格式校验；缺省旧声明，页面/历史按各自运行版本加载 |
 | 混合题型批处理 | `RuleBatches.java` | 按拓展 ID／版本／签名分组，顺序有界分块，结果恢复原题序 |
+| 目录规则校验 | `CatalogRuleValidation.java` | 将同一拓展的多个题库合批校验，失败时按原集合回退；大纲仍按集合生成 |
 | 作答与历史事务 | `StateStore.java`、`HistoryRounds.java`、`EditJournal.java` | 修订号、幂等回执、保存、历史冻结、恢复；事务继续集中在状态仓库 |
 | 通用 AI 任务 | `AiGradingService.java`、`AiGradingProtocol.java` | 排队、重试、结果校验、过期检查、自动保存评分，以及最终反馈 |
 | 模型通信 | `AiSettings.java`、`AiGateway.java`、`AiProvider.java`、`OpenAiCompatibleProvider.java` | 设置与密钥、模型协议适配、输入输出预算 |
 | 浏览器协调 | `core/web/app.js` | 标签、页面生命周期、保存屏障、草稿、编辑和历史切换 |
+| 列表与大纲展示 | `core/web/views/library-view.js`、`core/web/views/outline-view.js` | 接收展示数据及操作回调；大纲仅在可见信息变化时重建，笔迹保存不释放原按钮或键盘焦点 |
+| 保存失败恢复 | `core/web/save-recovery.js` | 重试原写入或读取服务器状态；明确放弃输入时绕过失败的拓展保存钩子，替换题卡成功前保留旧输入 |
+| 考试与临时生命周期 | `ExamSessions.java`、`TemporaryExamSessions.java` | 考试编排与持久记录；临时考试独立管理页面归属、容量、闲置过期和资源释放 |
 | 题型请求与视图上下文 | `core/web/extension-requests.js`、`core/web/practice-context.js`、`core/web/extension-pages.js` | 请求分发、读写权限、导航、题目级拓展页面路由与缓存归属 |
 | 拓展沙箱与 AI 桥接 | `core/web/frame.js`、`core/web/ai-client.js` | 会话来源校验、SDK、请求去重、评分保存后更新宿主状态 |
 | 简答业务 | `extensions/基础题型/short-answer-1.3.0/` | 统一题干、两级富文本编辑、AI 评分输入、默认零分、0.5 分滑条自动保存；使用应用提供的富文本接口，旧版包位于兼容测试 fixture |
@@ -20,18 +30,22 @@
 
 Java 文件均位于 `core/src/main/java/io/quizforge/web/`；共享组件位于 `core/shared/richtext/`。题型自己的题干、参考答案、评分说明和判分规则留在根层 `extensions/` 中；分值汇总、历史、模型设置和密钥由应用负责。
 
-普通题库与正式/runtime 样例的根 `features` 控制整库编辑、白板及历史含练习持久化，省略项默认 true。history=false 的答案、分数、白板、完成状态、练习图片和 AI 任务仅在当前浏览器页面会话中有效；刷新或关闭浏览器标签后不能恢复，editing=true 仍允许保存题目文件和编辑图片。样例编辑只维护 examples 和样例图片，不修改 manifest、规则、Schema、页面或 SDK 等版本代码，也不改变其他题库的代码身份；旧历史仍冻结。具体规则见 [题库格式](QUESTION_BANK_FORMAT.md#整库功能开关) 与 [兼容政策](COMPATIBILITY.md)。下文持久保存与恢复描述适用于历史开启的集合。
+普通题库与正式/runtime 样例的根 `features` 控制整库编辑、白板、历史含练习持久化及考试，四项省略默认 true，仅显式 false 关闭；考试入口由宿主提供，详见 [考试模式](EXAM_MODE.md)。history=false 的答案、分数、白板、完成状态、练习图片和 AI 任务仅在当前浏览器页面会话中有效；刷新或关闭浏览器标签后不能恢复，editing=true 仍允许保存题目文件和编辑图片。样例编辑只维护 examples 和样例图片，不修改 manifest、规则、Schema、页面或 SDK 等版本代码，也不改变其他题库的代码身份；旧历史仍冻结。具体规则见 [题库格式](QUESTION_BANK_FORMAT.md#整库功能开关) 与 [兼容政策](COMPATIBILITY.md)。下文持久保存与恢复描述适用于历史开启的集合。
 
 当前安装的单选和简答位于 `extensions/基础题型/{single-choice,short-answer-1.3.0}`，保持各自原 ID/版本；`kaoyan-english-2026-dev` 和 `ui-preview-dev` 是独立开发叶。物理分组无清单、身份或共同版本，见 [分组规则](EXTENSION_GROUPS.md)。旧简答包保留在 `core/test/fixtures/legacy-extensions/`，重复的旧 AI 简答示例题库保留在 `core/test/fixtures/legacy-banks/`，不参与正常目录扫描；用户自行安装的旧版本仍遵循既有兼容政策。
 
 题库允许每题绑定不同拓展或同一拓展的不同版本；旧根级绑定保持原状态标识。混合历史保存去重的 `pages` 表和每题 `pageKey`，历史读取只使用当时的投影与页面。拓展集合及其内容签名在加载集合时计算一次，暖缓存检查不重复生成混合拓展签名。浏览器继续只保留一个活动题型页面。
+
+首次目录扫描先校验拓展示例，再将题库中属于同一拓展身份、版本、签名、目录和运行模式的题目交给有界批处理，减少 Node 进程启动次数。合批保留原集合和原分块的 VM 重置边界，拓展内部状态不会跨题库传播。某一合批失败时只回退该类型的原集合，保持坏题库的错误归属和开发版容错。大纲生成保持逐集合执行，避免跨题库重复题目 ID 混淆结果；直接编辑和导入仍完整校验。成功校验缓存及题库、规则、Schema、runner 的失效规则沿用原逻辑。
+
+普通作答保存将答案校验与未提交页面投影合并到一次 Node 调用，减少进程启动及 Schema 编译开销；两步仍分别使用独立 VM，投影不接收答案或已提交状态。投影失败时不保存答案、不返回成功回执。此优化不改变拓展接口、提交按钮等待规则、修订号或幂等回执。
 
 ```mermaid
 flowchart LR
   A[简答富文本回答] --> B[宿主保存提交]
   B --> C[拓展 prepareAiGrading]
   C --> D[AI 任务与模型适配器]
-  D --> E[校验建议分与 feedback]
+  D --> E[校验响应格式与数字类型]
   E --> G[拓展 review 与 getScore]
   F[人工滑条调整自动保存] --> G
   G --> H[状态事务与整轮历史]

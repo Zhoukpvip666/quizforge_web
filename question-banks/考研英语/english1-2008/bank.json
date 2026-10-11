@@ -1,0 +1,2190 @@
+{
+  "formatVersion": 1,
+  "id": "kaoyan-english1-2008",
+  "title": "2008年考研英语（一）真题",
+  "description": "依据原卷及附录参考答案制作；作文范文与评分细则留空。",
+  "features": {
+    "editing": true,
+    "whiteboard": true,
+    "history": true,
+    "exam": true
+  },
+  "questions": [
+    {
+      "id": "cloze-01",
+      "title": "完形填空（1–20）",
+      "extension": {
+        "development": "english-cloze-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Choose the best word(s) for each numbered blank and mark A, B, C or D on ANSWER SHEET 1. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The idea that some groups of people may be more intelligent than others is one of those hypotheses that dare not speak its name. But Gregory Cochran is [[1]] to say it anyway. He is that [[2]] bird, a scientist who works independently [[3]] any institution. He helped popularize the idea that some diseases not [[4]] thought to have a bacterial cause were actually infections, which aroused much controversy when it was first suggested."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[[5]] he, however, might tremble at the [[6]] of what he is about to do. Together with another two scientists, he is publishing a paper which not only [[7]] that one group of humanity is more intelligent than the others, but explains the process that has brought this about. The group in [[8]] are a particular people originated from central Europe. The process is natural selection."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "This group generally do well in IQ tests, [[9]] 12-15 points above the [[10]] value of 100, and have contributed [[11]] to the intellectual and cultural life of the West, as the [[12]] of their elites, including several world-renowned scientists, [[13]] . They also suffer more often than most people from a number of nasty genetic diseases, such as breast cancer. These facts, [[14]] , have previously been thought unrelated. The former has been [[15]] to social effects, such as a strong tradition of [[16]] education. The latter was seen as a(n) [[17]] of genetic isolation. Dr. Cochran suggests that the intelligence and diseases are intimately [[18]] . His argument is that the unusual history of these people has [[19]] them to unique evolutionary pressures that have resulted in this [[20]] state of affairs."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-1",
+            "number": "1",
+            "options": [
+              {
+                "id": "A",
+                "text": "selected"
+              },
+              {
+                "id": "B",
+                "text": "prepared"
+              },
+              {
+                "id": "C",
+                "text": "obliged"
+              },
+              {
+                "id": "D",
+                "text": "pleased"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-2",
+            "number": "2",
+            "options": [
+              {
+                "id": "A",
+                "text": "unique"
+              },
+              {
+                "id": "B",
+                "text": "particular"
+              },
+              {
+                "id": "C",
+                "text": "special"
+              },
+              {
+                "id": "D",
+                "text": "rare"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-3",
+            "number": "3",
+            "options": [
+              {
+                "id": "A",
+                "text": "of"
+              },
+              {
+                "id": "B",
+                "text": "with"
+              },
+              {
+                "id": "C",
+                "text": "in"
+              },
+              {
+                "id": "D",
+                "text": "against"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-4",
+            "number": "4",
+            "options": [
+              {
+                "id": "A",
+                "text": "subsequently"
+              },
+              {
+                "id": "B",
+                "text": "presently"
+              },
+              {
+                "id": "C",
+                "text": "previously"
+              },
+              {
+                "id": "D",
+                "text": "lately"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-5",
+            "number": "5",
+            "options": [
+              {
+                "id": "A",
+                "text": "Only"
+              },
+              {
+                "id": "B",
+                "text": "So"
+              },
+              {
+                "id": "C",
+                "text": "Even"
+              },
+              {
+                "id": "D",
+                "text": "Hence"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-6",
+            "number": "6",
+            "options": [
+              {
+                "id": "A",
+                "text": "thought"
+              },
+              {
+                "id": "B",
+                "text": "sight"
+              },
+              {
+                "id": "C",
+                "text": "cost"
+              },
+              {
+                "id": "D",
+                "text": "risk"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-7",
+            "number": "7",
+            "options": [
+              {
+                "id": "A",
+                "text": "advises"
+              },
+              {
+                "id": "B",
+                "text": "suggests"
+              },
+              {
+                "id": "C",
+                "text": "protests"
+              },
+              {
+                "id": "D",
+                "text": "objects"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-8",
+            "number": "8",
+            "options": [
+              {
+                "id": "A",
+                "text": "progress"
+              },
+              {
+                "id": "B",
+                "text": "fact"
+              },
+              {
+                "id": "C",
+                "text": "need"
+              },
+              {
+                "id": "D",
+                "text": "question"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-9",
+            "number": "9",
+            "options": [
+              {
+                "id": "A",
+                "text": "attaining"
+              },
+              {
+                "id": "B",
+                "text": "scoring"
+              },
+              {
+                "id": "C",
+                "text": "reaching"
+              },
+              {
+                "id": "D",
+                "text": "calculating"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-10",
+            "number": "10",
+            "options": [
+              {
+                "id": "A",
+                "text": "normal"
+              },
+              {
+                "id": "B",
+                "text": "common"
+              },
+              {
+                "id": "C",
+                "text": "mean"
+              },
+              {
+                "id": "D",
+                "text": "total"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-11",
+            "number": "11",
+            "options": [
+              {
+                "id": "A",
+                "text": "unconsciously"
+              },
+              {
+                "id": "B",
+                "text": "disproportionately"
+              },
+              {
+                "id": "C",
+                "text": "indefinitely"
+              },
+              {
+                "id": "D",
+                "text": "unaccountably"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-12",
+            "number": "12",
+            "options": [
+              {
+                "id": "A",
+                "text": "missions"
+              },
+              {
+                "id": "B",
+                "text": "fortunes"
+              },
+              {
+                "id": "C",
+                "text": "interests"
+              },
+              {
+                "id": "D",
+                "text": "careers"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-13",
+            "number": "13",
+            "options": [
+              {
+                "id": "A",
+                "text": "affirm"
+              },
+              {
+                "id": "B",
+                "text": "witness"
+              },
+              {
+                "id": "C",
+                "text": "observe"
+              },
+              {
+                "id": "D",
+                "text": "approve"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-14",
+            "number": "14",
+            "options": [
+              {
+                "id": "A",
+                "text": "moreover"
+              },
+              {
+                "id": "B",
+                "text": "therefore"
+              },
+              {
+                "id": "C",
+                "text": "however"
+              },
+              {
+                "id": "D",
+                "text": "meanwhile"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-15",
+            "number": "15",
+            "options": [
+              {
+                "id": "A",
+                "text": "given up"
+              },
+              {
+                "id": "B",
+                "text": "got over"
+              },
+              {
+                "id": "C",
+                "text": "carried on"
+              },
+              {
+                "id": "D",
+                "text": "put down"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-16",
+            "number": "16",
+            "options": [
+              {
+                "id": "A",
+                "text": "assessing"
+              },
+              {
+                "id": "B",
+                "text": "supervising"
+              },
+              {
+                "id": "C",
+                "text": "administering"
+              },
+              {
+                "id": "D",
+                "text": "valuing"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-17",
+            "number": "17",
+            "options": [
+              {
+                "id": "A",
+                "text": "development"
+              },
+              {
+                "id": "B",
+                "text": "origin"
+              },
+              {
+                "id": "C",
+                "text": "consequence"
+              },
+              {
+                "id": "D",
+                "text": "instrument"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-18",
+            "number": "18",
+            "options": [
+              {
+                "id": "A",
+                "text": "linked"
+              },
+              {
+                "id": "B",
+                "text": "integrated"
+              },
+              {
+                "id": "C",
+                "text": "woven"
+              },
+              {
+                "id": "D",
+                "text": "combined"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-19",
+            "number": "19",
+            "options": [
+              {
+                "id": "A",
+                "text": "limited"
+              },
+              {
+                "id": "B",
+                "text": "subjected"
+              },
+              {
+                "id": "C",
+                "text": "converted"
+              },
+              {
+                "id": "D",
+                "text": "directed"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-20",
+            "number": "20",
+            "options": [
+              {
+                "id": "A",
+                "text": "paradoxical"
+              },
+              {
+                "id": "B",
+                "text": "incompatible"
+              },
+              {
+                "id": "C",
+                "text": "inevitable"
+              },
+              {
+                "id": "D",
+                "text": "continuous"
+              }
+            ],
+            "correctOptionId": "A"
+          }
+        ],
+        "pointsPerItem": 0.5,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-1",
+            "label": "1"
+          },
+          {
+            "id": "q-2",
+            "label": "2"
+          },
+          {
+            "id": "q-3",
+            "label": "3"
+          },
+          {
+            "id": "q-4",
+            "label": "4"
+          },
+          {
+            "id": "q-5",
+            "label": "5"
+          },
+          {
+            "id": "q-6",
+            "label": "6"
+          },
+          {
+            "id": "q-7",
+            "label": "7"
+          },
+          {
+            "id": "q-8",
+            "label": "8"
+          },
+          {
+            "id": "q-9",
+            "label": "9"
+          },
+          {
+            "id": "q-10",
+            "label": "10"
+          },
+          {
+            "id": "q-11",
+            "label": "11"
+          },
+          {
+            "id": "q-12",
+            "label": "12"
+          },
+          {
+            "id": "q-13",
+            "label": "13"
+          },
+          {
+            "id": "q-14",
+            "label": "14"
+          },
+          {
+            "id": "q-15",
+            "label": "15"
+          },
+          {
+            "id": "q-16",
+            "label": "16"
+          },
+          {
+            "id": "q-17",
+            "label": "17"
+          },
+          {
+            "id": "q-18",
+            "label": "18"
+          },
+          {
+            "id": "q-19",
+            "label": "19"
+          },
+          {
+            "id": "q-20",
+            "label": "20"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-01",
+      "title": "阅读理解 Text 1（21–25）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "While still catching up to men in some spheres of modern life, women appear to be way ahead in at least one undesirable category. “Women are particularly susceptible to developing depression and anxiety disorders in response to stress compared to men,” according to Dr. Yehuda, chief psychiatrist at New York’s Veteran’s Administration Hospital."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Studies of both animals and humans have shown that sex hormones somehow affect the stress response, causing females under stress to produce more of the trigger chemicals than do males under the same conditions. In several of the studies, when stressed-out female rats had their ovaries (the female reproductive organs) removed, their chemical responses became equal to those of the males."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Adding to a woman’s increased dose of stress chemicals, are her increased “opportunities” for stress. “It’s not necessarily that women don’t cope as well. It’s just that they have so much more to cope with,” says Dr. Yehuda. “Their capacity for tolerating stress may even be greater than men’s,” she observes, “it’s just that they’re dealing with so many more things that they become worn out from it more visibly and sooner.”"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Dr. Yehuda notes another difference between the sexes. “I think that the kinds of things that women are exposed to tend to be in more of a chronic or repeated nature. Men go to war and are exposed to combat stress. Men are exposed to more acts of random physical violence. The kinds of interpersonal violence that women are exposed to tend to be in domestic situations, by, unfortunately, parents or other family members, and they tend not to be one-shot deals. The wear-and- tear that comes from these longer relationships can be quite devastating.”"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Adeline Alvarez married at 18 and gave birth to a son, but was determined to finish college. “I struggled a lot to get the college degree. I was living in so much frustration that that was my escape, to go to school, and get ahead and do better.” Later, her marriage ended and she became a single mother. “It’s the hardest thing to take care of a teenager, have a job, pay the rent, pay the car payment, and pay the debt. I lived from paycheck to paycheck.”"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Not everyone experiences the kinds of severe chronic stresses Alvarez describes. But most women today are coping with a lot of obligations, with few breaks, and feeling the strain. Alvarez’s experience demonstrates the importance of finding ways to diffuse stress before it threatens your health and your ability to function."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-21",
+            "number": "21",
+            "stem": "Which of the following is true according to the first two paragraphs?",
+            "options": [
+              {
+                "id": "A",
+                "text": "Women are biologically more vulnerable to stress."
+              },
+              {
+                "id": "B",
+                "text": "Women are still suffering much stress caused by men."
+              },
+              {
+                "id": "C",
+                "text": "Women are more experienced than men in coping with stress."
+              },
+              {
+                "id": "D",
+                "text": "Men and women show different inclinations when faced with stress."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-22",
+            "number": "22",
+            "stem": "Dr. Yehuda’s research suggests that women",
+            "options": [
+              {
+                "id": "A",
+                "text": "need extra doses of chemicals to handle stress."
+              },
+              {
+                "id": "B",
+                "text": "have limited capacity for tolerating stress."
+              },
+              {
+                "id": "C",
+                "text": "are more capable of avoiding stress."
+              },
+              {
+                "id": "D",
+                "text": "are exposed to more stress."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-23",
+            "number": "23",
+            "stem": "According to Paragraph 4, the stress women confront tends to be",
+            "options": [
+              {
+                "id": "A",
+                "text": "domestic and temporary."
+              },
+              {
+                "id": "B",
+                "text": "irregular and violent."
+              },
+              {
+                "id": "C",
+                "text": "durable and frequent."
+              },
+              {
+                "id": "D",
+                "text": "trivial and random."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-24",
+            "number": "24",
+            "stem": "The sentence “I lived from paycheck to paycheck.” (Line 4-5, Para. 5) shows that",
+            "options": [
+              {
+                "id": "A",
+                "text": "Alvarez cared about nothing but making money."
+              },
+              {
+                "id": "B",
+                "text": "Alvarez’s salary barely covered her household expenses."
+              },
+              {
+                "id": "C",
+                "text": "Alvarez got paychecks from different jobs."
+              },
+              {
+                "id": "D",
+                "text": "Alvarez paid practically everything by check."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-25",
+            "number": "25",
+            "stem": "Which of the following would be the best title for the text?",
+            "options": [
+              {
+                "id": "A",
+                "text": "Strain of Stress: No Way Out?"
+              },
+              {
+                "id": "B",
+                "text": "Responses to Stress: Gender Difference"
+              },
+              {
+                "id": "C",
+                "text": "Stress Analysis: What Chemicals Say"
+              },
+              {
+                "id": "D",
+                "text": "Gender Inequality: Women Under Stress"
+              }
+            ],
+            "correctOptionId": "D"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-21",
+            "label": "21"
+          },
+          {
+            "id": "q-22",
+            "label": "22"
+          },
+          {
+            "id": "q-23",
+            "label": "23"
+          },
+          {
+            "id": "q-24",
+            "label": "24"
+          },
+          {
+            "id": "q-25",
+            "label": "25"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-02",
+      "title": "阅读理解 Text 2（26–30）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "It used to be so straightforward. A team of researchers working together in the laboratory would submit the results of their research to a journal. A journal editor would then remove the authors’ names and affiliations from the paper and send it to their peers for review. Depending on the comments received, the editor would accept the paper for publication or decline it. Copyright rested with the journal publisher, and researchers seeking knowledge of the results would have to subscribe to the journal."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "No longer. The Internet—and pressure from funding agencies, who are questioning why commercial publishers are making money from government- funded research by restricting access to it—is making free access to scientific results a reality. The Organization for Economic Co-operation and Development (OECD) has just issued a report describing the far-reaching consequences of this. The report, by John Houghton of Victoria University in Australia and Graham Vickery of the OECD, makes heavy reading for publishers who have, so far, made handsome profits. But it goes further than that. It signals a change in what has, until now, been a key element of scientific endeavor."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The value of knowledge and the return on the public investment in research depends, in part, upon wide distribution and ready access. It is big business. In America, the core scientific publishing market is estimated at between $7 billion and $11 billion. The International Association of Scientific, Technical and Medical Publishers says that there are more than 2,000 publishers worldwide specializing in these subjects. They publish more than 1.2 million articles each year in some 16,000 journals."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "This is now changing. According to the OECD report, some 75% of scholarly journals are now online. Entirely new business models are emerging; three main ones were identified by the report’s authors. There is the so-called big deal, where institutional subscribers pay for access to a collection of online journal titles through site-licensing agreements. There is open-access publishing, typically supported by asking the author (or his employer) to pay for the paper to be published. Finally, there are open-access archives, where organizations such as universities or international laboratories support institutional repositories. Other models exist that are hybrids of these three, such as delayed open-access, where journals allow only subscribers to read a paper for the first six months, before making it freely available to everyone who wishes to see it. All this could change the traditional form of the peer-review process, at least for the publication of papers."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-26",
+            "number": "26",
+            "stem": "In the first paragraph, the author discusses",
+            "options": [
+              {
+                "id": "A",
+                "text": "the background information of journal editing."
+              },
+              {
+                "id": "B",
+                "text": "the publication routine of laboratory reports."
+              },
+              {
+                "id": "C",
+                "text": "the relations of authors with journal publishers."
+              },
+              {
+                "id": "D",
+                "text": "the traditional process of journal publication."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-27",
+            "number": "27",
+            "stem": "Which of the following is true of the OECD report?",
+            "options": [
+              {
+                "id": "A",
+                "text": "It criticizes government-funded research."
+              },
+              {
+                "id": "B",
+                "text": "It introduces an effective means of publication."
+              },
+              {
+                "id": "C",
+                "text": "It upsets profit-making journal publishers."
+              },
+              {
+                "id": "D",
+                "text": "It benefits scientific research considerably."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-28",
+            "number": "28",
+            "stem": "According to the text, online publication is significant in that",
+            "options": [
+              {
+                "id": "A",
+                "text": "it provides an easier access to scientific results."
+              },
+              {
+                "id": "B",
+                "text": "it brings huge profits to scientific researchers."
+              },
+              {
+                "id": "C",
+                "text": "it emphasizes the crucial role of scientific knowledge."
+              },
+              {
+                "id": "D",
+                "text": "it facilitates public investment in scientific research."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-29",
+            "number": "29",
+            "stem": "With the open-access publishing model, the author of a paper is required to",
+            "options": [
+              {
+                "id": "A",
+                "text": "cover the cost of its publication."
+              },
+              {
+                "id": "B",
+                "text": "subscribe to the journal publishing it."
+              },
+              {
+                "id": "C",
+                "text": "allow other online journals to use it freely."
+              },
+              {
+                "id": "D",
+                "text": "complete the peer-review before submission."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-30",
+            "number": "30",
+            "stem": "Which of the following best summarizes the text?",
+            "options": [
+              {
+                "id": "A",
+                "text": "The Internet is posing a threat to publishers."
+              },
+              {
+                "id": "B",
+                "text": "A new mode of publication is emerging."
+              },
+              {
+                "id": "C",
+                "text": "Authors welcome the new channel for publication."
+              },
+              {
+                "id": "D",
+                "text": "Publication is rendered easier by online service."
+              }
+            ],
+            "correctOptionId": "B"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-26",
+            "label": "26"
+          },
+          {
+            "id": "q-27",
+            "label": "27"
+          },
+          {
+            "id": "q-28",
+            "label": "28"
+          },
+          {
+            "id": "q-29",
+            "label": "29"
+          },
+          {
+            "id": "q-30",
+            "label": "30"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-03",
+      "title": "阅读理解 Text 3（31–35）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "In the early 1960s Wilt Chamberlain was one of the only three players in the National Basketball Association (NBA) listed at over seven feet. If he had played last season, however, he would have been one of 42. The bodies playing major professional sports have changed dramatically over the years, and managers have been more than willing to adjust team uniforms to fit the growing numbers of bigger, longer frames."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The trend in sports, though, may be obscuring an unrecognized reality: Americans have generally stopped growing. Though typically about two inches taller now than 140 years ago, today’s people—especially those born to families who have lived in the U.S. for many generations—apparently reached their limit in the early 1960s. And they aren’t likely to get any taller. “In the general population today, at this genetic, environmental level, we’ve pretty much gone as far as we can go,” says anthropologist William Cameron Chumlea of Wright State University. In the case of NBA players, their increase in height appears to result from the increasingly common practice of recruiting players from all over the world."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Growth, which rarely continues beyond the age of 20, demands calories and nutrients—notably, protein—to feed expanding tissues. At the start of the 20th century, under-nutrition and childhood infections got in the way. But as diet and health improved, children and adolescents have, on average, increased in height by about an inch and a half every 20 years, a pattern known as the secular trend in height. Yet according to the Centers for Disease Control and Prevention, average height—5′9″ for men, 5′4″ for women—hasn’t really changed since 1960."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Genetically speaking, there are advantages to avoiding substantial height. During childbirth, larger babies have more difficulty passing through the birth canal. Moreover, even though humans have been upright for millions of years, our feet and back continue to struggle with bipedal posture and cannot easily withstand repeated strain imposed by oversize limbs. “There are some real constraints that are set by the genetic architecture of the individual organism,” says anthropologist William Leonard of Northwestern University."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Genetic maximums can change, but don’t expect this to happen soon. Claire"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "C. Gordon, senior anthropologist at the Army Research Center in Natick, Mass., ensures that 90 percent of the uniforms and workstations fit recruits without alteration. She says that, unlike those for basketball, the length of military uniforms has not changed for some time. And if you need to predict human height in the near future to design a piece of equipment, Gordon says that by and large, “you could use today’s data and feel fairly confident.”"
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-31",
+            "number": "31",
+            "stem": "Wilt Chamberlain is cited as an example to",
+            "options": [
+              {
+                "id": "A",
+                "text": "illustrate the change of height of NBA players."
+              },
+              {
+                "id": "B",
+                "text": "show the popularity of NBA players in the U.S."
+              },
+              {
+                "id": "C",
+                "text": "compare different generations of NBA players."
+              },
+              {
+                "id": "D",
+                "text": "assess the achievements of famous NBA players."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-32",
+            "number": "32",
+            "stem": "Which of the following plays a key role in body growth according to the text?",
+            "options": [
+              {
+                "id": "A",
+                "text": "Genetic modification."
+              },
+              {
+                "id": "B",
+                "text": "Natural environment."
+              },
+              {
+                "id": "C",
+                "text": "Living standards."
+              },
+              {
+                "id": "D",
+                "text": "Daily exercise."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-33",
+            "number": "33",
+            "stem": "On which of the following statements would the author most probably agree?",
+            "options": [
+              {
+                "id": "A",
+                "text": "Non-Americans add to the average height of the nation."
+              },
+              {
+                "id": "B",
+                "text": "Human height is conditioned by the upright posture."
+              },
+              {
+                "id": "C",
+                "text": "Americans are the tallest on average in the world."
+              },
+              {
+                "id": "D",
+                "text": "Larger babies tend to become taller in adulthood."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-34",
+            "number": "34",
+            "stem": "We learn from the last paragraph that in the near future",
+            "options": [
+              {
+                "id": "A",
+                "text": "the garment industry will reconsider the uniform size."
+              },
+              {
+                "id": "B",
+                "text": "the design of military uniforms will remain unchanged."
+              },
+              {
+                "id": "C",
+                "text": "genetic testing will be employed in selecting sportsmen."
+              },
+              {
+                "id": "D",
+                "text": "the existing data of human height will still be applicable."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-35",
+            "number": "35",
+            "stem": "The text intends to tell us that",
+            "options": [
+              {
+                "id": "A",
+                "text": "the change of human height follows a cyclic pattern."
+              },
+              {
+                "id": "B",
+                "text": "human height is becoming even more predictable."
+              },
+              {
+                "id": "C",
+                "text": "Americans have reached their genetic growth limit."
+              },
+              {
+                "id": "D",
+                "text": "the genetic pattern of Americans has altered."
+              }
+            ],
+            "correctOptionId": "C"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-31",
+            "label": "31"
+          },
+          {
+            "id": "q-32",
+            "label": "32"
+          },
+          {
+            "id": "q-33",
+            "label": "33"
+          },
+          {
+            "id": "q-34",
+            "label": "34"
+          },
+          {
+            "id": "q-35",
+            "label": "35"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-04",
+      "title": "阅读理解 Text 4（36–40）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "In 1784, five years before he became president of the United States, George Washington, 52, was nearly toothless. So he hired a dentist to transplant nine teeth into his jaw—having extracted them from the mouths of his slaves."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "That’s a far different image from the cherry-tree-chopping George most people remember from their history books. But recently, many historians have begun to focus on the role slavery played in the lives of the founding generation. They have been spurred in part by DNA evidence made available in 1998, which almost certainly proved Thomas Jefferson had fathered at least one child with his slave Sally Hemings. And only over the past 30 years have scholars examined history from the bottom up. Works of several historians reveal the moral compromises made by the nation’s early leaders and the fragile nature of the country’s infancy. More significantly, they argue that many of the Founding Fathers knew slavery was wrong—and yet most did little to fight it."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "More than anything, the historians say, the founders were hampered by the culture of their time. While Washington and Jefferson privately expressed distaste for slavery, they also understood that it was part of the political and economic bedrock of the country they helped to create."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "For one thing, the South could not afford to part with its slaves. Owning slaves was “like having a large bank account,” says Wiencek, author of An Imperfect God: George Washington, His Slaves, and the Creation of America. The southern states would not have signed the Constitution without protections for the “peculiar institution,” including a clause that counted a slave as three fifths of a man for purposes of congressional representation."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "And the statesmen’s political lives depended on slavery. The three-fifths formula handed Jefferson his narrow victory in the presidential election of 1800 by inflating the votes of the southern states in the Electoral College. Once in office, Jefferson extended slavery with the Louisiana Purchase in 1803; the new land was carved into 13 states, including three slave states."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Still, Jefferson freed Hemings’s children—though not Hemings herself or his approximately 150 other slaves. Washington, who had begun to believe that all men were created equal after observing the bravery of the black soldiers during the Revolutionary War, overcame the strong opposition of his relatives to grant his slaves their freedom in his will. Only a decade earlier, such an act would have required legislative approval in Virginia."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-36",
+            "number": "36",
+            "stem": "George Washington’s dental surgery is mentioned to",
+            "options": [
+              {
+                "id": "A",
+                "text": "show the primitive medical practice in the past."
+              },
+              {
+                "id": "B",
+                "text": "demonstrate the cruelty of slavery in his days."
+              },
+              {
+                "id": "C",
+                "text": "stress the role of slaves in the U.S. history."
+              },
+              {
+                "id": "D",
+                "text": "reveal some unknown aspect of his life."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-37",
+            "number": "37",
+            "stem": "We may infer from the second paragraph that",
+            "options": [
+              {
+                "id": "A",
+                "text": "DNA technology has been widely applied to history research."
+              },
+              {
+                "id": "B",
+                "text": "in its early days the U.S. was confronted with delicate situations."
+              },
+              {
+                "id": "C",
+                "text": "historians deliberately made up some stories of Jefferson’s life."
+              },
+              {
+                "id": "D",
+                "text": "political compromises are easily found throughout the U.S. history."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-38",
+            "number": "38",
+            "stem": "What do we learn about Thomas Jefferson?",
+            "options": [
+              {
+                "id": "A",
+                "text": "His political view changed his attitude towards slavery."
+              },
+              {
+                "id": "B",
+                "text": "His status as a father made him free the child slaves."
+              },
+              {
+                "id": "C",
+                "text": "His attitude towards slavery was complex."
+              },
+              {
+                "id": "D",
+                "text": "His affair with a slave stained his prestige."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-39",
+            "number": "39",
+            "stem": "Which of the following is true according to the text?",
+            "options": [
+              {
+                "id": "A",
+                "text": "Some Founding Fathers benefit politically from slavery."
+              },
+              {
+                "id": "B",
+                "text": "Slaves in the old days did not have the right to vote."
+              },
+              {
+                "id": "C",
+                "text": "Slave owners usually had large savings accounts."
+              },
+              {
+                "id": "D",
+                "text": "Slavery was regarded as a peculiar institution."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-40",
+            "number": "40",
+            "stem": "Washington’s decision to free slaves originated from his",
+            "options": [
+              {
+                "id": "A",
+                "text": "moral considerations."
+              },
+              {
+                "id": "B",
+                "text": "military experience."
+              },
+              {
+                "id": "C",
+                "text": "financial conditions."
+              },
+              {
+                "id": "D",
+                "text": "political stand."
+              }
+            ],
+            "correctOptionId": "B"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-36",
+            "label": "36"
+          },
+          {
+            "id": "q-37",
+            "label": "37"
+          },
+          {
+            "id": "q-38",
+            "label": "38"
+          },
+          {
+            "id": "q-39",
+            "label": "39"
+          },
+          {
+            "id": "q-40",
+            "label": "40"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-b-01",
+      "title": "阅读选填（41–45）",
+      "extension": {
+        "development": "reading-gap-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "In the following text, some segments have been removed. For Questions 41-45, choose the most suitable one from the list A-G to fit into each of the numbered blanks. There are two extra choices, which do not fit in any of the blanks. Mark your answers on ANSWER SHEET 1. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The time for sharpening pencils, arranging your desk, and doing almost anything else instead of writing has ended. The first draft will appear on the page only if you stop avoiding the inevitable and sit, stand up, or lie down to write. (41)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Be flexible. Your outline should smoothly conduct you from one point to the next, but do not permit it to railroad you. If a relevant and important idea occurs to you now, work it into the draft. (42)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Grammar, punctuation, and spelling can wait until you revise. Concentrate on what you are saying. Good writing most often occurs when you are in hot pursuit of an idea rather than in a nervous search for errors."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "(43) Your pages will be easier to keep track of that way, and, if you have to clip a paragraph to place it elsewhere, you will not lose any writing on the other side."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "If you are working on a word processor, you can take advantage of its capacity to make additions and deletions as well as move entire paragraphs by making just a few simple keyboard commands. Some software programs can also check spelling and certain grammatical elements in your writing. (44) These printouts are also easier to read than the screen when you work on revisions."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Once you have a first draft on paper, you can delete material that is unrelated to your thesis and add material necessary to illustrate your points and make your paper convincing. The student who wrote “The A & P as a State of Mind” wisely dropped a paragraph that questioned whether Sammy displays chauvinistic attitudes toward women. (45)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Remember that your initial draft is only that. You should go through the paper many times—and then again—working to substantiate and clarify your ideas. You may even end up with several entire versions of the paper. Rewrite. The sentences within each paragraph should be related to a single topic. Transitions should connect one paragraph to the next so that there are no abrupt or confusing shifts. Awkward or wordy phrasing or unclear sentences and paragraphs should be mercilessly poked and prodded into shape."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[A] To make revising easier, leave wide margins and extra space between lines so that you can easily add words, sentences, and corrections. Write on only one side of the paper."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[B] After you have clearly and adequately developed the body of your paper, pay particular attention to the introductory and concluding paragraphs. It’s probably best to write the introduction last, after you know precisely what you are introducing. Concluding paragraphs demand equal attention because they leave the reader with a final impression."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[C] It’s worth remembering, however, that though a clean copy fresh off a printer may look terrific, it will read only as well as the thinking and writing that have gone into it. Many writers prudently store their data on disks and print their pages each time they finish a draft to avoid losing any material because of power failures or other problems."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[D] It makes no difference how you write, just so you do. Now that you have developed a topic into a tentative thesis, you can assemble your notes and begin to flesh out whatever outline you have made."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[E] Although this is an interesting issue, it has nothing to do with the thesis, which explains how the setting influences Sammy’s decision to quit his job. Instead of including that paragraph, she added one that described Lengel’s crabbed response to the girls so that she could lead up to the A & P “policy” he enforces."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[F] In the final paragraph about the significance of the setting in “A & P,” the student brings together the reasons Sammy quit his job by referring to his refusal to accept Lengel’s store policies."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[G] By using the first draft as a means of thinking about what you want to say, you will very likely discover more than your notes originally suggested. Plenty of good writers don’t use outlines at all but discover ordering principles as they write. Do not attempt to compose a perfectly correct draft the first time around."
+                }
+              ]
+            }
+          ]
+        },
+        "paragraphIds": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E",
+          "F",
+          "G"
+        ],
+        "slots": [
+          {
+            "id": "slot-41",
+            "locked": false,
+            "correctParagraphId": "D"
+          },
+          {
+            "id": "slot-42",
+            "locked": false,
+            "correctParagraphId": "G"
+          },
+          {
+            "id": "slot-43",
+            "locked": false,
+            "correctParagraphId": "A"
+          },
+          {
+            "id": "slot-44",
+            "locked": false,
+            "correctParagraphId": "C"
+          },
+          {
+            "id": "slot-45",
+            "locked": false,
+            "correctParagraphId": "E"
+          }
+        ],
+        "parts": [
+          {
+            "id": "q-41",
+            "number": "41",
+            "slotId": "slot-41"
+          },
+          {
+            "id": "q-42",
+            "number": "42",
+            "slotId": "slot-42"
+          },
+          {
+            "id": "q-43",
+            "number": "43",
+            "slotId": "slot-43"
+          },
+          {
+            "id": "q-44",
+            "number": "44",
+            "slotId": "slot-44"
+          },
+          {
+            "id": "q-45",
+            "number": "45",
+            "slotId": "slot-45"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-41",
+            "label": "41"
+          },
+          {
+            "id": "q-42",
+            "label": "42"
+          },
+          {
+            "id": "q-43",
+            "label": "43"
+          },
+          {
+            "id": "q-44",
+            "label": "44"
+          },
+          {
+            "id": "q-45",
+            "label": "45"
+          }
+        ]
+      }
+    },
+    {
+      "id": "translation-01",
+      "title": "分句翻译（46–50）",
+      "extension": {
+        "development": "segment-translation-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text carefully and then translate the underlined segments into Chinese. Your translation should be written clearly on ANSWER SHEET 2. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "In his autobiography, Darwin himself speaks of his intellectual powers with extraordinary modesty. He points out that he always experienced much difficulty in expressing himself clearly and concisely, but (46) "
+                },
+                {
+                  "type": "text",
+                  "text": "he believes that this very difficulty may have had the compensating advantage of forcing him to think long and intently about every sentence, and thus enabling him to detect errors in reasoning and in his own observations.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " He disclaimed the possession of any great quickness of apprehension or wit, such as distinguished Huxley. (47) "
+                },
+                {
+                  "type": "text",
+                  "text": "He asserted, also, that his power to follow a long and purely abstract train of thought was very limited, for which reason he felt certain that he never could have succeeded with mathematics.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " His memory, too, he described as extensive, but hazy. So poor in one sense was it that he never could remember for more than a few days a single date or a line of poetry. (48) "
+                },
+                {
+                  "type": "text",
+                  "text": "On the other hand, he did not accept as well founded the charge made by some of his critics that, while he was a good observer, he had no power of reasoning.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " This, he thought, could not be true, because the “Origin of Species” is one long argument from the beginning to the end, and has convinced many able men. No one, he submits, could have written it without possessing some power of reasoning. He was willing to assert that “I have a fair share of invention, and of common sense or judgment, such as every fairly successful lawyer or doctor must have, but not, I believe, in any higher degree.” (49) "
+                },
+                {
+                  "type": "text",
+                  "text": "He adds humbly that perhaps he was “superior to the common run of men in noticing things which easily escape attention, and in observing them carefully.”",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Writing in the last year of his life, he expressed the opinion that in two or three respects his mind had changed during the preceding twenty or thirty years. Up to the age of thirty or beyond it poetry of many kinds gave him great pleasure. Formerly, too, pictures had given him considerable, and music very great, delight. In 1881, however, he said: “Now for many years I cannot endure to read a line of poetry. I have also almost lost my taste for pictures or music.” (50) "
+                },
+                {
+                  "type": "text",
+                  "text": "Darwin was convinced that the loss of these tastes was not only a loss of happiness, but might possibly be injurious to the intellect, and more probably to the moral character.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-46",
+            "number": "46",
+            "segment": "he believes that this very difficulty may have had the compensating advantage of forcing him to think long and intently about every sentence, and thus enabling him to detect errors in reasoning and in his own observations."
+          },
+          {
+            "id": "q-47",
+            "number": "47",
+            "segment": "He asserted, also, that his power to follow a long and purely abstract train of thought was very limited, for which reason he felt certain that he never could have succeeded with mathematics."
+          },
+          {
+            "id": "q-48",
+            "number": "48",
+            "segment": "On the other hand, he did not accept as well founded the charge made by some of his critics that, while he was a good observer, he had no power of reasoning."
+          },
+          {
+            "id": "q-49",
+            "number": "49",
+            "segment": "He adds humbly that perhaps he was “superior to the common run of men in noticing things which easily escape attention, and in observing them carefully.”"
+          },
+          {
+            "id": "q-50",
+            "number": "50",
+            "segment": "Darwin was convinced that the loss of these tastes was not only a loss of happiness, but might possibly be injurious to the intellect, and more probably to the moral character."
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "assessment": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "46. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "他认为或许正因为（语言表达上的）这种困难，他不得不对自己要 说的每句话都经过长时间的认真思考，从而能够发现自己在推理和观察中的 错误，结果这反而成为他的优点。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "47. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "他还坚持认为自己进行长时间纯抽象思维的能力十分有限，由此他 也认为自己在数学方面不可能有大的作为。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "48. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "另一方面，某些人批评他虽然善于观察，却不具备推理能力，而他 认为这种说法是缺乏根据的。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "49. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "他又自谦地说，或许自己“在注意到容易被忽略的事物，并对其加 以仔细观察方面优于常人”。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "50. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "达尔文确信，没有了这些爱好不只是少了乐趣，而且可能会有损于 一个人的思维能力，更有可能导致一个人道德品质的下降。"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-46",
+            "label": "46"
+          },
+          {
+            "id": "q-47",
+            "label": "47"
+          },
+          {
+            "id": "q-48",
+            "label": "48"
+          },
+          {
+            "id": "q-49",
+            "label": "49"
+          },
+          {
+            "id": "q-50",
+            "label": "50"
+          }
+        ]
+      }
+    },
+    {
+      "id": "writing-51",
+      "title": "2008英语（一）应用文写作",
+      "extension": {
+        "development": "english-writing-2026-dev"
+      },
+      "data": {
+        "formatVersion": 1,
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "51. You have just come back from Canada and found a music CD in your luggage that you forgot to return to Bob, your landlord there. Write him a letter to"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "1) make an apology, and"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "2) suggest a solution."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "You should write about 100 words on ANSWER SHEET 2."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Do not sign your own name at the end of the letter. Use “Li Ming” instead."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Do not write the address. (10 points)"
+                }
+              ]
+            }
+          ]
+        },
+        "referenceAnswer": null,
+        "rubric": null,
+        "wordCount": {
+          "target": 100
+        },
+        "maxScore": 10
+      },
+      "outline": {
+        "level": "question",
+        "label": "51"
+      }
+    },
+    {
+      "id": "writing-52",
+      "title": "2008英语（一）图画／图表作文",
+      "extension": {
+        "development": "english-writing-2026-dev"
+      },
+      "data": {
+        "formatVersion": 1,
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "52. Write an essay of 160-200 words based on the following drawing. In your essay, you should"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "1) describe the drawing briefly,"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "2) explain its intended meaning, and then"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "3) give your comments."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "You should write neatly on ANSWER SHEET 2. (20 points)"
+                }
+              ]
+            },
+            {
+              "type": "image",
+              "attrs": {
+                "assetId": "d65ca731206ef479b07cc0a57c86543b91557bca14e3e442fc9a19bcc5630312",
+                "alt": "2008年作文原题图表"
+              }
+            }
+          ]
+        },
+        "referenceAnswer": null,
+        "rubric": null,
+        "wordCount": {
+          "min": 160,
+          "max": 200
+        },
+        "maxScore": 20
+      },
+      "outline": {
+        "level": "question",
+        "label": "52"
+      }
+    }
+  ]
+}

@@ -80,3 +80,11 @@ test('completion offers another round, locks duplicate clicks and allows retry a
   assert.equal(f.node('practice-summary-error').textContent,'连接失败');assert.equal(button.disabled,false);
   await button.click();assert.equal(restarts,2);assert.equal(finishes,1);assert.equal(f.container.children.length,0);
 });
+
+test('exam summary displays a locked result and never offers practice restart or finish',()=>{
+  const f=fixture({score:2,maxScore:3,submittedCount:2,questionCount:3,finished:true},{exam:true,readonly:true});
+  assert.equal(f.node('practice-summary-title').textContent,'考试结果');
+  assert.equal(f.node('practice-summary-score-label').textContent,'考试得分 / 总分');
+  assert.match(f.node('practice-summary-note').textContent,/答案已锁定/);
+  assert.equal(f.node('practice-summary-finish'),undefined);
+});

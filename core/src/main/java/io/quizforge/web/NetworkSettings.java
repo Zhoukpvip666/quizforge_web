@@ -140,13 +140,22 @@ final class NetworkSettings {
     synchronized void invalidateSessions() { sessions.clear(); }
 
     static String normalizePublicUrl(String value) {
-        String message = "公网访问地址需为 http:// 或 https:// 域名／公网 IP 地址，可带端口，不包含路径、账号或查询参数。";
+        String message = "公网访问地址需为 http:// 或 https:// 域名／公网 IP 地址，IPv6 写成 http://[IPv6地址]:端口/，不包含路径、账号或查询参数。";
         if (value.isBlank()) return "";
         if (value.length() > 500) throw new ApiException(400, "INVALID_PUBLIC_URL", message);
         try {
             URI uri = URI.create(value.strip()); String scheme = uri.getScheme(), host = uri.getHost();
             if (scheme == null || host == null) throw new IllegalArgumentException();
             scheme = scheme.toLowerCase(java.util.Locale.ROOT); host = host.replace("[", "").replace("]", "").toLowerCase(java.util.Locale.ROOT);
+            String hostKey = NetworkAddresses.hostKey(host);
+            if (hostKey == null || hostKey.equals(NetworkAddresses.hostKey("::1")) || hostKey.equals(NetworkAddresses.hostKey("::"))
+                    || hostKey.startsWith("127.") || hostKey.equals("0.0.0.0")) throw new IllegalArgumentException();
+            if (host.contains(":")) {
+                try {
+                    var address = java.net.InetAddress.getByName(host);
+                    if (address.isLinkLocalAddress() || address.isMulticastAddress()) throw new IllegalArgumentException();
+                } catch (java.net.UnknownHostException invalid) { throw new IllegalArgumentException(); }
+            }
             if ((!scheme.equals("http") && !scheme.equals("https")) || uri.getRawUserInfo() != null || uri.getRawQuery() != null || uri.getRawFragment() != null
                     || (!uri.getRawPath().isEmpty() && !uri.getRawPath().equals("/")) || uri.getPort() < -1 || uri.getPort() == 0 || uri.getPort() > 65535
                     || host.equals("localhost") || host.endsWith(".localhost") || host.startsWith("127.") || host.equals("::1") || host.equals("::") || host.equals("0.0.0.0")) throw new IllegalArgumentException();

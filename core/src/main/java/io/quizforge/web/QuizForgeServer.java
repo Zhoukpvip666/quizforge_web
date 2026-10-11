@@ -1,11 +1,11 @@
 package io.quizforge.web;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.Inet4Address;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.URI;
@@ -47,8 +47,14 @@ public final class QuizForgeServer implements AutoCloseable {
     private final EditorDraftStore developmentEditorDrafts;
     private final AiGradingService developmentAiGrading;
     private final CollectionRoutes developmentRoutes;
+    private final ExamSessions exams;
+    private final java.util.concurrent.ScheduledExecutorService examTimer = java.util.concurrent.Executors.newSingleThreadScheduledExecutor(r -> { Thread thread = new Thread(r, "quizforge-exams"); thread.setDaemon(true); return thread; });
     private final Set<String> allowedHosts = new HashSet<>();
     private final Set<String> lanAllowedHosts = new HashSet<>();
+    private final Set<String> lanUrls = new HashSet<>();
+    private final Set<String> publicIpv6Hosts = new HashSet<>();
+    private final java.util.List<NetworkAddresses.Subnet> lanIpv6Subnets = new java.util.ArrayList<>();
+    private final boolean ipv6Supported = NetworkAddresses.ipv6Available();
     private final NetworkSettings networkSettings;
     private volatile HttpServer networkServer;
     private volatile String networkError;
@@ -75,27 +81,33 @@ public final class QuizForgeServer implements AutoCloseable {
             public void validateOrigin(HttpExchange exchange) { validateWriteOrigin(exchange); }
         }, () -> { var profile = aiSettings.profile(); return profile.enabled() && profile.autoGrade(); });
         practiceSessions = new PracticeSessions(this::createPracticeSession);
+        exams = new ExamSessions(this.root, library, states, aiGrading, collectionRoutes, new CollectionRoutes.Writes() {
+            public JsonNode read(HttpExchange exchange) throws IOException { return writeRequest(exchange); }
+            public void validateOrigin(HttpExchange exchange) { validateWriteOrigin(exchange); }
+        }, () -> { var profile = aiSettings.profile(); return profile.enabled() && profile.autoGrade(); });
+        exams.resourceGateway(images -> new OpenAiCompatibleProvider(aiSettings, images));
         InetAddress address = InetAddress.getByName(host);
         if (address.isAnyLocalAddress()) {
-            for (NetworkInterface network : Collections.list(NetworkInterface.getNetworkInterfaces())) for (InetAddress local : Collections.list(network.getInetAddresses())) allowedHosts.add(local.getHostAddress().split("%", 2)[0].toLowerCase(Locale.ROOT));
-        } else allowedHosts.add(address.getHostAddress().toLowerCase(Locale.ROOT));
-        allowedHosts.add("localhost"); allowedHosts.add("127.0.0.1"); allowedHosts.add("::1");
+            for (NetworkInterface network : Collections.list(NetworkInterface.getNetworkInterfaces())) for (InetAddress local : Collections.list(network.getInetAddresses())) allowedHosts.add(NetworkAddresses.hostKey(local.getHostAddress().split("%", 2)[0]));
+        } else allowedHosts.add(NetworkAddresses.hostKey(address.getHostAddress().split("%", 2)[0]));
+        allowedHosts.add("localhost"); allowedHosts.add("127.0.0.1"); allowedHosts.add(NetworkAddresses.hostKey("::1"));
         server = HttpServer.create(new InetSocketAddress(address, port), 64); server.setExecutor(executor); server.createContext("/", this::handle);
         int actualPort = server.getAddress().getPort();
         networkSettings = new NetworkSettings(this.root, Math.max(1024, actualPort == 65535 ? 8788 : actualPort + 1));
-        lanAllowedHosts.add("localhost"); lanAllowedHosts.add("127.0.0.1");
+        refreshLanHosts();
     }
     public int upgradeShortAnswerBanks() throws IOException { return ShortAnswerUpgrade.run(library, states); }
     public int upgradeShortAnswerAutoBanks() throws IOException { return ShortAnswerAutoUpgrade.run(library, states); }
     public synchronized void start() {
         server.start();
+        examTimer.scheduleWithFixedDelay(exams::tick, 1, 1, java.util.concurrent.TimeUnit.SECONDS);
         if (server.getAddress().getAddress().isLoopbackAddress() && networkSettings.config().remoteEnabled()) {
             try { networkServer = createNetworkServer(networkSettings.config().port()); networkServer.start(); }
             catch (IOException e) { networkError = "Saved connection port is unavailable; select another port in settings"; System.err.println(networkError); }
         }
     }
     public int port() { return server.getAddress().getPort(); }
-    @Override public synchronized void close() { if (networkServer != null) { networkServer.stop(0); networkServer = null; } networkSettings.invalidateSessions(); practiceSessions.close(); aiGrading.close(); developmentAiGrading.close(); server.stop(0); executor.shutdownNow(); }
+    @Override public synchronized void close() { library.close(); examTimer.shutdownNow(); exams.close(); if (networkServer != null) { networkServer.stop(0); networkServer = null; } networkSettings.invalidateSessions(); practiceSessions.close(); aiGrading.close(); developmentAiGrading.close(); server.stop(0); executor.shutdownNow(); }
 
     private PracticeSessions.Session createPracticeSession() throws IOException {
         StateStore temporary = StateStore.memory(root, engine, root);
@@ -132,16 +144,29 @@ public final class QuizForgeServer implements AutoCloseable {
 
     private HttpServer createNetworkServer(int port) throws IOException {
         refreshLanHosts();
-        HttpServer candidate = HttpServer.create(new InetSocketAddress(InetAddress.getByName("0.0.0.0"), port), 64);
+        // The JDK's IPv6 wildcard socket accepts both families. Use IPv4 on systems without IPv6.
+        HttpServer candidate = HttpServer.create(new InetSocketAddress(InetAddress.getByName(ipv6Supported ? "::" : "0.0.0.0"), port), 64);
         candidate.setExecutor(executor); candidate.createContext("/", this::handle); return candidate;
     }
     private void refreshLanHosts() throws IOException {
-        synchronized (lanAllowedHosts) {
-            lanAllowedHosts.clear(); lanAllowedHosts.add("localhost"); lanAllowedHosts.add("127.0.0.1");
-            for (NetworkInterface network : Collections.list(NetworkInterface.getNetworkInterfaces())) {
-                if (!network.isUp()) continue;
-                for (InetAddress local : Collections.list(network.getInetAddresses())) if (local instanceof Inet4Address) lanAllowedHosts.add(local.getHostAddress());
+        Set<String> hosts = new HashSet<>(Set.of("localhost", "127.0.0.1")), urls = new HashSet<>(), globalIpv6 = new HashSet<>();
+        var subnets = new java.util.ArrayList<NetworkAddresses.Subnet>();
+        if (ipv6Supported) hosts.add(NetworkAddresses.hostKey("::1"));
+        for (NetworkInterface network : Collections.list(NetworkInterface.getNetworkInterfaces())) {
+            if (!network.isUp()) continue;
+            for (var entry : network.getInterfaceAddresses()) {
+                InetAddress local = entry.getAddress();
+                if (local == null || (!ipv6Supported && local instanceof java.net.Inet6Address) || !NetworkAddresses.usable(local)) continue;
+                String host = NetworkAddresses.hostKey(local.getHostAddress().split("%", 2)[0]);
+                hosts.add(host); urls.add(host);
+                if (NetworkAddresses.globalIpv6(local)) {
+                    globalIpv6.add(host); subnets.add(new NetworkAddresses.Subnet(local, entry.getNetworkPrefixLength()));
+                }
             }
+        }
+        synchronized (lanAllowedHosts) {
+            lanAllowedHosts.clear(); lanAllowedHosts.addAll(hosts); lanUrls.clear(); lanUrls.addAll(urls);
+            publicIpv6Hosts.clear(); publicIpv6Hosts.addAll(globalIpv6); lanIpv6Subnets.clear(); lanIpv6Subnets.addAll(subnets);
         }
     }
     private boolean isRemoteConnection(HttpExchange exchange) { return exchange.getHttpContext().getServer() != server; }
@@ -149,16 +174,20 @@ public final class QuizForgeServer implements AutoCloseable {
         if (isRemoteConnection(exchange) || forwardedRequest(exchange) || !server.getAddress().getAddress().isLoopbackAddress() || !exchange.getRemoteAddress().getAddress().isLoopbackAddress()) return false;
         String host = URI.create("http://" + exchange.getRequestHeaders().getFirst("Host")).getHost();
         if (host == null) return false; host = host.replace("[", "").replace("]", "");
-        return host.equalsIgnoreCase("localhost") || host.equals("127.0.0.1") || host.equals("::1");
+        return host.equalsIgnoreCase("localhost") || host.equals("127.0.0.1") || NetworkAddresses.sameHost(host, "::1");
     }
     private synchronized JsonNode networkStatus(boolean canManage) {
         NetworkSettings.Config settings = networkSettings.config();
         var response = Json.object().put("canManage", canManage).put("enabled", networkServer != null && settings.enabled()).put("publicEnabled", networkServer != null && settings.publicEnabled())
-                .put("publicUrl", settings.publicUrl()).put("port", settings.port()).put("passwordConfigured", settings.passwordConfigured());
+                .put("publicUrl", settings.publicUrl()).put("port", settings.port()).put("passwordConfigured", settings.passwordConfigured()).put("ipv6Supported", ipv6Supported);
+        try { refreshLanHosts(); }
+        catch (IOException unavailable) { response.put("error", "无法刷新本机连接地址，请检查网络适配器后重新打开设置。"); }
         var urls = response.putArray("urls");
         if (networkServer != null && settings.enabled()) {
-            synchronized (lanAllowedHosts) { lanAllowedHosts.stream().filter(host -> !host.equals("localhost") && !host.startsWith("127.") && !host.startsWith("169.254.")).sorted().forEach(host -> urls.add("http://" + host + ":" + settings.port() + "/")); }
+            synchronized (lanAllowedHosts) { lanUrls.stream().sorted().forEach(host -> urls.add(NetworkAddresses.url(host, settings.port()))); }
         }
+        var ipv6Urls = response.putArray("publicIpv6Urls");
+        synchronized (lanAllowedHosts) { publicIpv6Hosts.stream().sorted().forEach(host -> ipv6Urls.add(NetworkAddresses.url(host, settings.port()))); }
         if (networkError != null) response.put("error", networkError);
         if (!canManage) response.put("error", "Network settings can only be changed through the local-only server");
         return response;
@@ -194,6 +223,18 @@ public final class QuizForgeServer implements AutoCloseable {
                 } else if (path.startsWith("/api/development/resources/") && exchange.getRequestMethod().equals("GET")) {
                     developmentSettings.requireEnabled(); ResourceStore.Resource resource = readResource(exchange, path.substring("/api/development/resources/".length()), true);
                     send(exchange, 200, resource.mime(), resource.bytes());
+                } else if (path.equals("/api/library/export") && exchange.getRequestMethod().equals("POST")) {
+                    requireLocalLibrary(exchange); JsonNode body = writeRequest(exchange); String group = Json.text(body, "group", 120);
+                    LibraryArchive.Download snapshot;
+                    synchronized (states) { synchronized (developmentStates) {
+                        states.recover(); developmentStates.recover();
+                        snapshot = library.exportGroup(group);
+                    } }
+                    try (LibraryArchive.Download download = snapshot) {
+                        exchange.getResponseHeaders().set("Content-Type", LibraryArchive.MIME);
+                        exchange.getResponseHeaders().set("Content-Disposition", "attachment; filename=quizforge-group.qbank; filename*=UTF-8''" + java.net.URLEncoder.encode(group + ".qbank", StandardCharsets.UTF_8).replace("+", "%20"));
+                        exchange.sendResponseHeaders(200, Files.size(download.file())); Files.copy(download.file(), exchange.getResponseBody());
+                    }
                 } else { JsonNode response = api(exchange, path); json(exchange, 200, response); }
             } else {
                 if (!exchange.getRequestMethod().equals("GET")) throw new ApiException(405, "METHOD_NOT_ALLOWED", "Only GET is supported for pages");
@@ -230,10 +271,11 @@ public final class QuizForgeServer implements AutoCloseable {
                 return updateNetwork(writeRequest(exchange));
             }
         }
-        if (path.equals("/api/settings/ai") || path.equals("/api/settings/ai/test")) {
+        if (path.equals("/api/settings/ai") || path.equals("/api/settings/ai/test") || path.equals("/api/settings/ai/credential")) {
             boolean canManage = canManageNetwork(exchange);
             if (path.equals("/api/settings/ai") && method.equals("GET")) return aiSettings.status().put("canManage", canManage);
             if (!canManage) throw new ApiException(403, "LOCAL_SETTINGS_ONLY", "请在运行 QuizForge 的电脑上使用本机地址修改 AI 设置");
+            if (path.equals("/api/settings/ai/credential") && method.equals("GET")) return aiSettings.credential();
             if (path.equals("/api/settings/ai") && method.equals("PUT")) return aiSettings.update(writeRequest(exchange)).put("canManage", true);
             if (path.endsWith("/test") && method.equals("POST")) { writeRequest(exchange); return aiGateway.testConnection(); }
         }
@@ -292,25 +334,54 @@ public final class QuizForgeServer implements AutoCloseable {
             if (method.equals("DELETE")) { validateWriteOrigin(exchange); return editorDrafts.delete(scope, question); }
         }
         if (path.startsWith("/api/extensions/") || path.startsWith("/api/development/")) rejectTypeQuery(exchange);
-        if (parts.length == 2 && parts[1].equals("catalog") && method.equals("GET")) { states.recover(); return library.catalog(); }
+        if (path.equals("/api/library/index") && method.equals("GET")) return library.index().put("canManage", canManageNetwork(exchange));
+        if (parts.length == 2 && parts[1].equals("catalog") && method.equals("GET")) { states.recover(); return library.catalog().put("canManage", canManageNetwork(exchange)); }
+        if (path.equals("/api/library/import") && method.equals("POST")) {
+            requireLocalLibrary(exchange); validateWriteOrigin(exchange);
+            String type = exchange.getRequestHeaders().getFirst("Content-Type");
+            if (type == null || !type.split(";", 2)[0].strip().equalsIgnoreCase(LibraryArchive.MIME)) throw new ApiException(415, "QBANK_REQUIRED", "请上传 QuizForge .qbank 文件");
+            synchronized (states) { synchronized (developmentStates) {
+                states.recover(); developmentStates.recover(); return library.importArchive(exchange.getRequestBody());
+            } }
+        }
+        if (path.equals("/api/library/manage") && method.equals("POST")) {
+            if (!canManageNetwork(exchange)) throw new ApiException(403, "LOCAL_SETTINGS_ONLY", "目录管理只能在主机本机地址操作");
+            JsonNode body = writeRequest(exchange);
+            if (body.path("kind").asText().equals("extension")) developmentSettings.requireEnabled();
+            // Match StateStore.edit lock ordering: saved question edits cannot commit into an old moved path.
+            synchronized (states) { synchronized (developmentStates) { states.recover(); developmentStates.recover(); return library.manage(body); } }
+        }
         if (parts.length == 5 && parts[1].equals("extensions") && parts[4].equals("page") && method.equals("GET")) return library.page(routeId(parts[2]), routeId(parts[3]));
         if (parts.length >= 4 && parts[1].equals("collections")) {
-            boolean development = parts[2].startsWith("development"); if (development) developmentSettings.requireEnabled();
-            Library.Collection collection;
-            try { collection = library.collection(parts[2], routeId(parts[3])); }
-            catch (ApiException error) {
-                // Frozen records remain readable after their source has been removed.
-                if (error.code.equals("COLLECTION_NOT_FOUND") && parts.length >= 5 && parts[4].equals("history")) return (development ? developmentRoutes : collectionRoutes).route(exchange, method, parts);
-                throw error;
+            if (parts[2].equals("exam")) return exams.route(exchange, method, parts);
+            if (parts.length == 5 && parts[4].equals("exams")) {
+                if (method.equals("GET")) return exams.list(parts[2], routeId(parts[3]), exchange.getRequestHeaders().getFirst("X-QuizForge-Practice-Session"));
+                if (method.equals("POST")) return exams.start(library.collection(parts[2], routeId(parts[3])), writeRequest(exchange), exchange.getRequestHeaders().getFirst("X-QuizForge-Practice-Session"));
             }
+            boolean development = parts[2].startsWith("development"); if (development) developmentSettings.requireEnabled();
+            if (parts.length >= 5 && parts[4].equals("history")) {
+                boolean bank = parts[2].equals("bank") || parts[2].equals("development-bank");
+                if (bank && parts.length == 6 && ExamSessions.isHistoryId(parts[5]) && (method.equals("GET") || method.equals("DELETE"))) {
+                    try { library.collection(parts[2], routeId(parts[3])).features().requireHistory(); }
+                    catch (ApiException error) { if (!error.code.equals("COLLECTION_NOT_FOUND")) throw error; }
+                    if (method.equals("DELETE")) validateWriteOrigin(exchange);
+                    return exams.history(parts[2], routeId(parts[3]), parts[5], method.equals("DELETE"));
+                }
+                JsonNode history = (development ? developmentRoutes : collectionRoutes).route(exchange, method, parts);
+                return bank && parts.length == 5 && method.equals("GET") ? exams.appendHistory(parts[2], routeId(parts[3]), (ObjectNode) history) : history;
+            }
+            // This lookup selects the state namespace. The route performs its own full load for opening or writes.
+            Library.Collection collection = library.readCollection(parts[2], routeId(parts[3]));
             if (collection.features().history()) return (development ? developmentRoutes : collectionRoutes).route(exchange, method, parts);
-            if (parts.length >= 5 && parts[4].equals("history")) collection.features().requireHistory();
             try (PracticeSessions.Lease lease = practiceSession(exchange, true, !method.equals("GET"))) {
                 synchronized (lease.session) { return (development ? lease.session.developmentRoutes : lease.session.routes).route(exchange, method, parts); }
             }
         }
         if (!method.equals("GET") && !method.equals("POST")) throw new ApiException(405, "METHOD_NOT_ALLOWED", "Method is not supported");
         throw new ApiException(404, "NOT_FOUND", "Endpoint not found");
+    }
+    private void requireLocalLibrary(HttpExchange exchange) {
+        if (!canManageNetwork(exchange)) throw new ApiException(403, "LOCAL_SETTINGS_ONLY", "题库导入导出只能在主机本机地址操作");
     }
     private JsonNode writeRequest(HttpExchange exchange) throws IOException {
         return writeRequest(exchange, false);
@@ -333,14 +404,17 @@ public final class QuizForgeServer implements AutoCloseable {
     private void validateHost(HttpExchange exchange) {
         String authority = exchange.getRequestHeaders().getFirst("Host"); if (authority == null) throw ApiException.bad("Missing Host header");
         URI uri; try { uri = URI.create("http://" + authority); } catch (IllegalArgumentException e) { throw ApiException.bad("Invalid Host header"); }
-        String host = uri.getHost(); if (host != null) host = host.replace("[", "").replace("]", "").toLowerCase(Locale.ROOT);
+        String host = NetworkAddresses.hostKey(uri.getHost());
         if (host == null || uri.getRawUserInfo() != null || !uri.getRawPath().isEmpty() || uri.getRawQuery() != null || uri.getRawFragment() != null)
             throw new ApiException(403, "HOST_REJECTED", "Use an enabled connection address");
         boolean acceptedHost;
         if (isRemoteConnection(exchange)) {
             NetworkSettings.Config settings = networkSettings.config();
             if (publicHost(uri, settings)) return;
-            synchronized (lanAllowedHosts) { acceptedHost = settings.enabled() && localNetworkPeer(exchange.getRemoteAddress().getAddress()) && lanAllowedHosts.contains(host); }
+            synchronized (lanAllowedHosts) {
+                InetAddress peer = exchange.getRemoteAddress().getAddress();
+                acceptedHost = settings.enabled() && (localNetworkPeer(peer) || lanIpv6Subnets.stream().anyMatch(subnet -> subnet.contains(peer))) && lanAllowedHosts.contains(host);
+            }
         } else {
             // A proxy must use the password-protected connection port, never the local administrator port.
             acceptedHost = allowedHosts.contains(host) && !(server.getAddress().getAddress().isLoopbackAddress() && forwardedRequest(exchange));
@@ -348,7 +422,7 @@ public final class QuizForgeServer implements AutoCloseable {
         int port = uri.getPort() == -1 ? 80 : uri.getPort();
         if (!acceptedHost || port != exchange.getLocalAddress().getPort()) throw new ApiException(403, "HOST_REJECTED", "Use an enabled connection address");
     }
-    static boolean localNetworkPeer(InetAddress address) { return address.isLoopbackAddress() || address.isSiteLocalAddress() || address.isLinkLocalAddress(); }
+    static boolean localNetworkPeer(InetAddress address) { return address.isLoopbackAddress() || address.isSiteLocalAddress() || address.isLinkLocalAddress() || NetworkAddresses.uniqueLocal(address); }
     private static boolean forwardedRequest(HttpExchange exchange) {
         return exchange.getRequestHeaders().keySet().stream().anyMatch(name -> name.equalsIgnoreCase("Forwarded") || name.toLowerCase(Locale.ROOT).startsWith("x-forwarded-"));
     }
@@ -356,7 +430,7 @@ public final class QuizForgeServer implements AutoCloseable {
         if (!settings.publicEnabled()) return false;
         URI publicAddress = URI.create(settings.publicUrl());
         int defaultPort = publicAddress.getScheme().equals("https") ? 443 : 80;
-        return publicAddress.getHost().equalsIgnoreCase(authority.getHost())
+        return NetworkAddresses.sameHost(publicAddress.getHost(), authority.getHost())
                 && (publicAddress.getPort() == -1 ? defaultPort : publicAddress.getPort()) == (authority.getPort() == -1 ? defaultPort : authority.getPort());
     }
     private void validateWriteOrigin(HttpExchange exchange) {
@@ -368,7 +442,7 @@ public final class QuizForgeServer implements AutoCloseable {
         NetworkSettings.Config settings = networkSettings.config();
         URI expected = isRemoteConnection(exchange) && publicHost(authority, settings) ? URI.create(settings.publicUrl()) : authority;
         int defaultPort = "https".equals(expected.getScheme()) ? 443 : 80;
-        if (!expected.getScheme().equals(uri.getScheme()) || uri.getHost() == null || !expected.getHost().equalsIgnoreCase(uri.getHost())
+        if (!expected.getScheme().equals(uri.getScheme()) || !NetworkAddresses.sameHost(expected.getHost(), uri.getHost())
                 || (expected.getPort() == -1 ? defaultPort : expected.getPort()) != (uri.getPort() == -1 ? defaultPort : uri.getPort())
                 || uri.getRawUserInfo() != null || !uri.getRawPath().isEmpty() || uri.getRawQuery() != null || uri.getRawFragment() != null)
             throw new ApiException(403, "ORIGIN_REJECTED", "Writes require the same origin");

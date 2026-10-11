@@ -1,0 +1,2192 @@
+{
+  "formatVersion": 1,
+  "id": "kaoyan-english2-2017",
+  "title": "2017年考研英语（二）真题",
+  "description": "依据原卷与附录制作；作文范文与评分细则留空。",
+  "features": {
+    "editing": true,
+    "whiteboard": true,
+    "history": true,
+    "exam": true
+  },
+  "questions": [
+    {
+      "id": "cloze-01",
+      "title": "完形填空（1–20）",
+      "extension": {
+        "development": "english-cloze-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Choose the best word(s) for each numbered blank and mark A, B, C or D on the ANSWER SHEET. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "People have speculated for centuries about a future without work. Today is no different, with academics, writers, and activists once again [[1]] that technology is replacing human workers. Some imagine that the coming work-free world will be defined by [[2]] . A few wealthy people will own all the capital, and the masses will struggle in an impoverished wasteland."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "A different and not mutually exclusive [[3]] holds that the future will be a wasteland of a different sort, one [[4]] by purposelessness: Without jobs to give their lives [[5]] , people will simply become lazy and depressed. [[6]] , today’s unemployed don’t seem to be having a great time. One Gallup poll found that 20 percent of Americans who have been unemployed for at least a year report having depression, double the rate for [[7]] Americans. Also, some research suggests that the [[8]] for rising rates of mortality, mental-health problems, and addicting [[9]] poorly-educated middle-aged people is shortage of well-paid jobs. Perhaps this is why many [[10]] the agonizing dullness of a jobless future."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "But it doesn’t [[11]] follow from findings like these that a world without work would be filled with unease. Such visions are based on the [[12]] of being unemployed in a society built on the concept of employment. In the [[13]] of work, a society designed with other ends in mind could [[14]] strikingly different circumstances for the future of labor and leisure. Today, the [[15]] of work may be a bit overblown. “Many jobs are boring, degrading, unhealthy, and a waste of human potential,” says John Danaher, a lecturer at the National University of Ireland in Galway."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "These days, because leisure time is relatively [[16]] for most workers, people use their free time to counterbalance the intellectual and emotional [[17]] of their jobs. “When I come home from a hard day’s work, I often feel [[18]] ,” Danaher says, adding, “In a world in which I don’t have to work, I might feel rather different”—perhaps different enough to throw himself [[19]] a hobby or a passion project with the intensity usually reserved for [[20]] matters."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-1",
+            "number": "1",
+            "options": [
+              {
+                "id": "A",
+                "text": "boasting"
+              },
+              {
+                "id": "B",
+                "text": "denying"
+              },
+              {
+                "id": "C",
+                "text": "warning"
+              },
+              {
+                "id": "D",
+                "text": "ensuring"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-2",
+            "number": "2",
+            "options": [
+              {
+                "id": "A",
+                "text": "inequality"
+              },
+              {
+                "id": "B",
+                "text": "instability"
+              },
+              {
+                "id": "C",
+                "text": "unreliability"
+              },
+              {
+                "id": "D",
+                "text": "uncertainty"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-3",
+            "number": "3",
+            "options": [
+              {
+                "id": "A",
+                "text": "policy"
+              },
+              {
+                "id": "B",
+                "text": "guideline"
+              },
+              {
+                "id": "C",
+                "text": "resolution"
+              },
+              {
+                "id": "D",
+                "text": "prediction"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-4",
+            "number": "4",
+            "options": [
+              {
+                "id": "A",
+                "text": "characterized"
+              },
+              {
+                "id": "B",
+                "text": "divided"
+              },
+              {
+                "id": "C",
+                "text": "balanced"
+              },
+              {
+                "id": "D",
+                "text": "measured"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-5",
+            "number": "5",
+            "options": [
+              {
+                "id": "A",
+                "text": "wisdom"
+              },
+              {
+                "id": "B",
+                "text": "meaning"
+              },
+              {
+                "id": "C",
+                "text": "glory"
+              },
+              {
+                "id": "D",
+                "text": "freedom"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-6",
+            "number": "6",
+            "options": [
+              {
+                "id": "A",
+                "text": "Instead"
+              },
+              {
+                "id": "B",
+                "text": "Indeed"
+              },
+              {
+                "id": "C",
+                "text": "Thus"
+              },
+              {
+                "id": "D",
+                "text": "Nevertheless"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-7",
+            "number": "7",
+            "options": [
+              {
+                "id": "A",
+                "text": "rich"
+              },
+              {
+                "id": "B",
+                "text": "urban"
+              },
+              {
+                "id": "C",
+                "text": "working"
+              },
+              {
+                "id": "D",
+                "text": "educated"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-8",
+            "number": "8",
+            "options": [
+              {
+                "id": "A",
+                "text": "explanation"
+              },
+              {
+                "id": "B",
+                "text": "requirement"
+              },
+              {
+                "id": "C",
+                "text": "compensation"
+              },
+              {
+                "id": "D",
+                "text": "substitute"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-9",
+            "number": "9",
+            "options": [
+              {
+                "id": "A",
+                "text": "under"
+              },
+              {
+                "id": "B",
+                "text": "beyond"
+              },
+              {
+                "id": "C",
+                "text": "alongside"
+              },
+              {
+                "id": "D",
+                "text": "among"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-10",
+            "number": "10",
+            "options": [
+              {
+                "id": "A",
+                "text": "leave behind"
+              },
+              {
+                "id": "B",
+                "text": "make up"
+              },
+              {
+                "id": "C",
+                "text": "worry about"
+              },
+              {
+                "id": "D",
+                "text": "set aside"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-11",
+            "number": "11",
+            "options": [
+              {
+                "id": "A",
+                "text": "statistically"
+              },
+              {
+                "id": "B",
+                "text": "occasionally"
+              },
+              {
+                "id": "C",
+                "text": "necessarily"
+              },
+              {
+                "id": "D",
+                "text": "economically"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-12",
+            "number": "12",
+            "options": [
+              {
+                "id": "A",
+                "text": "chances"
+              },
+              {
+                "id": "B",
+                "text": "downsides"
+              },
+              {
+                "id": "C",
+                "text": "benefits"
+              },
+              {
+                "id": "D",
+                "text": "principles"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-13",
+            "number": "13",
+            "options": [
+              {
+                "id": "A",
+                "text": "absence"
+              },
+              {
+                "id": "B",
+                "text": "height"
+              },
+              {
+                "id": "C",
+                "text": "face"
+              },
+              {
+                "id": "D",
+                "text": "course"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-14",
+            "number": "14",
+            "options": [
+              {
+                "id": "A",
+                "text": "disturb"
+              },
+              {
+                "id": "B",
+                "text": "restore"
+              },
+              {
+                "id": "C",
+                "text": "exclude"
+              },
+              {
+                "id": "D",
+                "text": "yield"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-15",
+            "number": "15",
+            "options": [
+              {
+                "id": "A",
+                "text": "model"
+              },
+              {
+                "id": "B",
+                "text": "practice"
+              },
+              {
+                "id": "C",
+                "text": "virtue"
+              },
+              {
+                "id": "D",
+                "text": "hardship"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-16",
+            "number": "16",
+            "options": [
+              {
+                "id": "A",
+                "text": "tricky"
+              },
+              {
+                "id": "B",
+                "text": "lengthy"
+              },
+              {
+                "id": "C",
+                "text": "mysterious"
+              },
+              {
+                "id": "D",
+                "text": "scarce"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-17",
+            "number": "17",
+            "options": [
+              {
+                "id": "A",
+                "text": "demands"
+              },
+              {
+                "id": "B",
+                "text": "standards"
+              },
+              {
+                "id": "C",
+                "text": "qualities"
+              },
+              {
+                "id": "D",
+                "text": "threats"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-18",
+            "number": "18",
+            "options": [
+              {
+                "id": "A",
+                "text": "ignored"
+              },
+              {
+                "id": "B",
+                "text": "tired"
+              },
+              {
+                "id": "C",
+                "text": "confused"
+              },
+              {
+                "id": "D",
+                "text": "starved"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-19",
+            "number": "19",
+            "options": [
+              {
+                "id": "A",
+                "text": "off"
+              },
+              {
+                "id": "B",
+                "text": "against"
+              },
+              {
+                "id": "C",
+                "text": "behind"
+              },
+              {
+                "id": "D",
+                "text": "into"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-20",
+            "number": "20",
+            "options": [
+              {
+                "id": "A",
+                "text": "technological"
+              },
+              {
+                "id": "B",
+                "text": "professional"
+              },
+              {
+                "id": "C",
+                "text": "educational"
+              },
+              {
+                "id": "D",
+                "text": "interpersonal"
+              }
+            ],
+            "correctOptionId": "B"
+          }
+        ],
+        "pointsPerItem": 0.5,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-1",
+            "label": "1"
+          },
+          {
+            "id": "q-2",
+            "label": "2"
+          },
+          {
+            "id": "q-3",
+            "label": "3"
+          },
+          {
+            "id": "q-4",
+            "label": "4"
+          },
+          {
+            "id": "q-5",
+            "label": "5"
+          },
+          {
+            "id": "q-6",
+            "label": "6"
+          },
+          {
+            "id": "q-7",
+            "label": "7"
+          },
+          {
+            "id": "q-8",
+            "label": "8"
+          },
+          {
+            "id": "q-9",
+            "label": "9"
+          },
+          {
+            "id": "q-10",
+            "label": "10"
+          },
+          {
+            "id": "q-11",
+            "label": "11"
+          },
+          {
+            "id": "q-12",
+            "label": "12"
+          },
+          {
+            "id": "q-13",
+            "label": "13"
+          },
+          {
+            "id": "q-14",
+            "label": "14"
+          },
+          {
+            "id": "q-15",
+            "label": "15"
+          },
+          {
+            "id": "q-16",
+            "label": "16"
+          },
+          {
+            "id": "q-17",
+            "label": "17"
+          },
+          {
+            "id": "q-18",
+            "label": "18"
+          },
+          {
+            "id": "q-19",
+            "label": "19"
+          },
+          {
+            "id": "q-20",
+            "label": "20"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-01",
+      "title": "阅读理解 Text 1（21–25）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Every Saturday morning, at 9 am, more than 50,000 runners set off to run 5km around their local park. The Parkrun phenomenon began with a dozen friends and has inspired 400 events in the UK and more abroad. Events are free, staffed by thousands of volunteers. Runners range from four years old to grandparents; their times range from Andrew Baddeley’s world record 13 minutes 48 seconds up to an hour."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Parkrun is succeeding where London’s Olympic “legacy” is failing. Ten years ago on Monday, it was announced that the Games of the 30th Olympiad would be in London. Planning documents pledged that the great legacy of the Games would be to lever a nation of sport lovers away from their couches. The population would be fitter, healthier and produce more winners. It has not happened. The number of adults doing weekly sport did rise, by nearly 2 million in the run-up to 2012—but the general population was growing faster. Worse, the numbers are now falling at an accelerating rate. The opposition claims primary school pupils doing at least two hours of sport a week have nearly halved. Obesity has risen among adults and children. Official retrospections continue as to why London 2012 failed to “inspire a generation.” The success of Parkrun offers answers."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Parkun is not a race but a time trial: Your only competitor is the clock. The ethos welcomes anybody. There is as much joy over a puffed-out first-timer being clapped over the line as there is about top talent shining. The Olympic bidders, by contrast, wanted to get more people doing sports and to produce more elite athletes. The dual aim was mixed up: The stress on success over taking part was intimidating for newcomers."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Indeed, there is something a little absurd in the state getting involved in the planning of such a fundamentally “grassroots” concept as community sports associations. If there is a role for government, it should really be getting involved in providing common goods—making sure there is space for playing fields and the money to pave tennis and netball courts, and encouraging the provision of all these activities in schools. But successive governments have presided over selling green spaces, squeezing money from local authorities and declining attention on sport in education. Instead of wordy, worthy strategies, future governments need to do more to provide the conditions for sport to thrive. Or at least not make them worse."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-21",
+            "number": "21",
+            "stem": "According to Paragraph 1, Parkrun has",
+            "options": [
+              {
+                "id": "A",
+                "text": "gained great popularity."
+              },
+              {
+                "id": "B",
+                "text": "created many jobs."
+              },
+              {
+                "id": "C",
+                "text": "strengthened community ties."
+              },
+              {
+                "id": "D",
+                "text": "become an official festival."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-22",
+            "number": "22",
+            "stem": "The author believes that London’s Olympic “legacy” has failed to",
+            "options": [
+              {
+                "id": "A",
+                "text": "boost population growth."
+              },
+              {
+                "id": "B",
+                "text": "promote sport participation."
+              },
+              {
+                "id": "C",
+                "text": "improve the city’s image."
+              },
+              {
+                "id": "D",
+                "text": "increase sport hours in schools."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-23",
+            "number": "23",
+            "stem": "Parkrun is different from Olympic games in that it",
+            "options": [
+              {
+                "id": "A",
+                "text": "aims at discovering talents."
+              },
+              {
+                "id": "B",
+                "text": "focuses on mass competition."
+              },
+              {
+                "id": "C",
+                "text": "does not emphasize elitism."
+              },
+              {
+                "id": "D",
+                "text": "does not attract first-timers."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-24",
+            "number": "24",
+            "stem": "With regard to mass sport, the author holds that governments should",
+            "options": [
+              {
+                "id": "A",
+                "text": "organize “grassroots” sports events."
+              },
+              {
+                "id": "B",
+                "text": "supervise local sports associations."
+              },
+              {
+                "id": "C",
+                "text": "increase funds for sports clubs."
+              },
+              {
+                "id": "D",
+                "text": "invest in public sports facilities."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-25",
+            "number": "25",
+            "stem": "The author’s attitude to what UK governments have done for sports is",
+            "options": [
+              {
+                "id": "A",
+                "text": "tolerant."
+              },
+              {
+                "id": "B",
+                "text": "critical."
+              },
+              {
+                "id": "C",
+                "text": "uncertain."
+              },
+              {
+                "id": "D",
+                "text": "sympathetic."
+              }
+            ],
+            "correctOptionId": "B"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-21",
+            "label": "21"
+          },
+          {
+            "id": "q-22",
+            "label": "22"
+          },
+          {
+            "id": "q-23",
+            "label": "23"
+          },
+          {
+            "id": "q-24",
+            "label": "24"
+          },
+          {
+            "id": "q-25",
+            "label": "25"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-02",
+      "title": "阅读理解 Text 2（26–30）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "With so much focus on children’s use of screens, it’s easy for parents to forget about their own screen use. “Tech is designed to really suck you in,” says Jenny Radesky in her study of digital play, “and digital products are there to promote maximal engagement. It makes it hard to disengage, and leads to a lot of bleed-over into the family routine.”"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Radesky has studied the use of mobile phones and tablets at mealtimes by giving mother-child pairs a food-testing exercise. She found that mothers who sued devices during the exercise started 20 percent fewer verbal and 39 percent fewer nonverbal interactions with their children. During a separate observation, she saw that phones became a source of tension in the family. Parents would be looking at their emails while the children would be making excited bids for their attention."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Infants are wired to look at parents’ faces to try to understand their world, and if those faces are blank and unresponsive—as they often are when absorbed in a device—it can be extremely disconcerting for the children. Radesky cites the “still face experiment” devised by developmental psychologist Ed Tronick in the 1970s. In it, a mother is asked to interact with her child in a normal way before putting on a blank expression and not giving them any visual social feedback: The child becomes increasingly distressed as she tries to capture her mother’s attention. “Parents don’t have to be exquisitely parents at all times, but there needs to be a balance and parents need to be responsive and sensitive to a child’s verbal or nonverbal expressions of an emotional need,” says Radesky."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "On the other hand, Tronick himself is concerned that the worries about kids’ use of screens are born out of an “oppressive ideology that demands that parents should always be interacting” with their children: “It’s based on a somewhat fantasized, very white, very upper-middle-class ideology that says if you’re failing to expose your child to 30,000 words you are neglecting them.” Tronick believes that just because a child isn’t learning from the screen doesn’t mean there’s no value to it—particularly if it gives parents time to have a shower, do housework or simply have a break from their child. Parents, he says, can get a lot out of using their devices to speak to a friend or get some work out of the way. This can make them feel happier, which lets them be more available to their child the rest of the time."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-26",
+            "number": "26",
+            "stem": "According to Jenny Radesky, digital products are designed to",
+            "options": [
+              {
+                "id": "A",
+                "text": "simplify routine matters."
+              },
+              {
+                "id": "B",
+                "text": "absorb user attention."
+              },
+              {
+                "id": "C",
+                "text": "better interpersonal relations."
+              },
+              {
+                "id": "D",
+                "text": "increase work efficiency."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-27",
+            "number": "27",
+            "stem": "Radesky’s food-testing exercise shows that mothers’ use of devices",
+            "options": [
+              {
+                "id": "A",
+                "text": "takes away babies’ appetite."
+              },
+              {
+                "id": "B",
+                "text": "distracts children’s attention."
+              },
+              {
+                "id": "C",
+                "text": "slows down babies’ verbal development."
+              },
+              {
+                "id": "D",
+                "text": "reduces mother-child communication."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-28",
+            "number": "28",
+            "stem": "Radesky cites the “still face experiment” to show that",
+            "options": [
+              {
+                "id": "A",
+                "text": "it is easy for children to get used to blank expressions"
+              },
+              {
+                "id": "B",
+                "text": "verbal expressions are unnecessary for emotional exchange"
+              },
+              {
+                "id": "C",
+                "text": "children are insensitive to changes in their parents’ mood."
+              },
+              {
+                "id": "D",
+                "text": "parents need to respond to children’s emotional needs."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-29",
+            "number": "29",
+            "stem": "The oppressive ideology mentioned by Tronick requires parents to",
+            "options": [
+              {
+                "id": "A",
+                "text": "protect kids from exposure to wild fantasies."
+              },
+              {
+                "id": "B",
+                "text": "teach their kids at least 30,000 words a year."
+              },
+              {
+                "id": "C",
+                "text": "ensure constant interaction with their children."
+              },
+              {
+                "id": "D",
+                "text": "remain concerned about kids’ use of screens"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-30",
+            "number": "30",
+            "stem": "According to Tronick, kids’ use of screens may",
+            "options": [
+              {
+                "id": "A",
+                "text": "give their parents some free time."
+              },
+              {
+                "id": "B",
+                "text": "make their parents more creative."
+              },
+              {
+                "id": "C",
+                "text": "help them with their homework."
+              },
+              {
+                "id": "D",
+                "text": "help them become more attentive."
+              }
+            ],
+            "correctOptionId": "A"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-26",
+            "label": "26"
+          },
+          {
+            "id": "q-27",
+            "label": "27"
+          },
+          {
+            "id": "q-28",
+            "label": "28"
+          },
+          {
+            "id": "q-29",
+            "label": "29"
+          },
+          {
+            "id": "q-30",
+            "label": "30"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-03",
+      "title": "阅读理解 Text 3（31–35）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Today, widespread social pressure to immediately go to college in conjunction with increasingly high expectations in a fast-moving world often causes students to completely overlook the possibility of taking a gap year. After all, if everyone you know is going to college in the fall, it seems silly to stay back a year, doesn’t it? And after going to school for 12 years, it doesn’t feel natural to spend a year doing something that isn’t academic."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "But while this may be true, it’s not a good enough reason to condemn gap years. There’s always a constant fear of falling behind everyone else on the socially perpetuated “race to the finish line,” whether that be toward graduate school, medical school or lucrative career. But despite common misconceptions, a gap year does not hinder the success of academic pursuits—in fact, it probably enhances it."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Studies from the United States and Australia show that students who take a gap year are generally better prepared for and perform better in college than those who do not. Rather than pulling students back, a gap year pushes them ahead by preparing them for independence, new responsibilities and environmental changes—all things that first-year students often struggle with the most. Gap year experiences can lessen the blow when it comes to adjusting to college and being thrown into a brand new environment, making it easier to focus on academics and activities rather than acclimation blunders."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "If you’re not convinced of the inherent value in taking a year off to explore interests, then consider its financial impact on future academic choices. According to the National Center for Education Statistics, nearly 80 percent of college students end up changing their majors at least once. This isn’t surprising, considering the basic mandatory high school curriculum leaves students with a poor understanding of the vast academic possibilities that await them in college. Many students find themselves listing one major on their college applications, but switching to another after taking college classes. It’s not necessarily a bad thing, but depending on the school, it can be costly to make up credits after switching too late in the game. At Boston College, for example, you would have to complete an extra year were you to switch to the nursing school from another department. Taking a gap year to figure things out initially can help prevent stress and save money later on."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-31",
+            "number": "31",
+            "stem": "One of the reasons for high-school graduates not taking a gap year is that",
+            "options": [
+              {
+                "id": "A",
+                "text": "they think it academically misleading."
+              },
+              {
+                "id": "B",
+                "text": "they have a lot of fun to expect in college."
+              },
+              {
+                "id": "C",
+                "text": "it feels strange to do differently from others."
+              },
+              {
+                "id": "D",
+                "text": "it seems worthless to take off-campus courses."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-32",
+            "number": "32",
+            "stem": "Studies from the US and Australia imply that taking a gap year helps",
+            "options": [
+              {
+                "id": "A",
+                "text": "keep students from being unrealistic."
+              },
+              {
+                "id": "B",
+                "text": "lower risks in choosing careers."
+              },
+              {
+                "id": "C",
+                "text": "ease freshmen’s financial burdens."
+              },
+              {
+                "id": "D",
+                "text": "relieve freshmen of pressures."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-33",
+            "number": "33",
+            "stem": "The word “acclimation” (Line 6, Para. 3) is closest in meaning to",
+            "options": [
+              {
+                "id": "A",
+                "text": "adaptation."
+              },
+              {
+                "id": "B",
+                "text": "application."
+              },
+              {
+                "id": "C",
+                "text": "motivation."
+              },
+              {
+                "id": "D",
+                "text": "competition."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-34",
+            "number": "34",
+            "stem": "A gap year may save money for students by helping them",
+            "options": [
+              {
+                "id": "A",
+                "text": "avoid academic failures."
+              },
+              {
+                "id": "B",
+                "text": "establish long-term goals."
+              },
+              {
+                "id": "C",
+                "text": "switch to another college."
+              },
+              {
+                "id": "D",
+                "text": "decide on the right major."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-35",
+            "number": "35",
+            "stem": "The most suitable title for this text would be",
+            "options": [
+              {
+                "id": "A",
+                "text": "In Favor of the Gap Year."
+              },
+              {
+                "id": "B",
+                "text": "The ABCs of the Gap Year."
+              },
+              {
+                "id": "C",
+                "text": "The Gap Year Comes Back."
+              },
+              {
+                "id": "D",
+                "text": "The Gap Year: A Dilemma."
+              }
+            ],
+            "correctOptionId": "A"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-31",
+            "label": "31"
+          },
+          {
+            "id": "q-32",
+            "label": "32"
+          },
+          {
+            "id": "q-33",
+            "label": "33"
+          },
+          {
+            "id": "q-34",
+            "label": "34"
+          },
+          {
+            "id": "q-35",
+            "label": "35"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-04",
+      "title": "阅读理解 Text 4（36–40）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Though often viewed as a problem for western states, the growing frequency of wildfires is a national concern because of its impact on federal tax dollars, says Professor Max Moritz, a specialist in fire ecology and management."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "In 2015, the US Forest Service for the first time spent more than half of its $5.5 billion annual budget fighting fires—nearly double the percentage it spent on such efforts 20 years ago. In effect, fewer federal funds today are going towards the agency’s other work—such as forest conservation, watershed and cultural resources management, and infrastructure upkeep—that affect the lives of all Americans."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Another nationwide concern is whether public funds from other agencies are going into construction in fire-prone districts. As Moritz puts it, how often are federal dollars building homes that are likely to be lost to a wildfire?"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "“It’s already a huge problem from a public expenditure perspective for the whole country,” he says. “We need to take a magnifying glass to that. Like, ‘Wait a minute, is this OK?’ Do we want instead to redirect those funds to concentrate on lower-hazard parts of the landscape?”"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Such a view would require a corresponding shift in the way US society today views fire, researchers say."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "For one thing, conversations about wildfires need to be more inclusive. Over the past decade, the focus has been on climate change—how the warming of the Earth from greenhouse gases is leading to conditions that worsen fires."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "While climate is a key element, Moritz says, it shouldn’t come at the expense of the rest of the equation."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "“The human systems and the landscapes we live on are linked, and the interactions go both ways,” he says. Failing to recognize that, he notes, leads to “an overly simplified view of what the solutions might be. Our perception of the problem and of what the solution is becomes very limited.”"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "At the same time, people continue to treat fire as an event that needs to be wholly controlled and unleashed only out of necessity, says Professor Balch at the University of Colorado. But acknowledging fire’s inevitable presence in human life is an attitude crucial to developing the laws, policies, and practices that make it as safe as possible, she says."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "“We’ve disconnected ourselves from living with fire,” Balch says. “It is really important to understand and try and tease out what is the human connection with fire today.”"
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-36",
+            "number": "36",
+            "stem": "More frequent wildfires have become a national concern because in 2015 they",
+            "options": [
+              {
+                "id": "A",
+                "text": "exhausted unprecedented management efforts."
+              },
+              {
+                "id": "B",
+                "text": "consumed a record-high percentage of budget."
+              },
+              {
+                "id": "C",
+                "text": "severely damaged the ecology of western states."
+              },
+              {
+                "id": "D",
+                "text": "caused a huge rise of infrastructure expenditure."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-37",
+            "number": "37",
+            "stem": "Moritz calls for the use of “a magnifying glass” to",
+            "options": [
+              {
+                "id": "A",
+                "text": "raise more funds for fire-prone areas."
+              },
+              {
+                "id": "B",
+                "text": "avoid the redirection of federal money."
+              },
+              {
+                "id": "C",
+                "text": "find wildfire-free parts of the landscape."
+              },
+              {
+                "id": "D",
+                "text": "guarantee safer spending of public funds."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-38",
+            "number": "38",
+            "stem": "While admitting that climate is a key element, Moritz notes that",
+            "options": [
+              {
+                "id": "A",
+                "text": "public debates have not settled yet."
+              },
+              {
+                "id": "B",
+                "text": "fire-fighting conditions are improving."
+              },
+              {
+                "id": "C",
+                "text": "other factors should not be overlooked."
+              },
+              {
+                "id": "D",
+                "text": "a shift in the view of fire has taken place."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-39",
+            "number": "39",
+            "stem": "The overly simplified view Moritz mentions is a result of failing to",
+            "options": [
+              {
+                "id": "A",
+                "text": "discover the fundamental makeup of nature."
+              },
+              {
+                "id": "B",
+                "text": "explore the mechanism of the human systems."
+              },
+              {
+                "id": "C",
+                "text": "maximize the role of landscape in human life."
+              },
+              {
+                "id": "D",
+                "text": "understand the interrelations of man and nature."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-40",
+            "number": "40",
+            "stem": "Professor Balch points out that fire is something man should",
+            "options": [
+              {
+                "id": "A",
+                "text": "do away with."
+              },
+              {
+                "id": "B",
+                "text": "come to terms with."
+              },
+              {
+                "id": "C",
+                "text": "pay a price for."
+              },
+              {
+                "id": "D",
+                "text": "keep away from."
+              }
+            ],
+            "correctOptionId": "B"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-36",
+            "label": "36"
+          },
+          {
+            "id": "q-37",
+            "label": "37"
+          },
+          {
+            "id": "q-38",
+            "label": "38"
+          },
+          {
+            "id": "q-39",
+            "label": "39"
+          },
+          {
+            "id": "q-40",
+            "label": "40"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-b-01",
+      "title": "阅读匹配（41–45）",
+      "extension": {
+        "development": "reading-match-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text and match each of the numbered items in the left column to its corresponding information in the right column. There are two extra choices in the right column. Mark your answers on the ANSWER SHEET. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The decline in American manufacturing is a common refrain, particularly from Donald Trump. “We don’t make anything anymore,” he told Fox News, while defending his own made-in-Mexico clothing line."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Without question, manufacturing has taken a significant hit during recent decades, and further trade deals raise questions about whether new shocks could hit manufacturing."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "But there is also a different way to look at the data."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Across the country, factory owners are now grappling with a new challenge: Instead of having too many workers, they may end up with too few. Despite trade competition and outsourcing, American manufacturing still needs to replace tens of thousands of retiring boomers every year. Millennials may not be that interested in taking their place. Other industries are recruiting them with similar or better pay."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "For factory owners, it all adds up to stiff competition for workers—and upward pressure on wages. “They’re harder to find and they have job offers,” says Jay Dunwell, president of Wolverine Coil Spring, a family-owned firm, “They may be coming into the workforce, but they’ve been plucked by other industries that are also doing as well as manufacturing.” Mr. Dunwell has begun bringing high school juniors to the factory so they can get exposed to its culture."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "At RoMan Manufacturing, a maker of electrical transformers and welding equipment that his father cofounded in 1980, Robert Roth keeps a close eye on the age of his nearly 200 workers. Five are retiring this year. Mr. Roth has three community-college students enrolled in a work-placement program, with a starting wage of $13 an hour that rises to $17 after two years."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "At a worktable inside the transformer plant, young Jason Stenquist looks flustered by the copper coils he’s trying to assemble and the arrival of two visitors. It’s his first week on the job. Asked about his choice of career, he says at high school he considered medical school before switching to electrical engineering. “I love working with tools. I love creating,” he says."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "But to win over these young workers, manufacturers have to clear another major hurdle: parents, who lived through the worst US economic downturn since the Great Depression, telling them to avoid the factory. Millennials “remember their father and mother both were laid off. They blame it on the manufacturing recession,” says Birgit Klohs, chief executive of The Right Place, a business development agency for western Michigan."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "These concerns aren’t misplaced: Employment in manufacturing has fallen from 17 million in 1970 to 12 million in 2015. When the recovery began, worker shortages first appeared in the high-skilled trades. Now shortages are appearing at the mid-skill levels."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "“The gap is between the jobs that take to skills and those that require a lot of skill,” says Rob Spohr, a business professor at Montcalm Community College. “There’re enough people to fill the jobs at McDonalds and other places where you don’t need to have much skill. It’s that gap in between, and that’s where the problem is.”"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Julie Parks of Grand Rapids Community College points to another key to luring Millennials into manufacturing: a work/life balance. While their parents were content to work long hours, young people value flexibility. “Overtime is not attractive to this generation. They really want to live their lives,” she says."
+                }
+              ]
+            },
+            {
+              "type": "table",
+              "content": [
+                {
+                  "type": "tableRow",
+                  "content": [
+                    {
+                      "type": "tableCell",
+                      "content": [
+                        {
+                          "type": "paragraph"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tableCell",
+                      "content": [
+                        {
+                          "type": "paragraph",
+                          "content": [
+                            {
+                              "type": "text",
+                              "text": "[A] says that he switched to electrical engineering because he loves working with tools."
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "tableRow",
+                  "content": [
+                    {
+                      "type": "tableCell",
+                      "content": [
+                        {
+                          "type": "paragraph",
+                          "content": [
+                            {
+                              "type": "text",
+                              "text": "41. Jay Dunwell"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tableCell",
+                      "content": [
+                        {
+                          "type": "paragraph",
+                          "content": [
+                            {
+                              "type": "text",
+                              "text": "[B] points out that there are enough people to fill the jobs that don’t need much skill."
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "tableRow",
+                  "content": [
+                    {
+                      "type": "tableCell",
+                      "content": [
+                        {
+                          "type": "paragraph",
+                          "content": [
+                            {
+                              "type": "text",
+                              "text": "42. Jason Stenquist"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tableCell",
+                      "content": [
+                        {
+                          "type": "paragraph",
+                          "content": [
+                            {
+                              "type": "text",
+                              "text": "[C] points out that the US doesn’t manufacture anything anymore."
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "tableRow",
+                  "content": [
+                    {
+                      "type": "tableCell",
+                      "content": [
+                        {
+                          "type": "paragraph",
+                          "content": [
+                            {
+                              "type": "text",
+                              "text": "43. Birgit Klohs"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tableCell",
+                      "content": [
+                        {
+                          "type": "paragraph",
+                          "content": [
+                            {
+                              "type": "text",
+                              "text": "[D] believes that it is important to keep a close eye on the age of his workers."
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "tableRow",
+                  "content": [
+                    {
+                      "type": "tableCell",
+                      "content": [
+                        {
+                          "type": "paragraph",
+                          "content": [
+                            {
+                              "type": "text",
+                              "text": "44. Rob Spohr"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tableCell",
+                      "content": [
+                        {
+                          "type": "paragraph",
+                          "content": [
+                            {
+                              "type": "text",
+                              "text": "[E] says that for factory owners, workers are harder to find because of stiff competition."
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "tableRow",
+                  "content": [
+                    {
+                      "type": "tableCell",
+                      "content": [
+                        {
+                          "type": "paragraph",
+                          "content": [
+                            {
+                              "type": "text",
+                              "text": "45. Julie Parks"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tableCell",
+                      "content": [
+                        {
+                          "type": "paragraph",
+                          "content": [
+                            {
+                              "type": "text",
+                              "text": "[F] points out that a work/life balance can attract young people into manufacturing."
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "tableRow",
+                  "content": [
+                    {
+                      "type": "tableCell",
+                      "content": [
+                        {
+                          "type": "paragraph"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "tableCell",
+                      "content": [
+                        {
+                          "type": "paragraph",
+                          "content": [
+                            {
+                              "type": "text",
+                              "text": "[G] says that the manufacturing recession is to blame for the lay-off of the young people’s parents."
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "paragraphIds": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E",
+          "F",
+          "G"
+        ],
+        "slots": [
+          {
+            "id": "slot-41",
+            "locked": false,
+            "correctParagraphId": "E"
+          },
+          {
+            "id": "slot-42",
+            "locked": false,
+            "correctParagraphId": "A"
+          },
+          {
+            "id": "slot-43",
+            "locked": false,
+            "correctParagraphId": "G"
+          },
+          {
+            "id": "slot-44",
+            "locked": false,
+            "correctParagraphId": "B"
+          },
+          {
+            "id": "slot-45",
+            "locked": false,
+            "correctParagraphId": "F"
+          }
+        ],
+        "parts": [
+          {
+            "id": "q-41",
+            "number": "41",
+            "slotId": "slot-41"
+          },
+          {
+            "id": "q-42",
+            "number": "42",
+            "slotId": "slot-42"
+          },
+          {
+            "id": "q-43",
+            "number": "43",
+            "slotId": "slot-43"
+          },
+          {
+            "id": "q-44",
+            "number": "44",
+            "slotId": "slot-44"
+          },
+          {
+            "id": "q-45",
+            "number": "45",
+            "slotId": "slot-45"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-41",
+            "label": "41"
+          },
+          {
+            "id": "q-42",
+            "label": "42"
+          },
+          {
+            "id": "q-43",
+            "label": "43"
+          },
+          {
+            "id": "q-44",
+            "label": "44"
+          },
+          {
+            "id": "q-45",
+            "label": "45"
+          }
+        ]
+      }
+    },
+    {
+      "id": "translation-46",
+      "title": "全文翻译（46）",
+      "extension": {
+        "development": "full-translation-2026-dev"
+      },
+      "data": {
+        "formatVersion": 1,
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Translate the following text from English into Chinese. Write your translation on the ANSWER SHEET. (15 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "My dream has always been to work somewhere in an area between fashion and publishing. Two years before graduating from secondary school, I took a sewing and design course thinking that I would move on to a fashion design course. However, during that course I realized I was not good enough in this area to compete with other creative personalities in the future, so I decided that it was not the right path for me. Before applying for university I told everyone that I would study journalism, because writing was, and still is, one of my favourite activities. But, to be honest, I said it, because I thought that fashion and me together was just a dream—I knew that no one could imagine me in the fashion industry at all! So I decided to look for some fashion-related courses that included writing. This is when I noticed the course “Fashion Media & Promotion.”"
+                }
+              ]
+            }
+          ]
+        },
+        "referenceAnswer": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "我的梦想一直是在时尚和出版之间的领域工作。中学毕业前两年，我选了一门缝纫与设计课，心想以后会接着修一门时装设计课。然而，在学习那门课程期间，我意识到自己在这个领域不够出色，日后不足以与其他有创造力的人士竞争，因此我认定，这条路不适合我。申请上大学之前，我跟所有人说我要学新闻，因为写作曾经是——现在依然是——我最喜欢的活动之一。可是，说实话，当时我那么说是因为我觉得时尚和我结缘仅仅是个梦—— 我知道，别人根本无法想象我能进入时尚行业！于是，我决定找些含有写作的与时尚相关的课程。就在这个时候，我注意到了“时尚传媒与推广”这门课。"
+                }
+              ]
+            }
+          ]
+        },
+        "rubric": null,
+        "maxScore": 15
+      },
+      "outline": {
+        "level": "question",
+        "label": "46"
+      }
+    },
+    {
+      "id": "writing-47",
+      "title": "2017英语（二）应用文写作",
+      "extension": {
+        "development": "english-writing-2026-dev"
+      },
+      "data": {
+        "formatVersion": 1,
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Suppose you are invited by Professor Williams to give a presentation about Chinese culture to a group of international students. Write a reply to"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "1) accept the invitation, and"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "2) introduce the key points of your presentation."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "You should write about 100 words on the ANSWER SHEET."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Don’t use your own name, use “LiMing” instead."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Don’t write your address. (10 points)"
+                }
+              ]
+            }
+          ]
+        },
+        "referenceAnswer": null,
+        "rubric": null,
+        "wordCount": {
+          "target": 100
+        },
+        "maxScore": 10
+      },
+      "outline": {
+        "level": "question",
+        "label": "47"
+      }
+    },
+    {
+      "id": "writing-48",
+      "title": "2017英语（二）图表作文",
+      "extension": {
+        "development": "english-writing-2026-dev"
+      },
+      "data": {
+        "formatVersion": 1,
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Write an essay based on the chart below. In your essay, you should"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "1) interpret the chart, and"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "2) give your comments."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "You should write at least 150 words on the ANSWER SHEET. (15 points)."
+                }
+              ]
+            },
+            {
+              "type": "image",
+              "attrs": {
+                "assetId": "cbe9ca3632f686b079c57e84973b05120569fe3cff22006e441bd3d6bc7eec05",
+                "alt": "2017英语二作文原题图表"
+              }
+            }
+          ]
+        },
+        "referenceAnswer": null,
+        "rubric": null,
+        "wordCount": {
+          "min": 150
+        },
+        "maxScore": 15
+      },
+      "outline": {
+        "level": "question",
+        "label": "48"
+      }
+    }
+  ]
+}

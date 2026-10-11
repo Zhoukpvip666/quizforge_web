@@ -22,7 +22,7 @@ final class RichTextService {
     private record Registry(int major, int minor, int documentFormat, List<Profile> profiles) { }
     private record RegistryStamp(Object fileKey, long size, FileTime modified) { }
     private static final Set<String> PROFILES = Set.of("basic-v1", "advanced-v1");
-    private static final Set<String> CAPABILITIES = Set.of("basic-formatting", "images", "advanced-formatting", "tables", "math", "image-resize");
+    private static final Set<String> CAPABILITIES = Set.of("basic-formatting", "images", "advanced-formatting", "tables", "math", "image-resize", "camera-capture");
     private final Path directory;
     private RegistryStamp cachedStamp;
     private Registry cachedRegistry;
@@ -95,7 +95,7 @@ final class RichTextService {
         JsonNode api = value.path("api");
         if (!api.isObject() || !Set.of("major", "minor", "documentFormat").equals(properties(api))
                 || !integer(api.get("major"), 1) || !integer(api.get("minor"), 0) || !integer(api.get("documentFormat"), 1)
-                || api.path("major").asInt() != 1 || api.path("minor").asInt() != 0 || api.path("documentFormat").asInt() != 1)
+                || api.path("major").asInt() != 1 || api.path("minor").asInt() > 1 || api.path("documentFormat").asInt() != 1)
             throw invalidRegistry();
         JsonNode profiles = value.path("profiles");
         if (!profiles.isArray() || profiles.isEmpty() || profiles.size() > 2 || !value.path("defaultProfile").isTextual()) throw invalidRegistry();

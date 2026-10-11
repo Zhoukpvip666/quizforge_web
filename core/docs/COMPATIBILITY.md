@@ -36,7 +36,7 @@
 
 能力清单说明宿主实现了哪些公共协议，不会自动让某个页面获得写入或评分权限。页面必须继续检查 context.capabilities，历史始终只读；新拓展通过 `requiresRichText` 声明富文本 API、文档格式、文档约定及能力，应用选择兼容实现。旧精确 `dependencies` 保留兼容读取。详见 [富文本服务](RICHTEXT_SERVICE.md)。
 
-拓展页面和编辑页面响应携带 `apiVersion:{major:1,minor:2}`，对应 iframe 中公开 `QF.api:{major:1,minor:2,capabilities:[...]}`。规则环境也提供只读 `QF.api` 描述，但能力列表不意味着规则中能调用浏览器方法。API 1.2 只在 getScore 返回值中增加可选 outlineStates，采用 unanswered/correct/incorrect 三态，保留 score/maxScore 的含义，不新增方法或能力名称。历史按每个冻结页面自己的 `apiVersion` 选择接口；旧页面或旧规则请求没有该字段时按 1.0 处理。API v2 上线前必须实现新运行层及旧版路由，不能先接受 v2 声明。
+拓展页面和编辑页面响应携带 `apiVersion:{major:1,minor:2}`，对应 iframe 中公开 `QF.api:{major:1,minor:2,capabilities:[...]}`。规则环境也提供只读 `QF.api` 描述，但能力列表不意味着规则中能调用浏览器方法。API 1.2 只在 getScore 返回值中增加可选 outlineStates，采用 unanswered/draft/correct/incorrect，其中 draft 表示已填写待提交，未提交禁止返回对错、提交后禁止返回 draft，保留 score/maxScore 的含义，不新增方法或能力名称。历史按每个冻结页面自己的 `apiVersion` 选择接口；旧页面或旧规则请求没有该字段时按 1.0 处理。API v2 上线前必须实现新运行层及旧版路由，不能先接受 v2 声明。
 
 新题库和拓展示例建议显式填写顶层 `formatVersion:1`。旧文件没有该字段时按格式 1 读取，不重写文件。显式字段只支持数字整数 1，其他值拒绝。这个顶层版本与简答 `data.formatVersion`、回答文档的格式版本相互独立，题型内部数据仍由各拓展拥有。
 

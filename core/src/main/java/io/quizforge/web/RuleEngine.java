@@ -10,6 +10,8 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -18,6 +20,8 @@ final class RuleEngine {
     private final String node;
     private final Duration deadline;
     private final boolean permissions;
+    private final Path nodeExecutable;
+    private final String nodeMetadata;
     RuleEngine(Path codeRoot, String node, Duration deadline) throws IOException {
         this.codeRoot = codeRoot; this.node = node; this.deadline = deadline;
         ProcessBuilder probeBuilder = new ProcessBuilder(node, "--permission", "-e", "process.stdout.write('ok')"); sanitizeEnvironment(probeBuilder);
@@ -25,7 +29,48 @@ final class RuleEngine {
         try { permissions = probe.waitFor(3, TimeUnit.SECONDS) && probe.exitValue() == 0; }
         catch (InterruptedException e) { Thread.currentThread().interrupt(); throw new IOException("Node check interrupted", e); }
         finally { if (probe.isAlive()) probe.destroyForcibly(); }
+        JsonNode identity=probeIdentity(); nodeExecutable=Path.of(identity.path("path").asText()); nodeMetadata=Json.fingerprint(identity,"quizforge-node-runtime-v1");
         if (!permissions) System.err.println("Node filesystem permissions unavailable; install Node 24 for the supported restriction mode.");
+    }
+    private JsonNode probeIdentity() throws IOException {
+        ProcessBuilder builder = new ProcessBuilder(node, "-e", "process.stdout.write(JSON.stringify({path:process.execPath,version:process.version,modules:process.versions.modules}))"); sanitizeEnvironment(builder);
+        Process child = builder.start();
+        try {
+            if (!child.waitFor(3, TimeUnit.SECONDS) || child.exitValue() != 0) throw new IOException("Node identity unavailable");
+            JsonNode identity = Json.MAPPER.readTree(child.getInputStream().readNBytes(8192));
+            if(!identity.path("path").isTextual())throw new IOException("Node executable identity unavailable");
+            return identity;
+        } catch (InterruptedException failure) { Thread.currentThread().interrupt(); throw new IOException("Node check interrupted", failure); }
+        finally { if (child.isAlive()) child.destroyForcibly(); }
+    }
+    String validationEnvironment() {
+        try {
+            var files = Json.MAPPER.createArrayNode(); files.add(nodeMetadata); files.add(hashExecutable(nodeExecutable));
+            Path configured=Path.of(node).toAbsolutePath().normalize();
+            if(!configured.equals(nodeExecutable.toAbsolutePath().normalize())&&java.nio.file.Files.isRegularFile(configured))files.add(hashExecutable(configured));
+            Path runner = Json.safeFile(codeRoot.resolve("server"), "rules-runner.cjs"); files.add(ResourceStore.hash(java.nio.file.Files.readAllBytes(runner)));
+            for (String dependency : List.of("ajv", "fast-uri", "fast-deep-equal", "json-schema-traverse", "require-from-string")) {
+                Path directory = codeRoot.resolve("node_modules").resolve(dependency);
+                if (java.nio.file.Files.isSymbolicLink(directory)) throw new IOException("Unsafe rule dependency");
+                try (var stream = java.nio.file.Files.walk(directory)) {
+                    var paths = stream.sorted().limit(10001).toList(); if (paths.size() > 10000) throw new IOException("Dependency size limit");
+                    for (Path path : paths) {
+                        if (java.nio.file.Files.isSymbolicLink(path)) throw new IOException("Unsafe dependency file");
+                        if (!java.nio.file.Files.isRegularFile(path, java.nio.file.LinkOption.NOFOLLOW_LINKS)) continue;
+                        if (java.nio.file.Files.size(path) > 8 * 1024 * 1024) throw new IOException("Dependency file limit");
+                        files.add(dependency + "/" + directory.relativize(path)); files.add(ResourceStore.hash(java.nio.file.Files.readAllBytes(path)));
+                    }
+                }
+            }
+            return Json.fingerprint(files, "quizforge-validation-environment-v1");
+        } catch (IOException | RuntimeException failure) { return "unavailable"; }
+    }
+    private static String hashExecutable(Path executable)throws IOException {
+        try {
+            var digest=java.security.MessageDigest.getInstance("SHA-256");
+            try(var input=java.nio.file.Files.newInputStream(executable)){byte[] buffer=new byte[64*1024];for(int size;(size=input.read(buffer))!=-1;)digest.update(buffer,0,size);}
+            return java.util.HexFormat.of().formatHex(digest.digest());
+        }catch(java.security.NoSuchAlgorithmException failure){throw new IOException("Executable digest unavailable",failure);}
     }
     JsonNode run(Library.Extension extension, ObjectNode request) {
         boolean development = DevelopmentExtensions.runtimeMetadata(extension) != null;
@@ -40,10 +85,21 @@ final class RuleEngine {
         Path runner = codeRoot.resolve("server/rules-runner.cjs");
         if (permissions) {
             command.add("--permission");
-            for (Path allowed : new Path[]{runner, codeRoot.resolve("node_modules"), extension.rules(), extension.questionSchema(), extension.answerSchema()}) if (allowed != null) command.add("--allow-fs-read=" + allowed);
+            for (Path allowed : new Path[]{runner, codeRoot.resolve("node_modules"), extension.rules(), extension.questionSchema(), extension.answerSchema()}) if (allowed != null) {
+                command.add("--allow-fs-read=" + allowed);
+                try {
+                    Path resolved = allowed.toRealPath();
+                    if (!resolved.equals(allowed.toAbsolutePath().normalize())) {
+                        command.add("--allow-fs-read=" + resolved);
+                        if (System.getProperty("os.name").startsWith("Windows")) command.add("--allow-fs-read=\\\\?\\" + resolved);
+                    }
+                }
+                catch (IOException ignored) { /* Missing paths keep their original permission and are handled by execution. */ }
+            }
         }
         command.add(runner.toString());
         Process process = null;
+        ExecutorService processIo = null;
         try {
             byte[] input = Json.MAPPER.writeValueAsBytes(request);
             if (input.length > 8 * 1024 * 1024) throw new ApiException(413, "RULE_INPUT_TOO_LARGE", "Rule input exceeds the size limit");
@@ -51,11 +107,14 @@ final class RuleEngine {
             // Explicit allowlist: no inherited tokens, provider keys, NODE_OPTIONS, or user secrets.
             sanitizeEnvironment(builder);
             process = builder.start();
+            // Native pipe reads can pin virtual carriers on supported Java 21.
+            // Reserve one independent worker for each pipe so stdin can always progress.
+            processIo = Executors.newFixedThreadPool(3, Thread.ofPlatform().daemon().name("quizforge-rule-io-", 0).factory());
             final Process child = process;
             AtomicBoolean overflow = new AtomicBoolean();
-            CompletableFuture<byte[]> output = CompletableFuture.supplyAsync(() -> readBounded(child.getInputStream(), 2 * 1024 * 1024, child, overflow));
-            CompletableFuture<byte[]> error = CompletableFuture.supplyAsync(() -> readBounded(child.getErrorStream(), 64 * 1024, child, overflow));
-            CompletableFuture<Void> write = CompletableFuture.runAsync(() -> { try (var stream = child.getOutputStream()) { stream.write(input); } catch (IOException ignored) { } });
+            CompletableFuture<byte[]> output = CompletableFuture.supplyAsync(() -> readBounded(child.getInputStream(), 2 * 1024 * 1024, child, overflow), processIo);
+            CompletableFuture<byte[]> error = CompletableFuture.supplyAsync(() -> readBounded(child.getErrorStream(), 64 * 1024, child, overflow), processIo);
+            CompletableFuture<Void> write = CompletableFuture.runAsync(() -> { try (var stream = child.getOutputStream()) { stream.write(input); } catch (IOException ignored) { } }, processIo);
             if (!process.waitFor(deadline.toMillis(), TimeUnit.MILLISECONDS)) { process.destroyForcibly(); throw new ApiException(422, "RULE_TIMEOUT", "Extension rules exceeded their execution deadline"); }
             byte[] bytes = output.get(2, TimeUnit.SECONDS); error.get(2, TimeUnit.SECONDS); write.get(2, TimeUnit.SECONDS);
             if (overflow.get()) throw new ApiException(422, "RULE_OUTPUT_LIMIT", "Extension rules exceeded their output limit");
@@ -69,7 +128,14 @@ final class RuleEngine {
         } catch (ApiException e) { throw e; }
         catch (InterruptedException e) { Thread.currentThread().interrupt(); throw new ApiException(503, "RULE_UNAVAILABLE", "Rule execution interrupted"); }
         catch (Exception e) { throw new ApiException(503, "RULE_UNAVAILABLE", "Rule engine unavailable; verify Node and installed dependencies"); }
-        finally { if (process != null && process.isAlive()) process.destroyForcibly(); }
+        finally {
+            if (process != null && process.isAlive()) process.destroyForcibly();
+            if (processIo != null) {
+                processIo.shutdownNow();
+                try { processIo.awaitTermination(2, TimeUnit.SECONDS); }
+                catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+            }
+        }
     }
     private static ObjectNode developmentProjection(ObjectNode request) {
         ObjectNode value = Json.object(); String operation = request.path("op").asText();
