@@ -103,6 +103,7 @@ final class Library {
     Library(Path root, Path codeRoot, RuleEngine engine, DevelopmentSettings developmentSettings) { this.root = root; this.codeRoot = codeRoot; this.engine = engine; resources = new ResourceStore(root); developmentResources = new ResourceStore(root.resolve(".development")); richText = new RichTextService(codeRoot); this.developmentSettings = developmentSettings; }
     private static DevelopmentSettings settings(Path root) { try { return new DevelopmentSettings(root); } catch (IOException e) { throw new ApiException(503, "DEVELOPMENT_SETTINGS_UNAVAILABLE", "Developer settings cannot be read"); } }
 
+    ObjectNode index() { return new LibraryIndex(root, developmentSettings).scan().catalog(); }
     synchronized ObjectNode catalog() { refresh(); return new LibraryManagement(root).catalog(catalog); }
     synchronized ObjectNode manage(JsonNode request) throws IOException {
         ObjectNode outcome = new LibraryManagement(root).change(request, catalog());
@@ -754,13 +755,13 @@ final class Library {
         Extension value = reference.has("development") ? available.get("development:" + Json.id(reference, "development")) : available.get(Json.id(reference, "id") + "@" + Json.id(reference, "version"));
         if (value == null) throw ApiException.bad("Missing extension"); return value;
     }
-    private static boolean hasDevelopmentReference(JsonNode raw) {
+    static boolean hasDevelopmentReference(JsonNode raw) {
         if (raw == null) return false;
         if (raw.path("extension").has("development")) return true;
         for (JsonNode question : raw.path("questions")) if (question.path("extension").has("development")) return true;
         return false;
     }
-    private static List<String> developmentFolders(JsonNode raw) {
+    static List<String> developmentFolders(JsonNode raw) {
         var folders = new HashSet<String>();
         if (raw.path("extension").has("development")) folders.add(Json.id(raw.path("extension"), "development"));
         for (JsonNode question : raw.path("questions")) if (question.path("extension").has("development")) {
@@ -768,7 +769,7 @@ final class Library {
         }
         return folders.stream().sorted().toList();
     }
-    private static ObjectNode bankDevelopmentMetadata(List<String> folders) {
+    static ObjectNode bankDevelopmentMetadata(List<String> folders) {
         ObjectNode result = Json.object(); ArrayNode values = result.putArray("folders"); folders.forEach(values::add);
         if (folders.size() == 1) result.put("folder", folders.getFirst());
         return result;
@@ -830,7 +831,7 @@ final class Library {
     static String optional(JsonNode raw, String field, int max) { if (!raw.has(field)) return ""; JsonNode value = raw.get(field); if (!value.isTextual() || value.asText().length() > max) throw ApiException.bad("Invalid " + field); return value.asText(); }
     private static String asset(Path path) throws IOException { if (path == null) return ""; if (Files.size(path) > 1024 * 1024) throw new IOException("Asset size limit"); return Files.readString(path, StandardCharsets.UTF_8); }
     private static String fallback(Path path) { String name = path.getFileName().toString(); return name.substring(0, Math.min(name.length(), 120)); }
-    private static int compareVersion(String left, String right) {
+    static int compareVersion(String left, String right) {
         String[] a = left.split("[.-]"), b = right.split("[.-]");
         for (int i = 0; i < Math.max(a.length, b.length); i++) { String x = i < a.length ? a[i] : "0", y = i < b.length ? b[i] : "0"; int comparison; try { comparison = new java.math.BigInteger(x).compareTo(new java.math.BigInteger(y)); } catch (NumberFormatException e) { comparison = x.compareTo(y); } if (comparison != 0) return comparison; }
         return 0;
