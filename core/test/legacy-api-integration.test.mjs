@@ -10,7 +10,7 @@ async function waitFor(check){for(let i=0;i<30&&!check();i++)await tick();assert
 
 function fixture(t,folder,mode,context,{richtext=false}={}) {
   const file=mode==='edit'?'editor':'practice';
-  const packagePath=folder==='short-answer'?'./fixtures/legacy-extensions/short-answer':`../../extensions/基础题型/${folder}`;
+  const packagePath=`./fixtures/legacy-extensions/${folder==='single-choice'?'single-choice-1.0.0':folder}`;
   const dom=new JSDOM(read(`${packagePath}/${file}.html`),{runScripts:'outside-only',pretendToBeVisual:true,url:'http://localhost/'}),sent=[];
   const parent={postMessage:value=>sent.push(structuredClone(value))};
   Object.defineProperty(dom.window,'parent',{value:parent});
@@ -28,7 +28,7 @@ function fixture(t,folder,mode,context,{richtext=false}={}) {
 }
 
 test('published single-choice 1.0.0 still renders and saves through the v1 bridge without changing its package',async t=>{
-  const question=JSON.parse(read('../../extensions/基础题型/single-choice/examples.json')).questions[0];
+  const question=JSON.parse(read('./fixtures/legacy-extensions/single-choice-1.0.0/examples.json')).questions[0];
   const context={mode:'practice',question,status:'unanswered',answer:null,result:null,capabilities:{canSave:true,canSubmit:true,canRetry:false}};
   const f=fixture(t,'single-choice','practice',context);
   await waitFor(()=>f.sent.some(value=>value.kind==='registered'));
@@ -46,7 +46,7 @@ test('published single-choice 1.0.0 still renders and saves through the v1 bridg
 });
 
 test('published single-choice editor preserves its document and draft hooks through v1',async t=>{
-  const question=JSON.parse(read('../../extensions/基础题型/single-choice/examples.json')).questions[0];
+  const question=JSON.parse(read('./fixtures/legacy-extensions/single-choice-1.0.0/examples.json')).questions[0];
   const f=fixture(t,'single-choice','edit',{mode:'edit',question,capabilities:{canEdit:true}});
   await waitFor(()=>f.sent.some(value=>value.kind==='registered'));
   f.byId('edit-title').value='升级宿主后的题名';

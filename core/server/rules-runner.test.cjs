@@ -76,6 +76,50 @@ test('only public projection is returned until submission',t=>{
   const graded=call(files,{op:'submit',data:{secret:'yes'},answer:'yes'}); assert.equal(graded.body.data.result.score,1); assert.equal(graded.body.data.projected.reveal,'yes');
 });
 
+test('catalog validation preserves fresh globals between original bank chunks', t => {
+  const files=fixture(t,`let count=0;QF.defineType({validateQuestion(data){return ++count>1 || data.secret!=='reject-first';},project(){return {};},grade(){return {score:0,maxScore:1,correct:false,feedback:null};}});`);
+  const questions=[{secret:'good'},{secret:'reject-first'}];
+  assert.equal(call(files,{op:'validateBank',questions}).body.ok,true,'Original within-chunk state remains shared.');
+  assert.equal(call(files,{op:'validateBank',questions,contextResetOffsets:[1]}).body.ok,false,'A later bank starts with fresh globals.');
+  const pairs=[{secret:'good'},{secret:'reject-first'},{secret:'good'},{secret:'reject-first'}];
+  assert.equal(call(files,{op:'validateBank',questions:pairs,contextResetOffsets:[2]}).body.ok,true,'Resets occur only at original boundaries.');
+  assert.equal(call(files,{op:'validateBank',questions:[{secret:'good'},{secret:13}],contextResetOffsets:[1]}).body.ok,false,'Every new chunk still runs AJV.');
+});
+
+test('catalog validation rejects malformed reset boundaries', t => {
+  const files=fixture(t,normal),questions=[{secret:'one'},{secret:'two'},{secret:'three'}];
+  for(const contextResetOffsets of [0,{},[0],[-1],[3],[1.5],['1'],[1,1],[2,1]]){
+    const reply=call(files,{op:'validateBank',questions,contextResetOffsets}).body;
+    assert.equal(reply.ok,false,JSON.stringify(contextResetOffsets));assert.match(reply.error,/boundaries/);
+  }
+});
+
+test('draft validation returns only an unsubmitted projection and still rejects invalid answers',t=>{
+  const files=fixture(t,normal);
+  const request={op:'validateAnswer',projectAfterValidation:true,withCapabilities:true,data:{secret:'yes'},answer:'yes',state:{submitted:true,result:{score:1,maxScore:1,correct:true}}};
+  const reply=call(files,request).body;
+  assert.equal(reply.ok,true);assert.deepEqual(reply.data.projected,{prompt:'public'});assert.equal(reply.data.valid,true);
+  assert.deepEqual(reply.data.capabilities,{canAiGrade:false,canOutlineItems:false});
+  for(const answer of ['bad','',7])assert.equal(call(files,{...request,answer}).body.ok,false);
+  assert.deepEqual(call(files,{...request,projectAfterValidation:false}).body.data,{valid:true,capabilities:{canAiGrade:false,canOutlineItems:false}});
+});
+
+test('combined draft projection has fresh VM globals and fresh question input',t=>{
+  const files=fixture(t,`let validated=false;QF.defineType({
+    validateAnswer(answer,data){validated=true;data.secret='validator mutation';return true;},
+    project(data,state){return {prompt:data.secret,validated,submitted:state.submitted,hasAnswer:Object.hasOwn(__input,'answer')};},
+    grade(){return {score:0,maxScore:1,correct:false};}
+  });`);
+  const reply=call(files,{op:'validateAnswer',projectAfterValidation:true,data:{secret:'original'},answer:'saved'}).body;
+  assert.equal(reply.ok,true);assert.deepEqual(reply.data.projected,{prompt:'original',validated:false,submitted:false,hasAnswer:false});
+});
+
+test('projection failure does not acknowledge draft validation as a successful save',t=>{
+  const files=fixture(t,`QF.defineType({project(){throw new Error('projection unavailable');},grade(){return {score:0,maxScore:1,correct:false};}});`);
+  const reply=call(files,{op:'validateAnswer',projectAfterValidation:true,data:{secret:'original'},answer:'saved'}).body;
+  assert.equal(reply.ok,false);assert.equal(Object.hasOwn(reply,'data'),false);assert.match(reply.error,/projection unavailable/);
+});
+
 test('legacy rules and explicit v1 rules share an immutable host contract without changing grading',t=>{
   const files=fixture(t,`QF.defineType({
     project(data,state){
@@ -138,12 +182,19 @@ test('invalid outline states and pre-submit grading are rejected while absence a
     const response=call(files,payload).body;assert.equal(response.ok,true);assert.equal(Object.hasOwn(response.data.scores[0],'outlineStates'),!!addition);
   }
 });
-test('outline status contract stays three-state even after submission',t=>{
+test('submitted outline rejects draft and unrelated workflow states',t=>{
   const payload={op:'scoreBatch',questions:[{data:{secret:'x'},state:{status:'submitted',answer:'saved',result:{score:0.5,maxScore:1,correct:false,feedback:null}}}]};
   for(const status of ['draft','partial','pending-review','submitted']){
     const files=fixture(t,`QF.defineType({project(){return {};},grade(){return {};},getScore(){return {score:0.5,maxScore:1,outlineStates:[{id:'a',status:'${status}'}]};}});`);
     const response=call(files,payload).body;assert.equal(response.ok,false,status);assert.equal(response.code,'INVALID_OUTLINE_STATES',status);
   }
+});
+
+test('unsubmitted child drafts preserve IDs without exposing correctness or earned score',t=>{
+  const files=fixture(t,`QF.defineType({project(){return {};},grade(){return {};},getScore(data,state){return {score:0,maxScore:2,outlineStates:[{id:'filled',status:state.answer?'draft':'unanswered'},{id:'empty',status:'unanswered'}]};}});`);
+  const response=call(files,{op:'scoreBatch',questions:[{data:{secret:'x'},state:{status:'draft',answer:'saved',result:null}}]}).body;
+  assert.equal(response.ok,true);assert.equal(response.data.scores[0].score,0);
+  assert.deepEqual(response.data.scores[0].outlineStates,[{id:'filled',status:'draft'},{id:'empty',status:'unanswered'}]);
 });
 test('batch projections preserve order and keep unsubmitted answers hidden',t=>{
   const files=fixture(t,normal);
@@ -172,7 +223,7 @@ test('VM rule cannot directly access process, require, fetch or filesystem',t=>{
 test('VM loops, oversized output and invalid grades are rejected',t=>{
   let files=fixture(t,`QF.defineType({project(){while(true){}},grade(){return {};}});`); const before=Date.now(); assert.equal(call(files,{op:'project',data:{secret:'yes'},state:{submitted:false}}).body.ok,false); assert.ok(Date.now()-before<3500);
   files=fixture(t,`QF.defineType({project(){return 'x'.repeat(2200000);},grade(){return {};}});`); assert.equal(call(files,{op:'project',data:{secret:'yes'},state:{submitted:false}}).body.ok,false);
-  files=fixture(t,`QF.defineType({project(){return {};},grade(){return {score:2,maxScore:1,correct:true,feedback:''};}});`); assert.equal(call(files,{op:'submit',data:{secret:'yes'},answer:'yes'}).body.ok,false);
+  files=fixture(t,`QF.defineType({project(){return {};},grade(){return {score:'2',maxScore:1,correct:true,feedback:''};}});`); assert.equal(call(files,{op:'submit',data:{secret:'yes'},answer:'yes'}).body.ok,false);
 });
 
 const manual = `QF.defineType({project(data,state){return state.submitted?{reference:data.secret}:{prompt:'public'};},grade(){return {gradingStatus:'pending',score:null,maxScore:5,correct:null,feedback:'pending'};},review(data,answer,value){if(!Number.isInteger(value.score*2))throw Error('half points');return {gradingStatus:'graded',score:value.score,maxScore:5,correct:value.score===5,feedback:'reviewed'};},getScore(data,state){return {score:state.submitted?state.result.score:0,maxScore:5};}});`;
@@ -191,11 +242,12 @@ test('pending grade preserves unknown score and scoring batch separates graded a
   ]);
 });
 
-test('review delegates half-point validation and host rejects invalid ranges or pending review results',t=>{
+test('review delegates score policy and host rejects invalid types or pending review results',t=>{
   const files=fixture(t,manual), payload={op:'review',data:{secret:'a'},answer:'answer',review:{score:3.5}};
   const reviewed=call(files,payload); assert.equal(reviewed.body.ok,true); assert.equal(reviewed.body.data.result.score,3.5);
   assert.equal(reviewed.body.data.projected.reference,'a');
-  for(const value of [-0.5,5.5,2.25,'3.5'])assert.equal(call(files,{...payload,review:{score:value}}).body.ok,false);
+  for(const value of [-0.5,5.5])assert.equal(call(files,{...payload,review:{score:value}}).body.ok,true);
+  for(const value of [2.25,'3.5'])assert.equal(call(files,{...payload,review:{score:value}}).body.ok,false);
   assert.equal(call(files,{...payload,answer:''}).body.ok,false);
   const stillPending=fixture(t,manual.replace("gradingStatus:'graded',score:value.score,maxScore:5,correct:value.score===5", "gradingStatus:'pending',score:null,maxScore:5,correct:null"));
   assert.equal(call(stillPending,payload).body.ok,false);
@@ -214,20 +266,38 @@ test('AI preparation is an optional server rule hook and raw data never leaks th
   const files=fixture(t,hook);
   assert.deepEqual(call(files,{op:'capabilities'}).body.data,{canAiGrade:true,canOutlineItems:false});
   const prepared=call(files,{op:'prepareAiGrading',data:{secret:'private reference'},answer:'submitted answer',state:{status:'submitted',submitted:true,result:{gradingStatus:'pending',score:null,maxScore:5,correct:null,feedback:null}}});
-  assert.equal(prepared.body.ok,true); assert.equal(prepared.body.data.gradingInput.referenceAnswer[0].text,'private reference'); assert.equal(prepared.body.data.maxScore,5);
+  assert.equal(prepared.body.ok,true); assert.equal(prepared.body.data.gradingInput.referenceAnswer[0].text,'private reference'); assert.equal(Object.hasOwn(prepared.body.data,'maxScore'),false);
   assert.equal(call(fixture(t,normal),{op:'capabilities'}).body.data.canAiGrade,false);
   assert.equal(call(files,{op:'prepareAiGrading',data:{secret:'a'},answer:'',state:{result:{}}}).body.ok,false);
 });
 
-test('AI scoring consistency rejects mismatched getScore without extending legacy review rules',t=>{
+test('AI preparation does not read parent scores; persisted review outputs remain consistent',t=>{
   const hook=manual.replace('project(data,state)', 'prepareAiGrading(){return {};},project(data,state)');
   const pending={op:'prepareAiGrading',data:{secret:'a'},answer:'answer',state:{status:'submitted',submitted:true,result:{gradingStatus:'pending',score:null,maxScore:5,correct:null,feedback:null}}};
   const review={op:'review',data:{secret:'a'},answer:'answer',review:{score:3.5}};
   for(const bad of [hook.replace('score:state.submitted?state.result.score:0', 'score:0'),hook.replace('getScore(data,state){return {score:state.submitted?state.result.score:0,maxScore:5}', 'getScore(data,state){return {score:state.submitted?state.result.score:0,maxScore:4}')]) {
     const files=fixture(t,bad);
-    for(const payload of [pending,review]) { const result=call(files,payload).body; assert.equal(result.ok,false); assert.equal(result.code,'SCORE_UNAVAILABLE'); }
+    assert.equal(call(files,pending).body.ok,true);
+    const result=call(files,review).body; assert.equal(result.ok,false); assert.equal(result.code,'SCORE_UNAVAILABLE');
   }
   assert.equal(call(fixture(t,manual.replace('score:state.submitted?state.result.score:0', 'score:0')),review).body.ok,true);
+});
+
+test('targeted AI preparation and review receive contexts for selecting and merging children',t=>{
+  const rules=`QF.defineType({
+    project(){return {};},
+    grade(){return {gradingStatus:'graded',score:0,maxScore:5,correct:false,feedback:null};},
+    prepareAiGrading(data,answer,context){return context.automatic ? {targets:[{targetId:'part-2',input:{answer,prior:context.state.result.score}}]} : {selected:context.targetId,answer,prior:context.state.result.score};},
+    review(data,answer,review,context){return {gradingStatus:'graded',score:context.state.result.score+review.score,maxScore:5,correct:false,feedback:review.targetId};},
+    getScore(data,state){return {score:state.result.score,maxScore:5};}
+  });`;
+  const files=fixture(t,rules),state={submitted:true,result:{gradingStatus:'graded',score:2,maxScore:5,correct:false,feedback:null}};
+  const prepared=call(files,{op:'prepareAiGrading',data:{secret:'private'},answer:'submitted',targetId:'part-2',state}).body;
+  assert.equal(prepared.ok,true);assert.deepEqual(prepared.data.gradingInput,{selected:'part-2',answer:'submitted',prior:2});
+  const automatic=call(files,{op:'prepareAiGrading',data:{secret:'private'},answer:'submitted',automatic:true,state}).body;
+  assert.equal(automatic.ok,true);assert.deepEqual(automatic.data.gradingInput,{targets:[{targetId:'part-2',input:{answer:'submitted',prior:2}}]});
+  const reviewed=call(files,{op:'review',data:{secret:'private'},answer:'submitted',review:{targetId:'part-2',score:1.5},state}).body;
+  assert.equal(reviewed.ok,true);assert.equal(reviewed.data.result.score,3.5);assert.equal(reviewed.data.result.feedback,'part-2');
 });
 
 test('outline metadata is opt-in, ordered, bounded and independent of parent grading',t=>{

@@ -29,17 +29,80 @@ class AiGradingServiceTest {
     @AfterEach void close() { if (service != null) service.close(); }
     ObjectNode start(String requestId) { return service.start(fixture.bank, fixture.bank.question("q1"), Json.object().put("requestId", requestId).put("contentVersion", fixture.store.stamp(fixture.bank, fixture.bank.question("q1")).path("contentVersion").asText())); }
     ObjectNode get(String id) { return service.get(fixture.bank, fixture.bank.question("q1"), id); }
-    ObjectNode await(String id, String status) throws Exception { long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(15); ObjectNode task; do { task = get(id); if (task.path("status").asText().equals(status)) return task; if (ListTerminal(task.path("status").asText()) && !(status.equals("confirmed") && task.path("status").asText().equals("succeeded"))) fail(task.toString()); Thread.sleep(20); } while (System.nanoTime() < deadline); fail("AI task did not reach " + status + ": " + task); return null; }
-    boolean ListTerminal(String status) { return java.util.List.of("succeeded", "failed", "superseded", "confirmed").contains(status); }
+    ObjectNode await(String id, String status) throws Exception { long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(15); ObjectNode task; do { task = get(id); if (task.path("status").asText().equals(status)) return task; if (ListTerminal(task.path("status").asText())) fail(task.toString()); Thread.sleep(20); } while (System.nanoTime() < deadline); fail("AI task did not reach " + status + ": " + task); return null; }
+    boolean ListTerminal(String status) { return java.util.List.of("failed", "superseded", "confirmed").contains(status); }
     AiGateway.Response valid() { return new AiGateway.Response("{\"score\":3.5,\"feedback\":\"要点基本完整，示例欠缺。\"}", "fake", "local-test", "response-test", Json.object().put("total_tokens", 20)); }
     void manual(double score, String requestId) { long revision = fixture.question("q1").at("/state/revision").asLong(); fixture.save("q1", fixture.act(requestId, "q1", revision, "review", fixture.review(score))); }
+
+    @Test void independentAiSuggestionsAreAdoptedAndAggregatedByTheExtension() throws Exception {
+        fixture.write("extensions/manual/rules.js", """
+                QF.defineType({
+                  project(data,state){return {stem:data.stem,maxScore:data.maxScore};},
+                  grade(data,answer){return {gradingStatus:'pending',score:null,maxScore:data.maxScore,correct:null,feedback:'pending'};},
+                  prepareAiGrading(data,answer){return {protocolVersion:1,question:[{type:'text',text:'one part'}],answer:[{type:'text',text:answer.text}],referenceAnswer:[{type:'text',text:data.reference}],maxScore:2.5,scoreStep:0.3};},
+                  review(data,answer,value){return {gradingStatus:'graded',score:value.score+5,maxScore:data.maxScore,correct:false,feedback:value.feedback};},
+                  getScore(data,state){return {score:state.submitted?state.result.score:0,maxScore:data.maxScore};}
+                });
+                """);
+        ObjectNode manifest = (ObjectNode) Json.read(root.resolve("extensions/manual/manifest.json"), 1024 * 1024);
+        manifest.put("version", "1.0.1"); fixture.write("extensions/manual/manifest.json", manifest.toString());
+        for (String file : new String[]{"question-banks/manual.json", "extensions/manual/examples.json"})
+            fixture.write(file, Files.readString(root.resolve(file)).replace("1.0.0", "1.0.1"));
+        fixture.bank = fixture.library.collection("bank", "manual-bank");
+        long revision = fixture.question("q1").at("/state/revision").asLong();
+        fixture.save("q1", fixture.act("independent-answer", "q1", revision, "submit", fixture.answer("one part answer")));
+        AtomicInteger calls = new AtomicInteger(); double[] suggestions = {1.37, -7.37, 9.37};
+        service = new AiGradingService(root, fixture.store, fixture.library, request -> {
+            assertEquals(2.5, request.gradingInput().path("maxScore").asDouble());
+            assertEquals(0.3, request.gradingInput().path("scoreStep").asDouble()); assertFalse(request.repair());
+            double score = suggestions[calls.getAndIncrement()];
+            return new AiGateway.Response(Json.object().put("score", score).put("feedback", "part assessment").toString(), "fake", "local-test", "", null);
+        });
+        for (int i = 0; i < suggestions.length; i++) {
+            ObjectNode task = await(start("independent-" + i).path("taskId").asText(), "confirmed");
+            assertEquals(1, task.path("calls").asInt()); assertFalse(task.path("repairUsed").asBoolean());
+            assertEquals(suggestions[i], task.at("/candidate/score").asDouble());
+            assertEquals(2.5, task.at("/candidate/maxScore").asDouble());
+            JsonNode result = fixture.question("q1").at("/state/result");
+            assertEquals(suggestions[i] + 5, result.path("score").asDouble(), 1e-9);
+            assertEquals(5, result.path("maxScore").asInt()); assertEquals("ai-assisted", result.path("gradingSource").asText());
+            assertTrue(result.path("feedback").asText().contains("拓展处理；AI 建议："));
+            assertTrue(result.path("feedback").asText().contains(" / 2.5 分"));
+            assertEquals(suggestions[i] + 5, fixture.store.summary(fixture.bank).path("score").asDouble(), 1e-9);
+            String roundId = fixture.store.summary(fixture.bank).path("roundId").asText();
+            assertEquals(suggestions[i] + 5, fixture.store.history("bank", fixture.bank.id(), roundId).at("/questions/0/payload/state/result/score").asDouble(), 1e-9);
+            ObjectNode acknowledged = service.confirm(fixture.bank, fixture.bank.question("q1"), task.path("taskId").asText(),
+                    Json.object().put("requestId", "independent-ack-" + i).put("candidateVersion", task.at("/candidate/version").asText()));
+            assertEquals(suggestions[i] + 5, acknowledged.at("/payload/state/result/score").asDouble(), 1e-9);
+        }
+        assertEquals(3, calls.get());
+        String roundId = fixture.store.summary(fixture.bank).path("roundId").asText();
+        ObjectNode completed = fixture.store.finish(fixture.bank, fixture.finish("independent-finish"));
+        assertEquals(14.37, completed.path("score").asDouble(), 1e-9);
+        service.close(); fixture.store = new StateStore(root, fixture.engine);
+        assertEquals(14.37, fixture.store.history("bank", fixture.bank.id(), roundId).path("summary").path("score").asDouble(), 1e-9);
+    }
+
+    @Test void extensionRejectionDoesNotTriggerModelOutputRepairOrReplaceTheOldGrade() throws Exception {
+        manual(2, "keep-existing-grade"); AtomicInteger calls = new AtomicInteger();
+        service = new AiGradingService(root, fixture.store, fixture.library, request -> {
+            calls.incrementAndGet(); assertFalse(request.repair());
+            return new AiGateway.Response("{\"score\":2.25,\"feedback\":\"valid format, extension disallows quarter points\"}", "fake", "local-test", "", null);
+        });
+        ObjectNode failed = await(start("extension-reject").path("taskId").asText(), "failed");
+        assertEquals("RULE_REJECTED", failed.at("/error/code").asText()); assertEquals(2.25, failed.at("/candidate/score").asDouble());
+        assertEquals(1, calls.get()); assertFalse(failed.path("repairUsed").asBoolean());
+        assertEquals(2, fixture.question("q1").at("/state/result/score").asInt());
+    }
 
     @Test void repairTransportRetriesShareThreeCallBudgetAndInkDoesNotExpireCandidate() throws Exception {
         AtomicInteger calls = new AtomicInteger(); CountDownLatch entered = new CountDownLatch(1), release = new CountDownLatch(1);
         service = new AiGradingService(root, fixture.store, fixture.library, request -> {
+            assertFalse(request.gradingInput().has("rubric"));
+            assertTrue(request.gradingInput().path("referenceAnswer").toString().contains("按要点评分"));
             int call = calls.incrementAndGet();
-            if (call == 1) { assertFalse(request.repair()); entered.countDown(); try { assertTrue(release.await(10, TimeUnit.SECONDS)); } catch (InterruptedException e) { Thread.currentThread().interrupt(); throw new AiProviderException("AI_INTERRUPTED", false, 0); } return new AiGateway.Response("{\"score\":2.25,\"feedback\":\"invalid precision\"}", "fake", "local-test", "", null); }
-            assertTrue(request.repair()); assertTrue(request.invalidOutput().contains("0.5"));
+            if (call == 1) { assertFalse(request.repair()); entered.countDown(); try { assertTrue(release.await(10, TimeUnit.SECONDS)); } catch (InterruptedException e) { Thread.currentThread().interrupt(); throw new AiProviderException("AI_INTERRUPTED", false, 0); } return new AiGateway.Response("{\"score\":\"2.25\",\"feedback\":\"invalid number type\"}", "fake", "local-test", "", null); }
+            assertTrue(request.repair()); assertTrue(request.invalidOutput().contains("有限数字")); assertFalse(request.invalidOutput().contains("分数范围"));
             if (call == 2) throw new AiProviderException("AI_UPSTREAM", true, 0); return valid();
         });
         String id = start("ai-start-budget").path("taskId").asText(); assertTrue(entered.await(10, TimeUnit.SECONDS));

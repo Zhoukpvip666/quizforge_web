@@ -5,7 +5,7 @@ import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 const extension=fileURLToPath(new URL('./fixtures/legacy-extensions/short-answer/',import.meta.url));
 const files={rules:`${extension}rules.js`,questionSchema:`${extension}question.schema.json`,answerSchema:`${extension}answer.schema.json`};
-const bank=JSON.parse(readFileSync(new URL('../../question-banks/short-answer-demo/bank.json',import.meta.url),'utf8'));
+const bank=JSON.parse(readFileSync(new URL('./fixtures/legacy-banks/short-answer-demo/bank.json',import.meta.url),'utf8'));
 const answer={formatVersion:1,document:{type:'doc',content:[{type:'paragraph',content:[{type:'text',text:'我的回答',marks:[{type:'bold'}]}]}]}};
 const copy=value=>JSON.parse(JSON.stringify(value));
 function call(payload){const result=spawnSync(process.execPath,[fileURLToPath(new URL('../server/rules-runner.cjs',import.meta.url))],{input:JSON.stringify({...files,...payload}),encoding:'utf8',timeout:4000,maxBuffer:3*1024*1024});assert.equal(result.error,undefined,result.error?.message);return JSON.parse(result.stdout);}

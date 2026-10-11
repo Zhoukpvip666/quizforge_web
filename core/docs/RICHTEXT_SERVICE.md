@@ -16,26 +16,58 @@
 
 `major`、`minMinor`、`documentFormat`、`documentProfile` 必填，`capabilities` 可省略或为空。能力必须为不重复的字符串；不支持的接口版本、格式、文档约定、能力或未知字段明确拒绝。不能同时填写新声明与旧 `dependencies`。不使用富文本的拓展可省略两者。
 
-当前公共接口为 1.0，文档格式为 1：
+当前公共接口为 1.1，兼容 1.0，文档格式仍为 1：
 
 | 文档约定 | 允许的内容与能力 |
 | --- | --- |
 | `basic-v1` | 基础格式、段落、标题、列表、引用、代码、链接、图片；能力 `basic-formatting`、`images` |
-| `advanced-v1` | 基础内容及字体、字号、颜色、高亮、上下标、段落布局、图片宽度与对齐、表格和公式；另有 `advanced-formatting`、`tables`、`math`、`image-resize` |
+| `advanced-v1` | 基础内容及字体、字号、颜色、高亮、上下标、段落布局、图片宽度与对齐、表格和公式；另有 `advanced-formatting`、`tables`、`math`、`image-resize`、`camera-capture` |
 
 能力声明说明拓展需要哪些功能，不会把高级文档限制为这些功能的子集。拓展的 Schema、规则和编辑草稿必须能够处理所选文档约定。旧基础规则不能通过仅声明 `images` 来接受高级编辑器输出。文档约定的含义不能在同名下改变；增加不兼容的持久化节点须提供新的约定及适配。
 
 ## 公共接口与应用实现
 
-`QF.content.api` 提供只读 `{major,minor,documentFormat,documentProfile,capabilities}`；未登记文档约定的旧精确依赖保留原方法，但该元数据为 `null`，不猜测其兼容范围。现有 `render`、`createEditor`、`validateDocument`、`cloneDocument`、`isEmpty`、`fromEditorDocument` 和文档常量继续使用。编辑器句柄保留 `ready/getDocument/setDocument/focus/flush/isUploading/destroy`；高级约定还支持 `setAdvanced/isAdvanced`。拓展不得调用 Tiptap、`QFRichText`、`configure` 或 `_createEditor` 等实现细节。
+`QF.content.api` 提供只读 `{major,minor,documentFormat,documentProfile,capabilities}`；未登记文档约定的旧精确依赖保留原方法，但该元数据为 `null`，不猜测其兼容范围。现有 `render`、`createEditor`、`validateDocument`、`cloneDocument`、`isEmpty`、`fromEditorDocument` 和文档常量继续使用。编辑器句柄保留 `ready/getDocument/setDocument/focus/flush/isUploading/destroy`；高级约定还支持 `setAdvanced/isAdvanced`，1.1 的 `camera-capture` 能力增加 `capturePhoto()`。拓展不得调用 Tiptap、`QFRichText`、`configure` 或 `_createEditor` 等实现细节。
 
 保存的是 QuizForge 文档 JSON 和图片资源哈希，不能保存 Tiptap 实例、临时 Blob URL、任意 HTML 或编辑器私有状态。接口层接收、输出相同的文档约定；未来换编辑器应实现这个适配层，而不是更改题库格式。规则中的题型校验、评分与 AI 输入转换仍由拓展负责。
 
-应用在 `core/shared/richtext/service.json` 中维护各约定的已验证实现，以及旧精确依赖的兼容映射。该配置属于核心，制作题型的 Agent 不得修改。当前 `basic-v1` 使用组件 1.0.0，`advanced-v1` 使用组件 1.1.2。新拓展无需知道这个组件版本。
+应用在 `core/shared/richtext/service.json` 中维护各约定的已验证实现，以及旧精确依赖的兼容映射。该配置属于核心，制作题型的 Agent 不得修改。当前 `basic-v1` 使用组件 1.0.0，`advanced-v1` 使用组件 1.1.3。新拓展无需知道这个组件版本。
+
+## 拍照作为答案图片
+
+高级编辑器在“插入图片”旁提供“拍照”，高级工具栏也有此入口。手机使用原生 `input[type=file]` 的 `capture="environment"` 请求后置摄像头，具体入口取决于系统与浏览器；桌面通常显示文件选择器。无需拓展自己访问摄像头、上传接口或放宽 iframe 沙箱。
+
+直接使用内置按钮即可。若拓展自己的按钮调用此功能，新开发版本应声明 `minMinor:1`、`documentProfile:"advanced-v1"` 和能力 `camera-capture`，例如：
+
+```json
+"requiresRichText": {
+  "major": 1,
+  "minMinor": 1,
+  "documentFormat": 1,
+  "documentProfile": "advanced-v1",
+  "capabilities": ["images", "camera-capture"]
+}
+```
+
+```js
+const editor = QF.content.createEditor(answerHost, {
+  doc: answerDoc,
+  onChange(doc) { answerDoc = doc; scheduleDraft(); }
+});
+await editor.ready;
+photoButton.onclick = () => editor.capturePhoto();
+// 提交、切题或销毁前：await editor.flush();
+```
+
+`capturePhoto()` 必须直接在用户点击事件中同步调用，等待 `ready` 的工作应在启用按钮前完成。返回 `true` 表示已请求打开选择器；处理／上传中返回 `false`，尚未就绪或已销毁则抛错。它不返回照片，也不代表照片已保存。用户取消不会改动文档；照片最终通过 `onChange` 写入现有答案。
+
+照片输入最多 20 MiB、4000 万像素；浏览器须能解码所选格式。较大照片按比例缩至最长边 2560px 并转为 JPEG，继续压缩到不超过现有资源接口的 4 MiB 限制；符合这些输出限制的 JPEG／PNG／WebP 保留原文件。读取时遵循图片方向信息。无法解码或处理失败会提示并保留原答案，`flush()` 拒绝，重试成功后恢复。解码、压缩和上传全程计入 `isUploading()`／`flush()`；切换文档或销毁后的旧回调不会插入新答案。
+
+照片作为普通 `image` 节点插入光标位置，只保存 `assetId`，沿用图片的显示、缩放、删除、历史冻结和 AI 材料转换。AI 识别照片仍要求所选模型具备视觉能力。普通“插入图片”的文件限制与行为保持原样。
 
 ## 旧拓展、当前作答和历史
 
-- 原 Manifest 中的 `quizforge.richtext@1.0.0` 保留基础实现；`1.1.0/1.1.1/1.1.2` 在当前练习和编辑页面使用应用指定的高级兼容实现。未知旧版本按原精确依赖读取，不猜测兼容性。
+- 原 Manifest 中的 `quizforge.richtext@1.0.0` 保留基础实现；`1.1.0/1.1.1/1.1.2/1.1.3` 在当前练习和编辑页面使用应用指定的高级兼容实现。未知旧版本按原精确依赖读取，不猜测兼容性。
 - 不改写已发布拓展、题库、作答、笔迹或编辑草稿。实现更新不改变题目内容版本和编辑草稿身份，只改变页面资源版本，使浏览器重新加载相应页面。
 - 历史记录固定创建时实际选择的组件版本和接口元数据；已经存在的历史继续读取原引用，不经过当前兼容映射。所有已使用的组件仍在 `.state/sdk/` 中按版本固定保存。
 - 同一组件版本不可原地重建。公开接口与文档约定不变的实现修复只发布组件，并更新应用的已验证实现选择，无须发布题型新版本。题型行为、数据结构、规则或页面自身发生变化时才发布新的拓展版本。
@@ -45,9 +77,9 @@
 在新组件版本目录准备 `src/` 与 `richtext.css`，修改该新目录内的实现版本，然后在 `core/` 执行，例如：
 
 ```sh
-npm run build:richtext-advanced -- --version 1.1.3
+npm run build:richtext-advanced -- --version 1.1.4
 ```
 
-这是发布新版本的命令示例，1.1.3 当前并未提供。构建只处理富文本组件，不编译或改写拓展。已存在输出的目录拒绝重建。基础组件使用 `build:richtext`，同样传入新版本。
+这是发布下一版本的命令示例，1.1.3 已提供，1.1.4 尚未提供。构建只处理富文本组件，不编译或改写拓展。已存在输出的目录拒绝重建。基础组件使用 `build:richtext`，同样传入新版本。
 
 选择新的实现前，用原样旧拓展验证只读渲染、编辑保存、草稿恢复、图片和高级节点、评分及 AI 输入；再验证当前答案与笔迹保留、资源缓存更新，以及旧历史重启后仍按原组件显示。基础与高级约定分别验证，不能从高级约定通过推断基础也兼容。

@@ -1,0 +1,2201 @@
+{
+  "formatVersion": 1,
+  "id": "kaoyan-english1-2025",
+  "title": "2025年考研英语（一）真题",
+  "description": "依据原卷及附录参考答案制作；作文范文与评分细则留空。",
+  "features": {
+    "editing": true,
+    "whiteboard": true,
+    "history": true,
+    "exam": true
+  },
+  "questions": [
+    {
+      "id": "cloze-01",
+      "title": "完形填空（1–20）",
+      "extension": {
+        "development": "english-cloze-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Choose the best word(s) for each numbered blank and mark A, B, C or D on the ANSWER SHEET. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Located in the southern Peloponnesian peninsula, Pavlopetri (the modern name of the site) emerged as a Neolithic settlement around 3500 B.C. This area of the Aegean Sea is [[1]] to earthquakes and tsunamis, which caused the city to [[2]] sink. The slow sea level rise in Mediterranean [[3]] this city around 3,000 years ago."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "For millennia, the city’s [[4]] lay unseen below some 13 feet of water. They were covered by a thick layer of sand [[5]] the island of Laconia. In recent decades, shifting [[6]] and climate change have eroded a natural barrier that [[7]] Pavlopetri. In 1967, a scientific survey of the Peloponnesian coast was [[8]] data to analyze changes in sea levels [[9]] British oceanographer Nicholas Flemming first spotted the sunken [[10]] . A year later, he returned with a few students to [[11]] the location and map the site. The team identified some 15 buildings, courtyards, a network of streets, and two chamber tombs. [[12]] the exciting initial finds, the site would lie [[13]] for decades before archaeologists would return."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "In 2009 archaeologists Chrysanthi Gallon and Jon Henderson [[14]] the excavation of Pavlopetri in cooperation with the Greek Ministry of Culture. Since the 1960s, underwater archaeology [[15]] and tools had made huge advances. The team [[16]] robotics, sonar mapping, and state-of-the-art graphics to survey the site. From 2009 to 2013 they were able to bring the underwater town to [[17]] . Covering about two and a half acres, Pavlopetri’s three main roads [[18]] some 50 rectangular buildings, all of which had open courtyards. Excavations revealed a large number of Minoan-style loom weights, [[19]] Pavlopetri was a thriving trade center with a [[20]] textile industry."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-1",
+            "number": "1",
+            "options": [
+              {
+                "id": "A",
+                "text": "relevant"
+              },
+              {
+                "id": "B",
+                "text": "prone"
+              },
+              {
+                "id": "C",
+                "text": "available"
+              },
+              {
+                "id": "D",
+                "text": "alien"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-2",
+            "number": "2",
+            "options": [
+              {
+                "id": "A",
+                "text": "accidentally"
+              },
+              {
+                "id": "B",
+                "text": "frequently"
+              },
+              {
+                "id": "C",
+                "text": "gradually"
+              },
+              {
+                "id": "D",
+                "text": "temporarily"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-3",
+            "number": "3",
+            "options": [
+              {
+                "id": "A",
+                "text": "disguised"
+              },
+              {
+                "id": "B",
+                "text": "submerged"
+              },
+              {
+                "id": "C",
+                "text": "relocated"
+              },
+              {
+                "id": "D",
+                "text": "isolated"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-4",
+            "number": "4",
+            "options": [
+              {
+                "id": "A",
+                "text": "legends"
+              },
+              {
+                "id": "B",
+                "text": "programs"
+              },
+              {
+                "id": "C",
+                "text": "remains"
+              },
+              {
+                "id": "D",
+                "text": "surroundings"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-5",
+            "number": "5",
+            "options": [
+              {
+                "id": "A",
+                "text": "across"
+              },
+              {
+                "id": "B",
+                "text": "off"
+              },
+              {
+                "id": "C",
+                "text": "under"
+              },
+              {
+                "id": "D",
+                "text": "via"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-6",
+            "number": "6",
+            "options": [
+              {
+                "id": "A",
+                "text": "currents"
+              },
+              {
+                "id": "B",
+                "text": "rivers"
+              },
+              {
+                "id": "C",
+                "text": "seasons"
+              },
+              {
+                "id": "D",
+                "text": "winds"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-7",
+            "number": "7",
+            "options": [
+              {
+                "id": "A",
+                "text": "elevated"
+              },
+              {
+                "id": "B",
+                "text": "separated"
+              },
+              {
+                "id": "C",
+                "text": "comprised"
+              },
+              {
+                "id": "D",
+                "text": "protected"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-8",
+            "number": "8",
+            "options": [
+              {
+                "id": "A",
+                "text": "gathering"
+              },
+              {
+                "id": "B",
+                "text": "restoring"
+              },
+              {
+                "id": "C",
+                "text": "updating"
+              },
+              {
+                "id": "D",
+                "text": "supplying"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-9",
+            "number": "9",
+            "options": [
+              {
+                "id": "A",
+                "text": "when"
+              },
+              {
+                "id": "B",
+                "text": "until"
+              },
+              {
+                "id": "C",
+                "text": "after"
+              },
+              {
+                "id": "D",
+                "text": "once"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-10",
+            "number": "10",
+            "options": [
+              {
+                "id": "A",
+                "text": "belongings"
+              },
+              {
+                "id": "B",
+                "text": "resources"
+              },
+              {
+                "id": "C",
+                "text": "products"
+              },
+              {
+                "id": "D",
+                "text": "structures"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-11",
+            "number": "11",
+            "options": [
+              {
+                "id": "A",
+                "text": "preserve"
+              },
+              {
+                "id": "B",
+                "text": "select"
+              },
+              {
+                "id": "C",
+                "text": "display"
+              },
+              {
+                "id": "D",
+                "text": "examine"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-12",
+            "number": "12",
+            "options": [
+              {
+                "id": "A",
+                "text": "Despite"
+              },
+              {
+                "id": "B",
+                "text": "Unlike"
+              },
+              {
+                "id": "C",
+                "text": "Besides"
+              },
+              {
+                "id": "D",
+                "text": "Among"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-13",
+            "number": "13",
+            "options": [
+              {
+                "id": "A",
+                "text": "unchallenged"
+              },
+              {
+                "id": "B",
+                "text": "unknown"
+              },
+              {
+                "id": "C",
+                "text": "unorganized"
+              },
+              {
+                "id": "D",
+                "text": "undisturbed"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-14",
+            "number": "14",
+            "options": [
+              {
+                "id": "A",
+                "text": "suspended"
+              },
+              {
+                "id": "B",
+                "text": "transferred"
+              },
+              {
+                "id": "C",
+                "text": "resumed"
+              },
+              {
+                "id": "D",
+                "text": "canceled"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-15",
+            "number": "15",
+            "options": [
+              {
+                "id": "A",
+                "text": "policies"
+              },
+              {
+                "id": "B",
+                "text": "theories"
+              },
+              {
+                "id": "C",
+                "text": "documents"
+              },
+              {
+                "id": "D",
+                "text": "techniques"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-16",
+            "number": "16",
+            "options": [
+              {
+                "id": "A",
+                "text": "ordered"
+              },
+              {
+                "id": "B",
+                "text": "provided"
+              },
+              {
+                "id": "C",
+                "text": "employed"
+              },
+              {
+                "id": "D",
+                "text": "adjusted"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-17",
+            "number": "17",
+            "options": [
+              {
+                "id": "A",
+                "text": "effect"
+              },
+              {
+                "id": "B",
+                "text": "light"
+              },
+              {
+                "id": "C",
+                "text": "reality"
+              },
+              {
+                "id": "D",
+                "text": "mind"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-18",
+            "number": "18",
+            "options": [
+              {
+                "id": "A",
+                "text": "crossed"
+              },
+              {
+                "id": "B",
+                "text": "connected"
+              },
+              {
+                "id": "C",
+                "text": "blocked"
+              },
+              {
+                "id": "D",
+                "text": "altered"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-19",
+            "number": "19",
+            "options": [
+              {
+                "id": "A",
+                "text": "expecting"
+              },
+              {
+                "id": "B",
+                "text": "suggesting"
+              },
+              {
+                "id": "C",
+                "text": "predicting"
+              },
+              {
+                "id": "D",
+                "text": "recalling"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-20",
+            "number": "20",
+            "options": [
+              {
+                "id": "A",
+                "text": "robust"
+              },
+              {
+                "id": "B",
+                "text": "diverse"
+              },
+              {
+                "id": "C",
+                "text": "marginal"
+              },
+              {
+                "id": "D",
+                "text": "dependent"
+              }
+            ],
+            "correctOptionId": "A"
+          }
+        ],
+        "pointsPerItem": 0.5,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-1",
+            "label": "1"
+          },
+          {
+            "id": "q-2",
+            "label": "2"
+          },
+          {
+            "id": "q-3",
+            "label": "3"
+          },
+          {
+            "id": "q-4",
+            "label": "4"
+          },
+          {
+            "id": "q-5",
+            "label": "5"
+          },
+          {
+            "id": "q-6",
+            "label": "6"
+          },
+          {
+            "id": "q-7",
+            "label": "7"
+          },
+          {
+            "id": "q-8",
+            "label": "8"
+          },
+          {
+            "id": "q-9",
+            "label": "9"
+          },
+          {
+            "id": "q-10",
+            "label": "10"
+          },
+          {
+            "id": "q-11",
+            "label": "11"
+          },
+          {
+            "id": "q-12",
+            "label": "12"
+          },
+          {
+            "id": "q-13",
+            "label": "13"
+          },
+          {
+            "id": "q-14",
+            "label": "14"
+          },
+          {
+            "id": "q-15",
+            "label": "15"
+          },
+          {
+            "id": "q-16",
+            "label": "16"
+          },
+          {
+            "id": "q-17",
+            "label": "17"
+          },
+          {
+            "id": "q-18",
+            "label": "18"
+          },
+          {
+            "id": "q-19",
+            "label": "19"
+          },
+          {
+            "id": "q-20",
+            "label": "20"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-01",
+      "title": "阅读理解 Text 1（21–25）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The grammar school boy from Stratford-upon-Avon has landed a scholarly punch after groundbreaking research showed that Shakespeare does benefit children’s literacy and emotional development. But only if you act him out."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "A study found that a “rehearsal room” approach to teaching Shakespeare broadened children’s vocabulary and the complexity of their writing as well as their emotional literacy. “The research shows that the way actors work makes a big difference to the way children use language and also how they think about themselves,” Jacqui O’Hanlon of the Royal Shakespeare Company (RSC), which commissioned the study, said."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The randomised control trial involved hundreds of year 5 pupils—aged nine and ten—at 45 state primary schools that had not been “previously exposed to RSC pedagogy.” They were split into target and control groups and asked to write, for example, a message in a bottle as Ferdinand following the shipwreck in The Tempest. The target group were given a 30-minute drama-based activity to accompany the passage."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The peer-reviewed results showed that the target group of pupils drew on a wider vocabulary, used words “classed as more sophisticated or rarer”, and wrote at greater length. They also “appear to be more comfortable writing in role... while [control] pupils imagine how they themselves would react to being shipwrecked, [target] children put themselves in the shoes of a literary character and express that character’s emotion”. The Time to Act study, which is published by the RSC this week, also found that while control pupils relied on “desert island clichés” such as palm trees, target pupils were “more expansive [giving] a broader picture of the sky, the sea and the atmospheric conditions”."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "O’Hanlon said she had been most surprised by the “emotional literacy that was evident in the [target] children’s writing” and that they were “more resilient in their writing, more hopeful”. She added “The emotional understanding was very evident and it is probably related to the [rehearsal room process] where you are used to trying to imagine your way through. They were comfortable in describing different emotional states and part of what you do in drama is put yourself in different shoes.” The study showed the importance of embedding arts in education, she said."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "But could the results be replicated with any old dramatist? O’Hanlon said more research would be needed but suggested that Shakespeare’s use of 20,000 words, compared with the everyday 2,000 words, gave a “massive expansion of language into children’s lives”, which was combined with children “using their whole bodies to bring words to life.”"
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-21",
+            "number": "21",
+            "stem": "The “rehearsal room” approach requires pupils to",
+            "options": [
+              {
+                "id": "A",
+                "text": "rewrite the lines from Shakespeare."
+              },
+              {
+                "id": "B",
+                "text": "watch RSC actors’ performances."
+              },
+              {
+                "id": "C",
+                "text": "play the roles in Shakespeare."
+              },
+              {
+                "id": "D",
+                "text": "study drama under RSC artists."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-22",
+            "number": "22",
+            "stem": "The study divided the pupils into two groups to find whether",
+            "options": [
+              {
+                "id": "A",
+                "text": "the change in instruction enhances learning outcomes."
+              },
+              {
+                "id": "B",
+                "text": "expanding vocabulary helps develop reading fluency."
+              },
+              {
+                "id": "C",
+                "text": "emotion affects understanding of sophisticated works."
+              },
+              {
+                "id": "D",
+                "text": "the classroom activity stimulates interest in the arts."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-23",
+            "number": "23",
+            "stem": "Control pupils’ reliance on “desert island clichés” shows their",
+            "options": [
+              {
+                "id": "A",
+                "text": "weakness in description."
+              },
+              {
+                "id": "B",
+                "text": "omission of small details."
+              },
+              {
+                "id": "C",
+                "text": "casual style of writing."
+              },
+              {
+                "id": "D",
+                "text": "preference for big words."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-24",
+            "number": "24",
+            "stem": "What can promote children’s emotional literacy according to O’Hanlon?",
+            "options": [
+              {
+                "id": "A",
+                "text": "Writing in an imaginative manner."
+              },
+              {
+                "id": "B",
+                "text": "Identifying with literary characters."
+              },
+              {
+                "id": "C",
+                "text": "Drawing inspiration from nature."
+              },
+              {
+                "id": "D",
+                "text": "Concentrating on real-life situations."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-25",
+            "number": "25",
+            "stem": "It can be inferred from the last paragraph that",
+            "options": [
+              {
+                "id": "A",
+                "text": "the new teaching method may work best with Shakespeare."
+              },
+              {
+                "id": "B",
+                "text": "the language of Shakespeare may be formidable for pupils."
+              },
+              {
+                "id": "C",
+                "text": "other old dramatists may be included in primary education."
+              },
+              {
+                "id": "D",
+                "text": "pupils may be reluctant to work on other old dramatists."
+              }
+            ],
+            "correctOptionId": "A"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-21",
+            "label": "21"
+          },
+          {
+            "id": "q-22",
+            "label": "22"
+          },
+          {
+            "id": "q-23",
+            "label": "23"
+          },
+          {
+            "id": "q-24",
+            "label": "24"
+          },
+          {
+            "id": "q-25",
+            "label": "25"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-02",
+      "title": "阅读理解 Text 2（26–30）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "I was shocked to learn recently that some scientists want to scale back their research in an effort to decrease carbon emissions. The crisis is here, they said, and we need to cut back on our energy-intensive modelling. At the very least, we need to make our energy use far more sustainable."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "It is unarguable that our laboratories, scientific instruments, rockets and satellites—the tools we scientists need to measure the planet’s pulse—demand significant amounts of energy both in their construction and operation. And it is equally true that science’s unrelenting appetite for information has caused a mushrooming of energy-intensive data centres around the world. According to the International Energy Agency, these buildings now consume about 1 percent of the world’s electricity."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "However, this is a price we must pay for understanding the world. How can we inform decision makers about the best ways to bring down carbon emissions if we can’t track the amount of carbon dioxide in the atmosphere, where it’s coming from and who’s producing it? The carbon emissions from technological research are well spent: ultimately this research will safeguard the future of our planet."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "It can be hard for scientists to make the case because our work is complex, often takes place behind closed doors and does not always lend itself to easy interpretation or explanation. But demonstrating the efficacy of science will be crucial if we are to solve humanity’s greatest challenges. It is all too easy to feel paralysed in the face of daunting problems such as climate change and to do nothing. But then I think of a friend’s daughter who turned her fears into action: she became a wind energy engineer and now thrives on delivering renewable energy, limiting emissions."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Recognising the hope that science and engineering can bring was the impetus behind the creation of the Millennium Technology Prize, which is now entering its 20th year as a celebration of human ingenuity. One of the past winners, Professor Martin Green from the University of New South Wales, Australia, is the inventor of the Passivated Emitter and Rear Cell technology which is now found in most of the world’s solar panels. Thanks to his invention, we have a real chance to decrease the world’s carbon emissions."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Every day, scientists, technologists and engineers are discovering new ways to exploit renewable energy sources and develop techniques not just to use power more intelligently but to power our intelligence. A great example of this is Europe’s largest supercomputer, LUMI in Finland, which is astonishingly carbon- negative. Established in an old paper mill, it is powered by a nearby river and its remote heat warms the people who live in the surrounding town of Kajaani."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "If the world is to meet its net-zero ambitions, we must think hard about how we can deliver sustainable computing and deliver more LUMIs."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-26",
+            "number": "26",
+            "stem": "The author expressed great surprise at some scientists’",
+            "options": [
+              {
+                "id": "A",
+                "text": "unwillingness to cut carbon emissions."
+              },
+              {
+                "id": "B",
+                "text": "intention to reduce their research."
+              },
+              {
+                "id": "C",
+                "text": "suspicions about sustainable energy."
+              },
+              {
+                "id": "D",
+                "text": "waste of electricity in their projects."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-27",
+            "number": "27",
+            "stem": "The author believes that carbon emissions from research",
+            "options": [
+              {
+                "id": "A",
+                "text": "have caused grave consequences."
+              },
+              {
+                "id": "B",
+                "text": "have aroused groundless worries."
+              },
+              {
+                "id": "C",
+                "text": "are hard to handle at present."
+              },
+              {
+                "id": "D",
+                "text": "are justifiable in the long run."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-28",
+            "number": "28",
+            "stem": "The example of Green in Paragraph 5 is used to illustrate",
+            "options": [
+              {
+                "id": "A",
+                "text": "the achievements of great scientists."
+              },
+              {
+                "id": "B",
+                "text": "the urgency of addressing climate change."
+              },
+              {
+                "id": "C",
+                "text": "the rewards of scientific endeavours."
+              },
+              {
+                "id": "D",
+                "text": "the value of fostering human ingenuity."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-29",
+            "number": "29",
+            "stem": "It can be learned from the last two paragraphs that LUMI",
+            "options": [
+              {
+                "id": "A",
+                "text": "is a model of sustainability efforts."
+              },
+              {
+                "id": "B",
+                "text": "is a triumph against energy shortage."
+              },
+              {
+                "id": "C",
+                "text": "owes much to global net-zero initiatives."
+              },
+              {
+                "id": "D",
+                "text": "aims to explore the power of intelligence."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-30",
+            "number": "30",
+            "stem": "Which of the following statements would the author agree with?",
+            "options": [
+              {
+                "id": "A",
+                "text": "Emission-free modelling demands extra funding."
+              },
+              {
+                "id": "B",
+                "text": "The need for supercomputers is difficult to meet."
+              },
+              {
+                "id": "C",
+                "text": "Energy-intensive research work is inevitable."
+              },
+              {
+                "id": "D",
+                "text": "The goals of researchers ought to be realistic."
+              }
+            ],
+            "correctOptionId": "C"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-26",
+            "label": "26"
+          },
+          {
+            "id": "q-27",
+            "label": "27"
+          },
+          {
+            "id": "q-28",
+            "label": "28"
+          },
+          {
+            "id": "q-29",
+            "label": "29"
+          },
+          {
+            "id": "q-30",
+            "label": "30"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-03",
+      "title": "阅读理解 Text 3（31–35）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Ever since taking on Netflix Inc. at its own game, old Hollywood has struggled to turn a profit in streaming, with the likes of Disney+, Peacock and Paramount+ losing billions of dollars each year, sparking concerns that the services will never be as profitable as cable once was. But the age of streaming has been a boon for some unintended winners: pirates that use software to rip a film or television show in seconds from legitimate online video platforms and host the titles on their own, illegitimate services, which rake in about $2 billion annually from ads and subscriptions."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "With no video production costs, illegal streaming sites have achieved profit margins approaching 90%, according to the Motion Picture Association (MPA), a trade group representing Hollywood studios that’s working to crack down on the thousands of illegal platforms that have cropped up in recent years."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Initially the rise of legitimate online businesses such as Netflix actually helped curb digital piracy, which had largely been based on file uploads. But now piracy involving illegal streaming services as well as file-sharing costs the US economy about $30 billion in lost revenue a year and some 250,000 jobs, estimates the US Chamber of Commerce’s Global Innovation Policy Center. The global impact is about $71 billion annually."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "“The people who are stealing our movies and our television shows and operating piracy sites are not mom and pop operations,” says Charlie Rivkin, chief executive officer of the MPA. “This is organized crime.” Rivkin joined the MPA in 2017 after the organization failed five years earlier to build consensus between Hollywood and Silicon Valley to win passage of legislation in Congress aimed at stopping online piracy. In 2017 the association formed the Alliance for Creativity and Entertainment (ACE), an enforcement task force of about 100 detectives circling the globe to help local authorities arrest streaming pirates."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "ACE says it’s helped shrink the number of illegal streaming services in North America to 126, from more than 1,400 in 2018, aided in part by the MPA’s support for a 2020 federal law that made large-scale streaming of copyright material a serious crime."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Consulting firm Parks Associates predicts that legitimate US streaming services’ cumulative loss from piracy since 2022 will reach $113 billion in the next two years. “While there is some optimism that emerging countermeasures and best practices may see piracy begin to plateau by 2027, there is no consensus among stakeholders as to when it may begin to decline,” says analyst Steve Hawley."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-31",
+            "number": "31",
+            "stem": "According to paragraph 1, legitimate streaming services",
+            "options": [
+              {
+                "id": "A",
+                "text": "have drawn lessons from Hollywood."
+              },
+              {
+                "id": "B",
+                "text": "have surpassed cable in revenue."
+              },
+              {
+                "id": "C",
+                "text": "are unpopular with advertisers."
+              },
+              {
+                "id": "D",
+                "text": "are confronted with a real threat."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-32",
+            "number": "32",
+            "stem": "It can be learned that streamers like Netflix",
+            "options": [
+              {
+                "id": "A",
+                "text": "played a part in the fight against illegal file-sharing."
+              },
+              {
+                "id": "B",
+                "text": "reaped benefits from the war with digital pirates."
+              },
+              {
+                "id": "C",
+                "text": "promised to become big job creators in the US."
+              },
+              {
+                "id": "D",
+                "text": "used to collaborate with file-uploading platforms."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-33",
+            "number": "33",
+            "stem": "It can be inferred from paragraph 4 that MPA",
+            "options": [
+              {
+                "id": "A",
+                "text": "was denied cooperation by Silicon Valley."
+              },
+              {
+                "id": "B",
+                "text": "led a national protest against online piracy."
+              },
+              {
+                "id": "C",
+                "text": "was urged to form an enforcement task force."
+              },
+              {
+                "id": "D",
+                "text": "failed to win support from local authorities."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-34",
+            "number": "34",
+            "stem": "According to Hawley, digital piracy",
+            "options": [
+              {
+                "id": "A",
+                "text": "cannot be checked in spite of new legislation."
+              },
+              {
+                "id": "B",
+                "text": "will possibly overwhelm legitimate streamers."
+              },
+              {
+                "id": "C",
+                "text": "is unlikely to diminish in the near future."
+              },
+              {
+                "id": "D",
+                "text": "has been underestimated by some analysts."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-35",
+            "number": "35",
+            "stem": "Which of the following is emphasized in the text?",
+            "options": [
+              {
+                "id": "A",
+                "text": "The need to coordinate anti-piracy action."
+              },
+              {
+                "id": "B",
+                "text": "The criminal nature of copyright violation."
+              },
+              {
+                "id": "C",
+                "text": "The prospect of eliminating online piracy."
+              },
+              {
+                "id": "D",
+                "text": "The economic harm from illegal streaming."
+              }
+            ],
+            "correctOptionId": "D"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-31",
+            "label": "31"
+          },
+          {
+            "id": "q-32",
+            "label": "32"
+          },
+          {
+            "id": "q-33",
+            "label": "33"
+          },
+          {
+            "id": "q-34",
+            "label": "34"
+          },
+          {
+            "id": "q-35",
+            "label": "35"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-04",
+      "title": "阅读理解 Text 4（36–40）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Visit any antiques store and you’ll encounter artifacts from the past: photographs, letters, a brochure detailing the Sinclair dinosaur exhibit from the 1964-1965 World’s Fair, the ephemera of history. Yet these objects aren’t truly ephemeral, because they’re still here, decades, even centuries later. Why? Because they’re tangible."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Have you pondered the life cycle of intangible formats, digital information, given that those who produce these artifacts seldom make provision for their long- term preservation? For millennia we’ve known what we’ve known due to artifacts that have survived, often despite their original creators’ neglect. The thing itself is the medium that delivers the information. At the time of creation, no attempts were made at intentional preservation, yet analog materials have a chance of surviving and serving as the historical record that biographers, historians, and novelists rely on. Libraries and archives have, traditionally shouldered the responsibility of organization, preservation, and access to information. Thus, librarians digitize the tangible so that researchers the world over can quickly search and access their holdings. The result is an embarrassment of historical riches, which brings its own needle-and-haystack problems."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Librarians’ selfless devotion can act against us when users point to universality of access by holding up a cellphone and saying, “it’s all in here” as evidence that libraries are less vital for researchers today. Yet how was that universality of access made possible and, perhaps more importantly, how is it maintained? Who curates what is preserved? When it comes to born-digital information, the terrifying answer can be: if not librarians and archivists, then no one. Digital information requires a great deal more care than analog."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Even when a digital object is preserved, it may only be the carrier that’s saved, not the information itself. As technology advances and a format becomes obsolete, the object is useless. Have you ever stared helplessly at a ZIP disk, thinking: how do I get the files off this? Without constant migration of digital assets, a nightmare about the foreseeable future is what keeps historians up at night: a historical record that abruptly stops when digital replace analog."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "As a librarian whose day job revolves around special collections and digital assets, I share the night terrors of historians, and I’d be lying if I said a comprehensive preservation solution currently exists. Yet researchers can take some comfort in the fact that there are a multitude of librarians devoted to discovering, organizing, and preserving digital information for researchers current and future. Librarians are uniquely positioned to understand how end users seek and use information. Thus we play an integral role in identifying, preserving, and providing accessibility to digital artifacts so that, while future researchers may find the digital realm a challenging place to ply their trade, they won’t find it an impossible one."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-36",
+            "number": "36",
+            "stem": "The author mentions the artifacts from the past to",
+            "options": [
+              {
+                "id": "A",
+                "text": "introduce the collection of antiques."
+              },
+              {
+                "id": "B",
+                "text": "contrast them with everyday items."
+              },
+              {
+                "id": "C",
+                "text": "bring up the issue of preservation."
+              },
+              {
+                "id": "D",
+                "text": "comment on their historical value."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-37",
+            "number": "37",
+            "stem": "Compared with digital objects, tangible artifacts",
+            "options": [
+              {
+                "id": "A",
+                "text": "are less subject to their creators’ neglect."
+              },
+              {
+                "id": "B",
+                "text": "convey information in a more direct way."
+              },
+              {
+                "id": "C",
+                "text": "require more intentional preservation."
+              },
+              {
+                "id": "D",
+                "text": "are less likely to suffer serious damage."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-38",
+            "number": "38",
+            "stem": "According to Passage 3, librarians’ work may result in",
+            "options": [
+              {
+                "id": "A",
+                "text": "oversupply of materials."
+              },
+              {
+                "id": "B",
+                "text": "undervaluation of libraries."
+              },
+              {
+                "id": "C",
+                "text": "researchers’ underperformance."
+              },
+              {
+                "id": "D",
+                "text": "users’ overreliance on technology."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-39",
+            "number": "39",
+            "stem": "The “ZIP disk” is cited as an example to show",
+            "options": [
+              {
+                "id": "A",
+                "text": "the hazard of retrieving files through unusual means."
+              },
+              {
+                "id": "B",
+                "text": "the infeasibility of constantly migrating digital assets."
+              },
+              {
+                "id": "C",
+                "text": "the possibility of losing information in obsolete formats."
+              },
+              {
+                "id": "D",
+                "text": "the inconvenience of storing information on analog devices."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-40",
+            "number": "40",
+            "stem": "Which of the following statements best summarizes the text?",
+            "options": [
+              {
+                "id": "A",
+                "text": "Hard work should be done to preserve artifacts."
+              },
+              {
+                "id": "B",
+                "text": "Contributions of librarians should be recognized."
+              },
+              {
+                "id": "C",
+                "text": "Accessing databases is essential to researchers."
+              },
+              {
+                "id": "D",
+                "text": "Keeping digital historical records is a challenge."
+              }
+            ],
+            "correctOptionId": "D"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-36",
+            "label": "36"
+          },
+          {
+            "id": "q-37",
+            "label": "37"
+          },
+          {
+            "id": "q-38",
+            "label": "38"
+          },
+          {
+            "id": "q-39",
+            "label": "39"
+          },
+          {
+            "id": "q-40",
+            "label": "40"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-b-01",
+      "title": "段落排序（41–45）",
+      "extension": {
+        "development": "paragraph-order-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The following paragraphs are given in a wrong order. For questions 41-45, you are required to reorganize these paragraphs into a coherent text by choosing from the list A-H and filling them into the numbered boxes. Paragraphs A, C and H have been correctly placed. Mark your answers on the ANSWER SHEET. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[A] Peters likes to photograph butterflies in a landscape, celebrating the beauty of their surroundings as well as the insects themselves. His pictures of a Glanville fritillary rising from the sea-pinks beside the chalk cliffs of Compton Bay on the Isle of Wight are particularly glorious. These take- off shots are even more challenging because they require a wide-angle lens, which means he must be less than 2cm from the butterfly. It’s incredibly difficult to get that close to a skittish sun-warmed insect. Unlike some photographers, who “cheat” by keeping insects in a fridge to slow them down, Peters refuses to tamper with wild butterflies."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[B] Peters’ signature shot is a butterfly “take-off”, showing the multiple wing- beats of one butterfly in one frame as it lifts off from a flower. How does he capture it? Technology helps. A typical digital SLR camera shoots 20 frames a second. He uses a high-speed OM System which shoots 120 frames a second."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[C] Britain has relatively few butterfly species compared with mainland Europe and 80% are in decline, mostly because intensive chemical farming has reduced many species to tiny fragments of habitat and small nature reserves. Global heating is benefiting some species but others are too isolated to find suitable new habitat, and gardening habits—paving over gardens and using pesticides—aren’t helping either. Butterflies may not pollinate as many plants as wild bees and hoverflies, but because British butterflies are the best-studied group of insects in the world, they are an extremely useful indicator of the wider declines in flying insects."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[D] Five years ago, at summer’s end, Andrew Fusek Peters was diagnosed with bowel cancer. “I was waiting for surgery, feeling really ill, sitting in my garden. It was amazing weather and there were painted lady butterflies everywhere,” he says. “They were a symbol of fragile life, of hope and defiance, and something appealed to my soul.”"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[E] That makes it sound easy, and artificial, but Peters insists it is still a massive challenge. He typically takes between 10,000 and 20,000 shots to get one butterfly take-off sequence in focus. At such high shutter speeds, the depth of field is tiny, and as butterflies do not fly in a straight line they swiftly flutter out of focus. As well as thousands of attempts, it takes patience and fieldcraft to anticipate a butterfly’s likely flight-line—and catch it—in focus."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[F] So what’s the appeal of a long, sweaty day in pursuit of an elusive, fast- moving wild animal? “It just feels bloody brilliant,” says Peters. “If I’ve had a full day of good encounters with butterflies, met interesting butterfly people and I’ve got some good shots, that becomes a vault in my spiritual bank. It’s a happy feeling.”"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[G] A children’s author and poet who had become a keen amateur photographer, Peters watched the butterflies and idly wondered if he could capture them in flight. It swiftly became an obsession as he recovered from a successful operation to remove the cancer. In recent summers, he has travelled the length and breadth of Britain to photograph all 58 native species of butterfly. Now the fruits of these summers have been published in a beautiful new book."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[H] A butterfly takes off so quickly it is still impossible to react quickly enough to capture that take-off but if he half-presses the shutter, the camera saves the 70 previous frames before the moment he actually takes the picture. “It’s time travel, so I don’t miss the moment of take-off,” he says. After he’s captured the butterfly taking off, he layers 10 to 15 frames together in Photoshop."
+                }
+              ]
+            }
+          ]
+        },
+        "paragraphIds": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E",
+          "F",
+          "G",
+          "H"
+        ],
+        "slots": [
+          {
+            "id": "slot-1",
+            "locked": false,
+            "correctParagraphId": "D"
+          },
+          {
+            "id": "slot-2",
+            "locked": false,
+            "correctParagraphId": "G"
+          },
+          {
+            "id": "slot-3",
+            "locked": true,
+            "correctParagraphId": "C"
+          },
+          {
+            "id": "slot-4",
+            "locked": false,
+            "correctParagraphId": "B"
+          },
+          {
+            "id": "slot-5",
+            "locked": true,
+            "correctParagraphId": "H"
+          },
+          {
+            "id": "slot-6",
+            "locked": false,
+            "correctParagraphId": "E"
+          },
+          {
+            "id": "slot-7",
+            "locked": true,
+            "correctParagraphId": "A"
+          },
+          {
+            "id": "slot-8",
+            "locked": false,
+            "correctParagraphId": "F"
+          }
+        ],
+        "parts": [
+          {
+            "id": "q-41",
+            "number": "41",
+            "slotId": "slot-1"
+          },
+          {
+            "id": "q-42",
+            "number": "42",
+            "slotId": "slot-2"
+          },
+          {
+            "id": "q-43",
+            "number": "43",
+            "slotId": "slot-4"
+          },
+          {
+            "id": "q-44",
+            "number": "44",
+            "slotId": "slot-6"
+          },
+          {
+            "id": "q-45",
+            "number": "45",
+            "slotId": "slot-8"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-41",
+            "label": "41"
+          },
+          {
+            "id": "q-42",
+            "label": "42"
+          },
+          {
+            "id": "q-43",
+            "label": "43"
+          },
+          {
+            "id": "q-44",
+            "label": "44"
+          },
+          {
+            "id": "q-45",
+            "label": "45"
+          }
+        ]
+      }
+    },
+    {
+      "id": "translation-01",
+      "title": "分句翻译（46–50）",
+      "extension": {
+        "development": "segment-translation-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text carefully and then translate the underlined segments into Chinese. Write your answers on the ANSWER SHEET. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Innovation and research have relied on public participation in science for centuries. It was a musician who discovered the planet Uranus in the 18th century by making his own telescope with mirrors composed of copper and tin. (46) "
+                },
+                {
+                  "type": "text",
+                  "text": "Recent decades have seen science move into a convention where engagement in the subject can only be done through institutions, such as a university.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " Citizen science provides an opportunity for greater public engagement and the democratisation of science."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "In the information era, large data sets, small teams and financial restrictions have slowed scientific process. (47) "
+                },
+                {
+                  "type": "text",
+                  "text": "But by utilising the natural curiosity of the general public it is possible to overcome many of these challenges by engaging non-scientists directly in the research process.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " Anyone can be a citizen scientist, regardless of age, nationality or academic experience. You don’t even need formal training, just an inquisitive mind and the enthusiasm to join one of the thousands of citizen science projects to generate new knowledge and the means to understand a genuine scientific outcome."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "（48）"
+                },
+                {
+                  "type": "text",
+                  "text": "Scientists have employed a variety of ways to engage the general public in their research, such as making data analysis into an online game or sample collection into a smartphone application.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " They’ve implored citizens to help with bug counting and categorising cancer cells, and even identifying distant galaxies."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "This form of accessible science means that great minds are able to join the race to create and develop projects with the potential to change the world. A citizen science-based approach can extend the field of vision and include different ideas and different brains to problem-solve and create, making innovation faster and more effective."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The rise of citizen science has grown alongside the rise of do-it-yourself biology laboratories around the world. (49) "
+                },
+                {
+                  "type": "text",
+                  "text": "These groups of people are part of a rapidly expanding biotechnological social movement of citizen scientists and professional scientists seeking to take discovery out of institutions and put it into the hands of anyone with the enthusiasm.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "There are around 40 official do-it-yourself biology centres across the globe in locations including Paris, London, Sydney, and Tel Aviv. (50) "
+                },
+                {
+                  "type": "text",
+                  "text": "They pool resources, collaborate, think outside the box, and find solutions and ways around obstacles to explore science for the sake of science without the traditional boundaries of working inside a formal setting.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " So is it time to take the Petri dish out of the laboratory and into the garage?"
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-46",
+            "number": "46",
+            "segment": "Recent decades have seen science move into a convention where engagement in the subject can only be done through institutions, such as a university."
+          },
+          {
+            "id": "q-47",
+            "number": "47",
+            "segment": "But by utilising the natural curiosity of the general public it is possible to overcome many of these challenges by engaging non-scientists directly in the research process."
+          },
+          {
+            "id": "q-48",
+            "number": "48",
+            "segment": "Scientists have employed a variety of ways to engage the general public in their research, such as making data analysis into an online game or sample collection into a smartphone application."
+          },
+          {
+            "id": "q-49",
+            "number": "49",
+            "segment": "These groups of people are part of a rapidly expanding biotechnological social movement of citizen scientists and professional scientists seeking to take discovery out of institutions and put it into the hands of anyone with the enthusiasm."
+          },
+          {
+            "id": "q-50",
+            "number": "50",
+            "segment": "They pool resources, collaborate, think outside the box, and find solutions and ways around obstacles to explore science for the sake of science without the traditional boundaries of working inside a formal setting."
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "assessment": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "46. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "近几十年来，科学业已形成一种惯例，即人们只有通过诸如大学这样 的机构才能参与其中。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "47. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "但是，通过利用公众与生俱来的好奇心，让非科学家直接参与研究过 程，我们就有可能克服其中的诸多挑战。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "48. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "科学家们采用了各种方式让公众参与他们的研究，例如将数据分析做 成网络游戏，或将样本采集做成智能手机应用程序。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "49. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "这些群体属于一场正在迅速壮大的生物科技社会运动的一部分，在这 场运动中，公民科学家和职业科学家设法将科学发现从机构中解放出来，并 将其交到任何怀有热情的人手中。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "50. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "它们汇聚资源、通力合作、跳出思维定式，并寻找克服障碍的对策和 方法，目的是为了科学而探索科学，打破在正式的环境中进行科学探索的传 统界限。"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-46",
+            "label": "46"
+          },
+          {
+            "id": "q-47",
+            "label": "47"
+          },
+          {
+            "id": "q-48",
+            "label": "48"
+          },
+          {
+            "id": "q-49",
+            "label": "49"
+          },
+          {
+            "id": "q-50",
+            "label": "50"
+          }
+        ]
+      }
+    },
+    {
+      "id": "writing-51",
+      "title": "2025英语（一）应用文写作",
+      "extension": {
+        "development": "english-writing-2026-dev"
+      },
+      "data": {
+        "formatVersion": 1,
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "51. Read the following email from your classmate Paul and write him a reply."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Dear Li Ming, I was really excited to hear that you’d invite some young craftsmen to demonstrate their innovative craft-making on campus. May I know more about what they’ll show? Also, I’d like to help with your preparation work. Please let me know what I can do."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Yours, Paul"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Write your answer in about 100 words on the ANSWER SHEET."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Do not use your own name in your email; use “Li Ming” instead. (10 points)"
+                }
+              ]
+            }
+          ]
+        },
+        "referenceAnswer": null,
+        "rubric": null,
+        "wordCount": {
+          "target": 100
+        },
+        "maxScore": 10
+      },
+      "outline": {
+        "level": "question",
+        "label": "51"
+      }
+    },
+    {
+      "id": "writing-52",
+      "title": "2025英语（一）图画／图表作文",
+      "extension": {
+        "development": "english-writing-2026-dev"
+      },
+      "data": {
+        "formatVersion": 1,
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "52. Write an essay of 160-200 words based on the following table. In your essay, you should"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "1) describe the table briefly,"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "2) explain its intended meaning, and"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "3) give your comments."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "You should write neatly on the ANSWER SHEET. (20 points)"
+                }
+              ]
+            },
+            {
+              "type": "image",
+              "attrs": {
+                "assetId": "7277bf97940e18e251e69453b9e67532b82444eae31b723c0104d83ef6fa9791",
+                "alt": "2025年作文原题图表"
+              }
+            }
+          ]
+        },
+        "referenceAnswer": null,
+        "rubric": null,
+        "wordCount": {
+          "min": 160,
+          "max": 200
+        },
+        "maxScore": 20
+      },
+      "outline": {
+        "level": "question",
+        "label": "52"
+      }
+    }
+  ]
+}

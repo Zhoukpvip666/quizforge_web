@@ -19,7 +19,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-/** The server owns the single active profile; browser responses never carry credentials. */
+/** Public status is masked; only the loopback management credential endpoint returns the editable key. */
 final class AiSettings {
     record Profile(boolean enabled, URI baseUrl, String model, String apiKey, boolean vision, String outputMode, int maxOutputTokens, int timeoutSeconds, boolean autoGrade) {
         Profile(boolean enabled, URI baseUrl, String model, String apiKey, boolean vision, String outputMode, int maxOutputTokens, int timeoutSeconds) {
@@ -28,31 +28,53 @@ final class AiSettings {
         @Override public String toString() { return "AiProfile[enabled=" + enabled + ",apiKeyConfigured=" + !apiKey.isEmpty() + "]"; }
     }
     private final Path root, directory, file;
-    private Profile profile = new Profile(false, null, "", "", false, "json", 2048, 60);
+    private Profile profile = new Profile(false, null, "", "", false, "json", 8192, 90);
+    private ObjectNode testReport;
     AiSettings(Path root) throws IOException {
         this.root = root; directory = root.resolve(".state/ai"); file = directory.resolve("profile.json");
         safe(false);
         if (Files.exists(file, LinkOption.NOFOLLOW_LINKS)) {
-            try { profile = parse(Json.read(file, 32 * 1024), profile, true); }
+            try {
+                JsonNode stored = Json.read(file, 32 * 1024); profile = parse(stored, profile, true);
+                if (stored.path("testReport").isObject()) testReport = ((ObjectNode) stored.path("testReport")).deepCopy();
+            }
             catch (IOException | RuntimeException e) { throw new IOException("Invalid AI profile"); }
             restrict(directory, true); restrict(file, false);
         }
     }
     synchronized Profile profile() { return profile; }
+    synchronized ObjectNode credential() { return Json.object().put("apiKey", profile.apiKey()); }
+    private static boolean sameConnection(Profile a, Profile b) {
+        return java.util.Objects.equals(a.baseUrl(), b.baseUrl()) && a.model().equals(b.model()) && a.apiKey().equals(b.apiKey());
+    }
     synchronized ObjectNode status() {
         return Json.object().put("enabled", profile.enabled()).put("autoGrade", profile.autoGrade()).put("provider", "openai-compatible").put("baseUrl", profile.baseUrl() == null ? "" : profile.baseUrl().toString()).put("model", profile.model())
-                .put("apiKeyConfigured", !profile.apiKey().isEmpty()).put("vision", profile.vision()).put("outputMode", profile.outputMode()).put("maxOutputTokens", profile.maxOutputTokens()).put("timeoutSeconds", profile.timeoutSeconds());
+                .put("apiKeyConfigured", !profile.apiKey().isEmpty()).put("vision", profile.vision()).put("outputMode", profile.outputMode()).put("maxOutputTokens", profile.maxOutputTokens()).put("timeoutSeconds", profile.timeoutSeconds())
+                .set("testReport", testReport == null ? Json.MAPPER.nullNode() : testReport.deepCopy());
     }
     synchronized ObjectNode update(JsonNode request) throws IOException {
-        Profile replacement = parse(request, profile, false); safe(true);
+        Profile replacement = parse(request, profile, false);
+        boolean changed = !sameConnection(profile, replacement) || !profile.outputMode().equals(replacement.outputMode());
+        if (changed && !request.has("vision")) replacement = new Profile(replacement.enabled(), replacement.baseUrl(), replacement.model(), replacement.apiKey(), false, replacement.outputMode(), replacement.maxOutputTokens(), replacement.timeoutSeconds(), replacement.autoGrade());
+        persist(replacement, changed ? null : testReport); return status();
+    }
+    synchronized ObjectNode saveTest(Profile tested, ObjectNode report, boolean vision, String outputMode) throws IOException {
+        if (!sameConnection(profile, tested) || !profile.outputMode().equals(tested.outputMode())) throw new ApiException(409, "AI_CONFIG_CHANGED", "测试期间模型配置已修改，请重新测试当前配置。");
+        Profile replacement = new Profile(profile.enabled(), profile.baseUrl(), profile.model(), profile.apiKey(), vision, outputMode, profile.maxOutputTokens(), profile.timeoutSeconds(), profile.autoGrade());
+        persist(replacement, report); return status();
+    }
+    private void persist(Profile replacement, ObjectNode report) throws IOException {
+        safe(true);
         ObjectNode stored = Json.object().put("schemaVersion", 1).put("enabled", replacement.enabled()).put("autoGrade", replacement.autoGrade()).put("provider", "openai-compatible").put("baseUrl", replacement.baseUrl() == null ? "" : replacement.baseUrl().toString()).put("model", replacement.model())
                 .put("apiKey", replacement.apiKey()).put("vision", replacement.vision()).put("outputMode", replacement.outputMode()).put("maxOutputTokens", replacement.maxOutputTokens()).put("timeoutSeconds", replacement.timeoutSeconds());
-        EditJournal.replace(file, Json.MAPPER.writeValueAsBytes(stored)); restrict(file, false); profile = replacement; return status();
+        if (report != null) stored.set("testReport", report.deepCopy());
+        EditJournal.replace(file, Json.MAPPER.writeValueAsBytes(stored)); restrict(file, false);
+        profile = replacement; testReport = report == null ? null : report.deepCopy();
     }
     private static Profile parse(JsonNode request, Profile previous, boolean stored) {
         if (request == null || !request.isObject()) throw ApiException.bad("Invalid AI settings");
-        Set<String> fields = Set.of("schemaVersion", "enabled", "autoGrade", "provider", "baseUrl", "model", "apiKey", "clearApiKey", "vision", "outputMode", "maxOutputTokens", "timeoutSeconds");
-        request.fieldNames().forEachRemaining(field -> { if (!fields.contains(field) || (!stored && field.equals("schemaVersion"))) throw ApiException.bad("Invalid AI settings field"); });
+        Set<String> fields = Set.of("schemaVersion", "enabled", "autoGrade", "provider", "baseUrl", "model", "apiKey", "clearApiKey", "vision", "outputMode", "maxOutputTokens", "timeoutSeconds", "testReport");
+        request.fieldNames().forEachRemaining(field -> { if (!fields.contains(field) || (!stored && (field.equals("schemaVersion") || field.equals("testReport")))) throw ApiException.bad("Invalid AI settings field"); });
         if (stored && request.path("schemaVersion").asInt() != 1) throw ApiException.bad("Invalid AI settings version");
         if (request.has("provider") && (!request.path("provider").isTextual() || !request.path("provider").asText().equals("openai-compatible"))) throw ApiException.bad("Unsupported AI provider");
         boolean enabled = bool(request, "enabled", previous.enabled()), autoGrade = bool(request, "autoGrade", previous.autoGrade()), vision = bool(request, "vision", previous.vision()), clear = bool(request, "clearApiKey", false);

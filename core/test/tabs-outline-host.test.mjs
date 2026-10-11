@@ -1,3 +1,4 @@
+import {renderOutlineView} from '../web/views/outline-view.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -17,7 +18,7 @@ function fixture(t){
   const dom=new JSDOM(readFileSync(new URL('../web/index.html',import.meta.url),'utf8'));
   t.after(()=>dom.window.close());
   const collections=new Map(),errors=[];
-  const sandbox={document:dom.window.document,$:selector=>dom.window.document.querySelector(selector),Promise,collections,activeKey:null,transition:Promise.resolve(),
+  const sandbox={renderOutlineView,document:dom.window.document,$:selector=>dom.window.document.querySelector(selector),Promise,collections,activeKey:null,transition:Promise.resolve(),
     visibleQuestions,visibleQuestionId,hasScoreSummary,stateFor,consecutiveQuestionGroups,navigateOutlineTarget,
     active:()=>collections.get(sandbox.activeKey),notice(){},failure:error=>errors.push(error),updateChrome(){},renderRecovery(){},
     showScoreSummary(){},navigateQuestion(){},closeDrawers(){},
@@ -33,6 +34,24 @@ function fixture(t){
   }
   return {dom,collections,errors,sandbox,host,add};
 }
+
+test('whiteboard-only revisions retain the outline nodes and focus, while visible state changes redraw',t=>{
+  const f=fixture(t),pane=f.add('ink');
+  pane.collection.states.a={status:'draft',revision:1,answer:{text:'first'},result:null};
+  f.host.renderOutline();
+  const original=f.dom.window.document.querySelector('.outline-item');original.focus();
+  for(let revision=2;revision<=20;revision++){
+    pane.collection.states.a.revision=revision;pane.collection.states.a.answer.text=`draft ${revision}`;
+    f.host.renderOutline();
+    assert.equal(f.dom.window.document.querySelector('.outline-item'),original);
+  }
+  assert.equal(f.dom.window.document.activeElement,original);
+  pane.collection.states.a={status:'submitted',result:{score:1,maxScore:1}};f.host.renderOutline();
+  const submitted=f.dom.window.document.querySelector('.outline-item');
+  assert.notEqual(submitted,original);assert.equal(submitted.classList.contains('correct'),true);
+  pane.collection.questions[0].outlineLabel='新编号';f.host.renderOutline();
+  assert.equal(f.dom.window.document.querySelector('.outline-item').textContent,'新编号');
+});
 
 test('outline replaces composite parent buttons with ordered children in one matrix without independent statuses',async t=>{
   const f=fixture(t),pane=f.add('composite');
@@ -115,7 +134,7 @@ test('outline shows consecutive type groups and numbered states with only the su
   f.host.renderOutline();const outline=f.dom.window.document.querySelector('.outline');
   assert.deepEqual([...outline.querySelectorAll('.outline-group-title')].map(node=>node.textContent),['单选题','简答题','单选题']);
   assert.deepEqual([...outline.querySelectorAll('.outline-item')].map(node=>node.textContent),['1','2','3']);
-  assert.equal(outline.querySelector('[data-question-id="a"]').classList.contains('correct'),true);assert.equal(outline.querySelector('[data-question-id="b"]').classList.contains('incorrect'),true);assert.equal(outline.querySelector('[data-question-id="c"]').classList.contains('unanswered'),true);
+  assert.equal(outline.querySelector('[data-question-id="a"]').classList.contains('correct'),true);assert.equal(outline.querySelector('[data-question-id="b"]').classList.contains('incorrect'),true);assert.equal(outline.querySelector('[data-question-id="c"]').classList.contains('draft'),true);
   assert.equal(outline.querySelector('#outline-count'),null);assert.equal(outline.querySelector('#outline-summary'),null);assert.doesNotMatch(outline.textContent,/已提交|得分|共.*题/);assert.equal(outline.querySelector('.outline-score-summary').textContent,'分值汇总');
 });
 
@@ -137,7 +156,7 @@ test('child states are scoped to their parent and keep colors while selected in 
       assert.equal(root.querySelector('.draft,.partial,.pending-review'),null);
     }
   }
-  assert.doesNotMatch(style.textContent,/\.outline-item\.(draft|partial|pending-review)\s*\{/);
+  assert.doesNotMatch(style.textContent,/\.outline-item\.(partial|pending-review)\s*\{/);
 });
 
 test('summary ignores a previous round child result and frozen history keeps its own states and jump',async t=>{
@@ -159,7 +178,33 @@ test('ordinary question correctness uses full numeric score and summary snapshot
   pane.collection.questions=[{id:'a',title:'满分'},{id:'b',title:'部分分'},{id:'c',title:'零分'},{id:'d',title:'未提交'},{id:'e',title:'未判分'}];
   pane.collection.states={a:{status:'submitted',result:{score:2,maxScore:2,correct:false}},b:{status:'submitted',result:{score:.5,maxScore:2,correct:true}},c:{status:'submitted',result:{score:0,maxScore:2,correct:true}},d:{status:'draft',result:{score:2,maxScore:2,correct:true}},e:{status:'submitted',result:{score:null,maxScore:2,correct:null,gradingStatus:'pending'}}};
   f.host.renderOutline();const button=id=>f.dom.window.document.querySelector(`[data-question-id="${id}"]`);
-  for(const [id,status]of [['a','correct'],['b','incorrect'],['c','incorrect'],['d','unanswered'],['e','incorrect']])assert.equal(button(id).classList.contains(status),true);
+  for(const [id,status]of [['a','correct'],['b','incorrect'],['c','incorrect'],['d','draft'],['e','incorrect']])assert.equal(button(id).classList.contains(status),true);
   pane.summaryShown=true;pane.scoreSummary={questions:[{id:'a',submitted:true,score:1,maxScore:2},{id:'b',submitted:true,score:2,maxScore:2},{id:'c',submitted:false,score:0,maxScore:2}]};f.host.renderOutline();
   assert.equal(button('a').classList.contains('incorrect'),true);assert.equal(button('b').classList.contains('correct'),true);assert.equal(button('c').classList.contains('unanswered'),true);
+});
+
+for(const kind of ['bank','exam'])test(`saved parent and individual child drafts show purple without leaking correctness in ${kind}`,t=>{
+  const f=fixture(t),pane=f.add(`draft-${kind}`);pane.kind=kind;
+  pane.collection.questions=[{id:'a',title:'组合题',outlineItems:[{id:'filled',label:'1'},{id:'blank',label:'2'}]},{id:'b',title:'普通题'},{id:'c',title:'无细节',outlineItems:[{id:'unknown',label:'3'}]}];
+  pane.collection.states={a:{status:'draft',outlineStates:[{id:'filled',status:'draft'},{id:'blank',status:'unanswered'}]},b:{status:'draft'},c:{status:'draft'}};
+  pane.outlineItemId='filled';
+  const style=f.dom.window.document.createElement('style');style.textContent=readFileSync(new URL('../web/refinements.css',import.meta.url),'utf8');f.dom.window.document.head.append(style);
+  f.host.renderOutline();const root=f.dom.window.document.querySelector('#outline-list'),button=id=>root.querySelector(`[data-outline-item-id="${id}"]`);
+  assert.equal(button('filled').classList.contains('draft'),true);assert.match(button('filled').getAttribute('aria-label'),/已作答，待提交/);
+  assert.equal(f.dom.window.getComputedStyle(button('filled')).backgroundColor,'rgb(240, 235, 252)');
+  assert.equal(button('blank').classList.contains('unanswered'),true);assert.equal(button('unknown').classList.contains('unanswered'),true);
+  assert.equal(root.querySelector('[data-question-id="b"]').classList.contains('draft'),true);
+  assert.equal(root.querySelector('.correct,.incorrect'),null);
+  pane.collection.states.a={status:'submitted',outlineStates:[{id:'filled',status:'incorrect'},{id:'blank',status:'unanswered'}]};f.host.renderOutline();
+  assert.equal(button('filled').classList.contains('incorrect'),true);assert.equal(button('filled').classList.contains('draft'),false);
+  pane.collection.states.a={status:'unanswered'};f.host.renderOutline();assert.equal(button('filled').classList.contains('unanswered'),true);
+});
+
+test('summary and read-only history retain their own saved draft progress',t=>{
+  const f=fixture(t),pane=f.add('draft-history'),rows=[{id:'a',title:'组合题',outlineItems:[{id:'filled',label:'1'},{id:'blank',label:'2'}]},{id:'b',title:'普通题'}];
+  pane.collection.questions=rows;pane.collection.states={a:{status:'submitted',outlineStates:[{id:'filled',status:'correct'}]},b:{status:'submitted',result:{score:1,maxScore:1}}};
+  pane.summaryShown=true;pane.scoreSummary={questions:[{id:'a',submitted:false,status:'draft',outlineStates:[{id:'filled',status:'draft'},{id:'blank',status:'unanswered'}]},{id:'b',submitted:false,status:'draft'}]};
+  f.host.renderOutline();const root=f.dom.window.document.querySelector('#outline-list');assert.equal(root.querySelectorAll('.draft').length,2);assert.equal(root.querySelector('.correct'),null);
+  pane.summaryShown=false;pane.view='history';pane.historyQuestionId='a';pane.historyEntry={};pane.historyView={questions:rows,states:{a:{status:'draft',outlineStates:[{id:'filled',status:'draft'},{id:'blank',status:'unanswered'}]},b:{status:'draft'}}};
+  f.host.renderOutline();assert.equal(root.querySelectorAll('.draft').length,2);assert.equal(root.querySelector('.correct'),null);
 });

@@ -26,6 +26,19 @@ test('a lost confirmation response reuses the same operation ID, even after recr
   await createAiClient(options)('ai-confirm',{...args,score:4});assert.equal(ids[2],'host-id-2');
 });
 
+test('targeted grading and lookup keep stable child IDs while excluding model inputs',async()=>{
+  const calls=[];
+  const client=createAiClient({path:'/question',makeRequestId:()=> 'host-child-request',settled:async()=>{},onConfirmed:()=>{},request:async(path,options)=>{calls.push({path,body:options&&JSON.parse(options.body)});return {taskId:'task-child',targetId:'小题二',status:'queued'};}});
+  await client('ai-grade',{targetId:'小题二',force:true,answer:'override'},'version');
+  assert.deepEqual(calls[0],{path:'/question/ai/grade',body:{contentVersion:'version',force:true,targetId:'小题二',requestId:'host-child-request'}});
+  await client('ai-task',{targetId:'小题二'});
+  assert.equal(calls[1].path,`/question/ai/current?targetId=${encodeURIComponent('小题二')}`);
+  await client('ai-task',{taskId:'task-child'});assert.equal(calls[2].path,'/question/ai/tasks/task-child');
+  await client('ai-retry',{taskId:'task-child'});assert.deepEqual(calls[3].body,{requestId:'host-child-request'});
+  for(const targetId of ['',null,' leading','<b>','x'.repeat(129)])await assert.rejects(client('ai-grade',{targetId}));
+  assert.equal(calls.length,4);
+});
+
 test('a confirmed background task refreshes current persisted grading when its reply was lost',async()=>{
   const calls=[],updates=[];
   const client=createAiClient({path:'/question',makeRequestId:()=> 'host-id-1',settled:async()=>{},shouldRefreshTask:()=>true,onConfirmed:value=>updates.push(value),request:async path=>{calls.push(path);return path==='/question'?{state:{revision:5,result:{score:4}}}:{task:{taskId:'task-1',status:'confirmed'}};}});
@@ -45,44 +58,90 @@ async function fixture(request){
   const ui=bindAiSettings({request,document});
   return {ui,document,dom,get:id=>document.getElementById(`ai-settings-${id}`)};
 }
-const profile={canManage:true,enabled:true,baseUrl:'http://localhost:11434/v1',model:'local',apiKeyConfigured:true,vision:false,outputMode:'json',maxOutputTokens:2048,timeoutSeconds:60};
-test('AI settings preserve saved key when blank, clear entered secret when closing, and use explicit saved-profile connection test',async()=>{
+const profile={canManage:true,enabled:true,baseUrl:'http://localhost:11434/v1',model:'local',apiKeyConfigured:true,vision:false,outputMode:'json',maxOutputTokens:8192,timeoutSeconds:90};
+const credential='synthetic-saved-key';
+const settle=()=>new Promise(resolve=>setTimeout(resolve,0));
+const passedReport={ok:true,status:'passed',summary:'文字评分与基础图片识别均通过。',model:'local',testedAt:'2026-10-10T01:00:00Z',calls:2,elapsedMs:450,checks:[{id:'connection',label:'文字连接',status:'passed',message:'模型已响应。'},{id:'gradingFormat',label:'评分输出',status:'passed',message:'评分格式正常。'},{id:'vision',label:'图片识别',status:'passed',message:'已识别随机图片。'}],note:'复杂图片仍需验证。'};
+
+test('simple AI settings restore a masked editable key and retain it after saving',async()=>{
   const calls=[];
-  const f=await fixture(async(path,options)=>{calls.push({path,options});return path.endsWith('/test')?{ok:true}:profile;});
-  await f.ui.open();
-  assert.equal(f.get('apiKey').value,'');
-  const submitted=new Promise(resolve=>{const old= f.get('form').addEventListener('submit',()=>setTimeout(resolve,0),{once:true});});
-  f.get('form').dispatchEvent(new f.dom.window.Event('submit',{cancelable:true}));await submitted;
-  const saved=JSON.parse(calls[1].options.body);assert.equal('apiKey' in saved,false);assert.equal(saved.baseUrl,profile.baseUrl);
-  f.get('test').click();await new Promise(resolve=>setTimeout(resolve,0));
-  assert.equal(calls[2].path,'/api/settings/ai/test');assert.equal(calls[2].options.body,'{}');
-  f.get('apiKey').value='entered-secret';f.get('close').click();assert.equal(f.get('apiKey').value,'');
-  f.ui.destroy();f.dom.window.close();
-});
-test('remote AI settings are visible but cannot save, test or expose a key field value',async()=>{
-  let writes=0;
-  const f=await fixture(async(path,options)=>{if(options)writes++;return {...profile,canManage:false};});
-  await f.ui.open();assert.equal(f.get('save').disabled,true);assert.equal(f.get('test').disabled,true);assert.equal(f.get('apiKey').disabled,true);assert.equal(f.get('autoGrade').disabled,true);
-  f.get('form').dispatchEvent(new f.dom.window.Event('submit',{cancelable:true}));assert.equal(writes,0);
+  const f=await fixture(async(path,options)=>{calls.push({path,options});return path.endsWith('/credential')?{apiKey:credential}:profile;});
+  await f.ui.open();assert.equal(f.get('apiKey').value,credential);assert.equal(f.get('apiKey').type,'password');
+  for(const field of ['vision','outputMode','maxOutputTokens','timeoutSeconds','clearApiKey'])assert.equal(f.get(field),null);
+  f.get('form').dispatchEvent(new f.dom.window.Event('submit',{cancelable:true}));await settle();
+  const saved=JSON.parse(calls[2].options.body);assert.equal(saved.apiKey,credential);assert.equal(saved.baseUrl,profile.baseUrl);assert.equal(f.get('apiKey').value,credential);
+  assert.equal('vision' in saved,false);assert.equal('outputMode' in saved,false);
+  f.get('close').click();assert.equal(f.get('apiKey').value,'');
   f.ui.destroy();f.dom.window.close();
 });
 
-test('automatic AI grading defaults off for legacy status and saves an explicit opt-in without a model request',async()=>{
+test('deleting or replacing the password field updates the stored key without a separate checkbox',async()=>{
+  const bodies=[];
+  const f=await fixture(async(path,options)=>{if(path.endsWith('/credential'))return {apiKey:credential};if(options){const body=JSON.parse(options.body);bodies.push(body);return {...profile,apiKeyConfigured:!body.clearApiKey};}return profile;});
+  await f.ui.open();f.get('apiKey').value='';f.get('form').dispatchEvent(new f.dom.window.Event('submit',{cancelable:true}));await settle();
+  assert.equal(bodies[0].clearApiKey,true);assert.equal('apiKey' in bodies[0],false);assert.equal(f.get('apiKey').value,'');
+  f.get('apiKey').value='synthetic-replacement-key';f.get('form').dispatchEvent(new f.dom.window.Event('submit',{cancelable:true}));await settle();
+  assert.equal(bodies[1].apiKey,'synthetic-replacement-key');assert.equal('clearApiKey' in bodies[1],false);assert.equal(f.get('apiKey').value,'synthetic-replacement-key');
+  f.ui.destroy();f.dom.window.close();
+});
+
+test('one test button saves current input and renders all diagnostics even with AI grading disabled',async()=>{
   const calls=[];
-  const f=await fixture(async(path,options)=>{calls.push({path,options});return options?{...profile,autoGrade:JSON.parse(options.body).autoGrade}:profile;});
+  const f=await fixture(async(path,options)=>{
+    calls.push({path,options});if(path.endsWith('/credential'))return {apiKey:credential};
+    if(path.endsWith('/test'))return {...passedReport,settings:{...profile,enabled:false,vision:true,testReport:passedReport}};
+    return {...profile,enabled:false};
+  });
+  await f.ui.open();assert.equal(f.get('test').disabled,false);
+  f.get('model').value='changed-model';f.get('apiKey').value='changed-synthetic-key';f.get('test').click();await settle();await settle();
+  assert.deepEqual(calls.slice(2).map(call=>[call.path,call.options.method]),[['/api/settings/ai','PUT'],['/api/settings/ai/test','POST']]);
+  assert.equal(JSON.parse(calls[2].options.body).model,'changed-model');assert.equal(JSON.parse(calls[2].options.body).apiKey,'changed-synthetic-key');
+  assert.equal(f.get('apiKey').value,'changed-synthetic-key');assert.equal(f.get('report').hidden,false);assert.equal(f.get('report').querySelectorAll('li').length,3);
+  assert.match(f.get('report').textContent,/文字连接.*通过.*评分输出.*通过.*图片识别.*通过/s);
+  assert.equal(f.get('test').disabled,false);assert.match(f.get('status').textContent,/测试已完成/);
+  f.ui.destroy();f.dom.window.close();
+});
+
+test('failed vision report remains visible and edited configuration clears stale diagnostics',async()=>{
+  const partial={...passedReport,status:'partial',summary:'文字评分可用，图片识别尚未通过。',checks:passedReport.checks.map(check=>check.id==='vision'?{...check,status:'unknown',message:'模型调用等待超时。'}:check)};
+  const f=await fixture(async path=>path.endsWith('/credential')?{apiKey:credential}:{...profile,testReport:partial});
+  await f.ui.open();assert.match(f.get('report').textContent,/无法判断/);assert.match(f.get('report').textContent,/超时/);
+  f.get('model').value='new-model';f.get('model').dispatchEvent(new f.dom.window.Event('input'));assert.equal(f.get('report').hidden,true);assert.match(f.get('status').textContent,/配置有修改/);
+  f.ui.destroy();f.dom.window.close();
+});
+
+test('remote settings never request credentials and cannot save or test',async()=>{
+  const calls=[];
+  const f=await fixture(async(path,options)=>{calls.push({path,options});return {...profile,canManage:false};});
+  await f.ui.open();assert.equal(calls.length,1);assert.equal(f.get('apiKey').value,'');
+  for(const name of ['save','test','apiKey','autoGrade'])assert.equal(f.get(name).disabled,true);
+  f.get('form').dispatchEvent(new f.dom.window.Event('submit',{cancelable:true}));assert.equal(calls.length,1);
+  f.ui.destroy();f.dom.window.close();
+});
+
+test('automatic grading is independently editable and ordinary save never invokes model tests',async()=>{
+  const calls=[];
+  const f=await fixture(async(path,options)=>{calls.push({path,options});if(path.endsWith('/credential'))return {apiKey:credential};return options?{...profile,autoGrade:JSON.parse(options.body).autoGrade}:profile;});
   await f.ui.open();assert.equal(f.get('autoGrade').checked,false);assert.match(f.get('status').textContent,/题卡点击评分.*自动保存/);
-  assert.match(f.get('autoGrade').parentElement.textContent,/提交答案后自动 AI 评分/);
-  f.get('autoGrade').checked=true;f.get('form').dispatchEvent(new f.dom.window.Event('submit',{cancelable:true}));await new Promise(resolve=>setTimeout(resolve,0));
-  assert.equal(calls.length,2);assert.equal(calls[1].path,'/api/settings/ai');assert.equal(calls[1].options.method,'PUT');assert.equal(JSON.parse(calls[1].options.body).autoGrade,true);
-  assert.equal(f.get('autoGrade').checked,true);assert.equal(calls.some(value=>value.path.endsWith('/test')),false);
+  f.get('autoGrade').checked=true;f.get('form').dispatchEvent(new f.dom.window.Event('submit',{cancelable:true}));await settle();
+  assert.equal(calls.length,3);assert.equal(JSON.parse(calls[2].options.body).autoGrade,true);assert.equal(f.get('autoGrade').checked,true);
+  assert.equal(calls.some(call=>call.path.endsWith('/test')),false);
+  f.get('autoGrade').checked=false;f.get('form').dispatchEvent(new f.dom.window.Event('submit',{cancelable:true}));await settle();assert.equal(f.get('autoGrade').checked,false);
   f.ui.destroy();f.dom.window.close();
 });
 
-test('saved automatic grading is shown and can be switched off independently of AI enablement',async()=>{
+test('closing settings before a credential response arrives does not restore the secret',async()=>{
+  let resolve;
+  const f=await fixture(async path=>path.endsWith('/credential')?await new Promise(done=>{resolve=done;}):profile);
+  const opening=f.ui.open();await settle();f.get('close').click();resolve({apiKey:credential});await opening;
+  assert.equal(f.get('apiKey').value,'');assert.equal(f.document.getElementById('network-settings-dialog').open,false);
+  f.ui.destroy();f.dom.window.close();
+});
+
+test('an old backend missing the credential endpoint explains restart and cannot clear the existing key',async()=>{
   const calls=[];
-  const f=await fixture(async(path,options)=>{calls.push({path,options});return options?{...profile,autoGrade:false}:{...profile,autoGrade:true};});
-  await f.ui.open();assert.equal(f.get('autoGrade').checked,true);assert.match(f.get('status').textContent,/提交答案后自动评分.*自动保存/);
-  f.get('autoGrade').checked=false;f.get('form').dispatchEvent(new f.dom.window.Event('submit',{cancelable:true}));await new Promise(resolve=>setTimeout(resolve,0));
-  const body=JSON.parse(calls[1].options.body);assert.equal(body.autoGrade,false);assert.equal(body.enabled,true);assert.equal(f.get('autoGrade').checked,false);
+  const f=await fixture(async(path,options)=>{calls.push({path,options});if(path.endsWith('/credential'))throw Object.assign(new Error('Endpoint not found'),{status:404,code:'NOT_FOUND'});return profile;});
+  await f.ui.open();assert.match(f.get('error').textContent,/关闭原启动窗口.*重新启动/);assert.equal(f.get('save').disabled,true);assert.equal(f.get('apiKey').value,'');
+  f.get('form').dispatchEvent(new f.dom.window.Event('submit',{cancelable:true}));assert.equal(calls.length,2);
   f.ui.destroy();f.dom.window.close();
 });

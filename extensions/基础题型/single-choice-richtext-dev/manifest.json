@@ -1,0 +1,15 @@
+{
+  "id": "quizforge.single-choice",
+  "version": "2.0.0",
+  "name": "单选题",
+  "description": "富文本单选界面原型：题干、选项、答案与解析；保存和判分尚未实现。",
+  "requiresApi": {"major": 1, "minMinor": 2, "capabilities": ["practice", "editor", "score", "richtext", "resources", "lifecycle"]},
+  "requiresRichText": {"major": 1, "minMinor": 0, "documentFormat": 1, "documentProfile": "advanced-v1", "capabilities": ["basic-formatting", "images", "advanced-formatting", "tables", "math", "image-resize"]},
+  "entry": "practice.html",
+  "script": "practice.js",
+  "style": "practice.css",
+  "rules": "rules.js",
+  "questionSchema": "question.schema.json",
+  "answerSchema": "answer.schema.json",
+  "examples": "examples/bank.json"
+}

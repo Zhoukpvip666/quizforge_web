@@ -1,0 +1,155 @@
+[
+  {
+    "questionId": "cloze-01",
+    "numbers": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "10",
+      "11",
+      "12",
+      "13",
+      "14",
+      "15",
+      "16",
+      "17",
+      "18",
+      "19",
+      "20"
+    ],
+    "sourcePdf": "documents\\pdf_quickbank\\pdf\\kaoyan_yingyu\\ying2-2010-2026\\英二2017真题空白卷.pdf",
+    "sourcePages": [
+      1,
+      2
+    ],
+    "answerPage": 15,
+    "answerSource": "原卷附录；作文范文与细则留空"
+  },
+  {
+    "questionId": "reading-01",
+    "numbers": [
+      "21",
+      "22",
+      "23",
+      "24",
+      "25"
+    ],
+    "sourcePdf": "documents\\pdf_quickbank\\pdf\\kaoyan_yingyu\\ying2-2010-2026\\英二2017真题空白卷.pdf",
+    "sourcePages": [
+      3,
+      4
+    ],
+    "answerPage": 15,
+    "answerSource": "原卷附录；作文范文与细则留空"
+  },
+  {
+    "questionId": "reading-02",
+    "numbers": [
+      "26",
+      "27",
+      "28",
+      "29",
+      "30"
+    ],
+    "sourcePdf": "documents\\pdf_quickbank\\pdf\\kaoyan_yingyu\\ying2-2010-2026\\英二2017真题空白卷.pdf",
+    "sourcePages": [
+      5,
+      6
+    ],
+    "answerPage": 15,
+    "answerSource": "原卷附录；作文范文与细则留空"
+  },
+  {
+    "questionId": "reading-03",
+    "numbers": [
+      "31",
+      "32",
+      "33",
+      "34",
+      "35"
+    ],
+    "sourcePdf": "documents\\pdf_quickbank\\pdf\\kaoyan_yingyu\\ying2-2010-2026\\英二2017真题空白卷.pdf",
+    "sourcePages": [
+      7,
+      8
+    ],
+    "answerPage": 15,
+    "answerSource": "原卷附录；作文范文与细则留空"
+  },
+  {
+    "questionId": "reading-04",
+    "numbers": [
+      "36",
+      "37",
+      "38",
+      "39",
+      "40"
+    ],
+    "sourcePdf": "documents\\pdf_quickbank\\pdf\\kaoyan_yingyu\\ying2-2010-2026\\英二2017真题空白卷.pdf",
+    "sourcePages": [
+      9,
+      10
+    ],
+    "answerPage": 15,
+    "answerSource": "原卷附录；作文范文与细则留空"
+  },
+  {
+    "questionId": "reading-b-01",
+    "numbers": [
+      "41",
+      "42",
+      "43",
+      "44",
+      "45"
+    ],
+    "sourcePdf": "documents\\pdf_quickbank\\pdf\\kaoyan_yingyu\\ying2-2010-2026\\英二2017真题空白卷.pdf",
+    "sourcePages": [
+      11,
+      12
+    ],
+    "answerPage": 15,
+    "answerSource": "原卷附录；作文范文与细则留空"
+  },
+  {
+    "questionId": "translation-46",
+    "numbers": [
+      "46"
+    ],
+    "sourcePdf": "documents\\pdf_quickbank\\pdf\\kaoyan_yingyu\\ying2-2010-2026\\英二2017真题空白卷.pdf",
+    "sourcePages": [
+      13
+    ],
+    "answerPage": 15,
+    "answerSource": "原卷附录；作文范文与细则留空"
+  },
+  {
+    "questionId": "writing-47",
+    "numbers": [
+      "47"
+    ],
+    "sourcePdf": "documents\\pdf_quickbank\\pdf\\kaoyan_yingyu\\ying2-2010-2026\\英二2017真题空白卷.pdf",
+    "sourcePages": [
+      14
+    ],
+    "answerPage": 15,
+    "answerSource": "原卷附录；作文范文与细则留空"
+  },
+  {
+    "questionId": "writing-48",
+    "numbers": [
+      "48"
+    ],
+    "sourcePdf": "documents\\pdf_quickbank\\pdf\\kaoyan_yingyu\\ying2-2010-2026\\英二2017真题空白卷.pdf",
+    "sourcePages": [
+      14
+    ],
+    "answerPage": 15,
+    "answerSource": "原卷附录；作文范文与细则留空"
+  }
+]

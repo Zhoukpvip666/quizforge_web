@@ -1,0 +1,2368 @@
+{
+  "formatVersion": 1,
+  "id": "kaoyan-english1-2026",
+  "title": "2026年考研英语（一）真题",
+  "description": "依据2026年真题空白卷及附录参考答案制作。作文范文与评分细则留空。",
+  "features": {
+    "editing": true,
+    "whiteboard": true,
+    "history": true
+  },
+  "questions": [
+    {
+      "id": "cloze-01",
+      "title": "完形填空（1–20）",
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-01",
+            "label": "1"
+          },
+          {
+            "id": "q-02",
+            "label": "2"
+          },
+          {
+            "id": "q-03",
+            "label": "3"
+          },
+          {
+            "id": "q-04",
+            "label": "4"
+          },
+          {
+            "id": "q-05",
+            "label": "5"
+          },
+          {
+            "id": "q-06",
+            "label": "6"
+          },
+          {
+            "id": "q-07",
+            "label": "7"
+          },
+          {
+            "id": "q-08",
+            "label": "8"
+          },
+          {
+            "id": "q-09",
+            "label": "9"
+          },
+          {
+            "id": "q-10",
+            "label": "10"
+          },
+          {
+            "id": "q-11",
+            "label": "11"
+          },
+          {
+            "id": "q-12",
+            "label": "12"
+          },
+          {
+            "id": "q-13",
+            "label": "13"
+          },
+          {
+            "id": "q-14",
+            "label": "14"
+          },
+          {
+            "id": "q-15",
+            "label": "15"
+          },
+          {
+            "id": "q-16",
+            "label": "16"
+          },
+          {
+            "id": "q-17",
+            "label": "17"
+          },
+          {
+            "id": "q-18",
+            "label": "18"
+          },
+          {
+            "id": "q-19",
+            "label": "19"
+          },
+          {
+            "id": "q-20",
+            "label": "20"
+          }
+        ]
+      },
+      "data": {
+        "parts": [
+          {
+            "id": "q-01",
+            "number": "1",
+            "options": [
+              {
+                "id": "A",
+                "text": "Still"
+              },
+              {
+                "id": "B",
+                "text": "Therefore"
+              },
+              {
+                "id": "C",
+                "text": "Afterward"
+              },
+              {
+                "id": "D",
+                "text": "Instead"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-02",
+            "number": "2",
+            "options": [
+              {
+                "id": "A",
+                "text": "reviewing"
+              },
+              {
+                "id": "B",
+                "text": "narrating"
+              },
+              {
+                "id": "C",
+                "text": "ignoring"
+              },
+              {
+                "id": "D",
+                "text": "dominating"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-03",
+            "number": "3",
+            "options": [
+              {
+                "id": "A",
+                "text": "reason"
+              },
+              {
+                "id": "B",
+                "text": "area"
+              },
+              {
+                "id": "C",
+                "text": "clue"
+              },
+              {
+                "id": "D",
+                "text": "belief"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-04",
+            "number": "4",
+            "options": [
+              {
+                "id": "A",
+                "text": "Balancing"
+              },
+              {
+                "id": "B",
+                "text": "Distinguishing"
+              },
+              {
+                "id": "C",
+                "text": "Combining"
+              },
+              {
+                "id": "D",
+                "text": "Introducing"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-05",
+            "number": "5",
+            "options": [
+              {
+                "id": "A",
+                "text": "prospects"
+              },
+              {
+                "id": "B",
+                "text": "outcomes"
+              },
+              {
+                "id": "C",
+                "text": "ambitions"
+              },
+              {
+                "id": "D",
+                "text": "sentiments"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-06",
+            "number": "6",
+            "options": [
+              {
+                "id": "A",
+                "text": "At first"
+              },
+              {
+                "id": "B",
+                "text": "By comparison"
+              },
+              {
+                "id": "C",
+                "text": "For instance"
+              },
+              {
+                "id": "D",
+                "text": "In general"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-07",
+            "number": "7",
+            "options": [
+              {
+                "id": "A",
+                "text": "test"
+              },
+              {
+                "id": "B",
+                "text": "copy"
+              },
+              {
+                "id": "C",
+                "text": "link"
+              },
+              {
+                "id": "D",
+                "text": "save"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-08",
+            "number": "8",
+            "options": [
+              {
+                "id": "A",
+                "text": "upon"
+              },
+              {
+                "id": "B",
+                "text": "beyond"
+              },
+              {
+                "id": "C",
+                "text": "through"
+              },
+              {
+                "id": "D",
+                "text": "before"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-09",
+            "number": "9",
+            "options": [
+              {
+                "id": "A",
+                "text": "explore"
+              },
+              {
+                "id": "B",
+                "text": "recall"
+              },
+              {
+                "id": "C",
+                "text": "simplify"
+              },
+              {
+                "id": "D",
+                "text": "cherish"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-10",
+            "number": "10",
+            "options": [
+              {
+                "id": "A",
+                "text": "recover"
+              },
+              {
+                "id": "B",
+                "text": "arrange"
+              },
+              {
+                "id": "C",
+                "text": "reserve"
+              },
+              {
+                "id": "D",
+                "text": "analyze"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-11",
+            "number": "11",
+            "options": [
+              {
+                "id": "A",
+                "text": "localized"
+              },
+              {
+                "id": "B",
+                "text": "normalized"
+              },
+              {
+                "id": "C",
+                "text": "randomized"
+              },
+              {
+                "id": "D",
+                "text": "customized"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-12",
+            "number": "12",
+            "options": [
+              {
+                "id": "A",
+                "text": "At best"
+              },
+              {
+                "id": "B",
+                "text": "To the contrary"
+              },
+              {
+                "id": "C",
+                "text": "By definition"
+              },
+              {
+                "id": "D",
+                "text": "In this way"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-13",
+            "number": "13",
+            "options": [
+              {
+                "id": "A",
+                "text": "divisions"
+              },
+              {
+                "id": "B",
+                "text": "expectations"
+              },
+              {
+                "id": "C",
+                "text": "concerns"
+              },
+              {
+                "id": "D",
+                "text": "values"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-14",
+            "number": "14",
+            "options": [
+              {
+                "id": "A",
+                "text": "pressures"
+              },
+              {
+                "id": "B",
+                "text": "mysteries"
+              },
+              {
+                "id": "C",
+                "text": "understandings"
+              },
+              {
+                "id": "D",
+                "text": "suspicions"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-15",
+            "number": "15",
+            "options": [
+              {
+                "id": "A",
+                "text": "Approximately"
+              },
+              {
+                "id": "B",
+                "text": "Additionally"
+              },
+              {
+                "id": "C",
+                "text": "Alternatively"
+              },
+              {
+                "id": "D",
+                "text": "Accidentally"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-16",
+            "number": "16",
+            "options": [
+              {
+                "id": "A",
+                "text": "deal with"
+              },
+              {
+                "id": "B",
+                "text": "result from"
+              },
+              {
+                "id": "C",
+                "text": "contribute to"
+              },
+              {
+                "id": "D",
+                "text": "focus on"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-17",
+            "number": "17",
+            "options": [
+              {
+                "id": "A",
+                "text": "starting"
+              },
+              {
+                "id": "B",
+                "text": "checking"
+              },
+              {
+                "id": "C",
+                "text": "relying"
+              },
+              {
+                "id": "D",
+                "text": "working"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-18",
+            "number": "18",
+            "options": [
+              {
+                "id": "A",
+                "text": "apart from"
+              },
+              {
+                "id": "B",
+                "text": "such as"
+              },
+              {
+                "id": "C",
+                "text": "regardless of"
+              },
+              {
+                "id": "D",
+                "text": "prior to"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-19",
+            "number": "19",
+            "options": [
+              {
+                "id": "A",
+                "text": "imitation"
+              },
+              {
+                "id": "B",
+                "text": "appreciation"
+              },
+              {
+                "id": "C",
+                "text": "preservation"
+              },
+              {
+                "id": "D",
+                "text": "consumption"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-20",
+            "number": "20",
+            "options": [
+              {
+                "id": "A",
+                "text": "replace"
+              },
+              {
+                "id": "B",
+                "text": "seize"
+              },
+              {
+                "id": "C",
+                "text": "share"
+              },
+              {
+                "id": "D",
+                "text": "reflect"
+              }
+            ],
+            "correctOptionId": "A"
+          }
+        ],
+        "maxScore": 10,
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Choose the best word(s) for each numbered blank and mark A, B, C or D on the ANSWER SHEET. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Advances in artificial intelligence (AI) are rapidly changing every aspect of human life. The world of AI is buzzing with an exciting potential to improve and enrich our lives. [[1]] , AI also has the potential hazard of [[2]] our experiences in ways we might find difficult to control. One such [[3]] is how we understand and experience beauty."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "AI can be a collaborative tool in a wide range of creative endeavors. [[4]] human creativity and AI algorithms can lead to unique artistic [[5]] that are beautiful to the human eye. These collaborations are likely to become increasingly common. [[6]] , as convenient and provocative, AI enables virtual try-on experiences where you can virtually [[7]] makeup, hairstyles, clothing, and even cosmetic procedures [[8]] making any physical changes. Individuals can now experiment with different looks and [[9]] their preferences, potentially expanding the range of beauty ideals."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "AI algorithms can [[10]] facial features and skin conditions to provide personalized beauty recommendations. This [[11]] approach aims to cater to individual preferences and enhance the concept of beauty tailored to each person’s unique characteristics. [[12]] , AI can be a fun vehicle for self-discovery."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "While AI offers exciting possibilities, it also raises ethical [[13]] . There is a risk of deepening societal beauty [[14]] and perpetuating unattainable beauty standards. [[15]] , AI-powered beauty filters and editing tools can lead to distorted self-perception and [[16]] body dissatisfaction. As summarized in a recent post on “The Hidden Dangers of Online Beauty Filters”, [[17]] on this technology for social presentation can cause harm [[18]] body image issues, lower self-esteem, and social anxiety."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "It’s important to note that while AI can enhance our [[19]] of beauty, it should not [[20]] the genuine human experience and the emotional connections we derive from seeing the beauty in each other."
+                }
+              ]
+            }
+          ]
+        },
+        "pointsPerItem": 0.5,
+        "explanation": ""
+      },
+      "extension": {
+        "development": "english-cloze-2026-dev"
+      }
+    },
+    {
+      "id": "reading-01",
+      "title": "阅读理解 Text 1（21–25）",
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-21",
+            "label": "21"
+          },
+          {
+            "id": "q-22",
+            "label": "22"
+          },
+          {
+            "id": "q-23",
+            "label": "23"
+          },
+          {
+            "id": "q-24",
+            "label": "24"
+          },
+          {
+            "id": "q-25",
+            "label": "25"
+          }
+        ]
+      },
+      "data": {
+        "parts": [
+          {
+            "id": "q-21",
+            "number": "21",
+            "stem": "What can be learned about donkeys from Paragraph 1",
+            "options": [
+              {
+                "id": "A",
+                "text": "They seemed mysterious to human ancestors."
+              },
+              {
+                "id": "B",
+                "text": "They underwent multiple domestication events."
+              },
+              {
+                "id": "C",
+                "text": "They were tamed at an earlier time than horses."
+              },
+              {
+                "id": "D",
+                "text": "They were vividly portrayed by ancient travelers."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-22",
+            "number": "22",
+            "stem": "What message is conveyed in Brooks’ statement?",
+            "options": [
+              {
+                "id": "A",
+                "text": "The earliest habitats of donkeys are hardly traceable."
+              },
+              {
+                "id": "B",
+                "text": "It is increasingly easy to read donkeys’ DNA sequences."
+              },
+              {
+                "id": "C",
+                "text": "Written accounts contain vital clues for donkey research."
+              },
+              {
+                "id": "D",
+                "text": "Genetic analysis offers insight into the history of donkeys."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-23",
+            "number": "23",
+            "stem": "In their study, the researchers investigated how donkeys",
+            "options": [
+              {
+                "id": "A",
+                "text": "dispersed widely in the world."
+              },
+              {
+                "id": "B",
+                "text": "survived with the help of herders."
+              },
+              {
+                "id": "C",
+                "text": "developed certain behavioral traits."
+              },
+              {
+                "id": "D",
+                "text": "adapted to the changing environment."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-24",
+            "number": "24",
+            "stem": "As to why the original domestication of donkeys happened, Orlando",
+            "options": [
+              {
+                "id": "A",
+                "text": "challenges conventional ideas."
+              },
+              {
+                "id": "B",
+                "text": "provides a possible explanation."
+              },
+              {
+                "id": "C",
+                "text": "calls for evidence from the Sahara."
+              },
+              {
+                "id": "D",
+                "text": "holds a different view from Kreier."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-25",
+            "number": "25",
+            "stem": "The authors think that their research could help with",
+            "options": [
+              {
+                "id": "A",
+                "text": "greater protection of wildlife."
+              },
+              {
+                "id": "B",
+                "text": "better management of donkeys."
+              },
+              {
+                "id": "C",
+                "text": "recovering early types of donkeys."
+              },
+              {
+                "id": "D",
+                "text": "raising awareness of climate change."
+              }
+            ],
+            "correctOptionId": "B"
+          }
+        ],
+        "maxScore": 10,
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D. Mark your answers on the ANSWER SHEET."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "For thousands of years, donkeys have been critical for propelling human civilizations forward. They’ve helped pull wheeled vehicles, carry travelers and move goods across the world. But where and when these animals first became intertwined with humans has been a mystery. Now, researchers have used genomes of over 200 donkeys to trace their domestication back to a single event around 7,000 years ago in East Africa—about 3,000 years before humans tamed horses. The team published their findings in the journal Science this month."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "“Through their DNA, the animals are telling their history themselves,” co-author Samantha Brooks, an equine researcher at the University of Florida, says in a statement. “We usually only get the human’s side of history through written accounts, but of course written history does not always record exactly how something happened. Looking at these DNA sequences, we get a biological testimony to the environment these animals lived in and the experiences they survived.”"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The researchers examined 207 genomes from modern donkeys living in 31 countries across the globe. They also looked at genomes from 15 wild equids and 31 earlier donkeys that lived between about 4,000 and 100 years ago. The team reconstructed the animals’ evolutionary tree and used computer models to pinpoint the domestication event when herders in Kenya and the Horn of Africa tamed wild asses. They then traced how the animals spread across the rest of the continent and into Europe and Asia about 2,500 years later."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Though it’s still unclear why the original domestication happened, Science News’ Freda Kreier reports that the event coincided with the Sahara growing larger and drier. “Donkeys are champions when it comes to carrying stuff and are good at going through deserts,” co-author Ludovic Orlando, an evolutionary biologist at Paul Sabin University in France, tells the publication. Prehistoric humans may have tamed donkeys to help navigate the expanding Sahara."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Researchers say these findings could help put donkeys in the spotlight. The animals could benefit from more research: Currently, there are no published genomes from donkeys located south of the Equator in Africa. But understanding where the animals were first domesticated could guide archaeologists to a narrow region to search for insights about the original tamed donkeys."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Not only does understanding the equines’ genetic makeup help reveal their contribution to human history, but it also might improve their management in the future, as climate change alters the planet’s environment, write the authors."
+                }
+              ]
+            }
+          ]
+        },
+        "pointsPerItem": 2,
+        "explanation": ""
+      },
+      "extension": {
+        "development": "english-reading-2026-dev"
+      }
+    },
+    {
+      "id": "reading-02",
+      "title": "阅读理解 Text 2（26–30）",
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-26",
+            "label": "26"
+          },
+          {
+            "id": "q-27",
+            "label": "27"
+          },
+          {
+            "id": "q-28",
+            "label": "28"
+          },
+          {
+            "id": "q-29",
+            "label": "29"
+          },
+          {
+            "id": "q-30",
+            "label": "30"
+          }
+        ]
+      },
+      "data": {
+        "parts": [
+          {
+            "id": "q-26",
+            "number": "26",
+            "stem": "The Art Directors Guild’s statement reveals",
+            "options": [
+              {
+                "id": "A",
+                "text": "people’s reduced interest in film."
+              },
+              {
+                "id": "B",
+                "text": "film workers’ nostalgia for the past."
+              },
+              {
+                "id": "C",
+                "text": "the appeal of Southern California."
+              },
+              {
+                "id": "D",
+                "text": "the gloomy situation of Hollywood."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-27",
+            "number": "27",
+            "stem": "The example of Georgia is used to illustrate the efforts to",
+            "options": [
+              {
+                "id": "A",
+                "text": "lure production with tax incentives."
+              },
+              {
+                "id": "B",
+                "text": "drive improvements in film facilities."
+              },
+              {
+                "id": "C",
+                "text": "stimulate competition among states."
+              },
+              {
+                "id": "D",
+                "text": "collect funds for film and TV making."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-28",
+            "number": "28",
+            "stem": "Peak TV passed its peak as",
+            "options": [
+              {
+                "id": "A",
+                "text": "streamers lost their technical advantages."
+              },
+              {
+                "id": "B",
+                "text": "streamers changed their strategic priorities."
+              },
+              {
+                "id": "C",
+                "text": "subscribers grew wary of large platforms."
+              },
+              {
+                "id": "D",
+                "text": "subscribers were unhappy with new shows."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-29",
+            "number": "29",
+            "stem": "According to Paragraph 6, California’s entertainment industry might face",
+            "options": [
+              {
+                "id": "A",
+                "text": "a decline in product quality."
+              },
+              {
+                "id": "B",
+                "text": "a demand for foreign talent."
+              },
+              {
+                "id": "C",
+                "text": "a brain drain to other places."
+              },
+              {
+                "id": "D",
+                "text": "a dramatic rise in labor costs."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-30",
+            "number": "30",
+            "stem": "The author concludes the text by emphasizing that California should strive to",
+            "options": [
+              {
+                "id": "A",
+                "text": "maintain its position in the industry."
+              },
+              {
+                "id": "B",
+                "text": "attract more investment than it had."
+              },
+              {
+                "id": "C",
+                "text": "pursue a higher standard of production."
+              },
+              {
+                "id": "D",
+                "text": "strengthen coordination with other states."
+              }
+            ],
+            "correctOptionId": "A"
+          }
+        ],
+        "maxScore": 10,
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D. Mark your answers on the ANSWER SHEET."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "There’s no business like show business—but in Los Angeles, it feels like there’s no business at all."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "If that sounds melodramatic, consider this: The Art Directors Guild, a labor union representing about 3,000 film workers, has suspended a training program and issued a statement explaining that “we cannot in good conscience encourage you to pursue our profession”. This is a reaction to Hollywood’s decline, which is reaching a critical point for the industry and Southern California."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Production has been slipping away from Hollywood since the 1950s, but the effects have never been more apparent than at present. Other regions in the United States, Canada and Europe have steadily increased incentives to attract TV shows and movies, leaving California in the dust. Georgia offers up to 30% in transferable tax credits on film and TV production costs, plus an additional 10% increase on the base tax credit if the project includes a Georgia promotional logo."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Even as California lost a huge volume of production to other locations, there was still plenty of film production taking place in Los Angeles before this year. We were kept afloat by “peak TV”, the glut of content that was required by the explosion of streaming services."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "But 2022 was the peak of peak TV. Back then platforms such as Netflix, Amazon and Apple TV hemorrhaged billions of dollars to generate content to attract new subscribers, resulting in 633 scripted series being released that year. As the streamers’ emphasis changed from subscriber growth to profitability, prices for the services went up and the number of new shows went down to 481 released in 2023, with the number expected to dip into the 300s within a few years."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "If productions in Southern California dip below a critical level for too long, the industry’s essential talent will drift away along with enormous sums of revenue. Persuading studios to film here would become much more challenging if we couldn’t offer a deep bench of local film workers, on-screen talent and local businesses that support the entertainment industry."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "That’s why the California Film Commission and its Los Angeles counterpart, Film LA, now should act, before it’s too late. Those agencies and other government bodies should dramatically improve incentives to keep our current shows and attract new productions to Los Angeles. Let’s go on with the show … and make sure the show doesn’t go on without us."
+                }
+              ]
+            }
+          ]
+        },
+        "pointsPerItem": 2,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "extension": {
+        "development": "english-reading-2026-dev"
+      }
+    },
+    {
+      "id": "reading-03",
+      "title": "阅读理解 Text 3（31–35）",
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-31",
+            "label": "31"
+          },
+          {
+            "id": "q-32",
+            "label": "32"
+          },
+          {
+            "id": "q-33",
+            "label": "33"
+          },
+          {
+            "id": "q-34",
+            "label": "34"
+          },
+          {
+            "id": "q-35",
+            "label": "35"
+          }
+        ]
+      },
+      "data": {
+        "parts": [
+          {
+            "id": "q-31",
+            "number": "31",
+            "stem": "What can be learnt about wireless from Sir John Reith?",
+            "options": [
+              {
+                "id": "A",
+                "text": "It was accessible to everyone."
+              },
+              {
+                "id": "B",
+                "text": "It improved interpersonal relations."
+              },
+              {
+                "id": "C",
+                "text": "It was a miracle of human ingenuity."
+              },
+              {
+                "id": "D",
+                "text": "It led to a new era of isolating culture."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-32",
+            "number": "32",
+            "stem": "What is the theme of the exhibition at the Bodleian in Oxford?",
+            "options": [
+              {
+                "id": "A",
+                "text": "The impact of radio on its early audience."
+              },
+              {
+                "id": "B",
+                "text": "The role of radio in public music education."
+              },
+              {
+                "id": "C",
+                "text": "The innovation process of radio technology."
+              },
+              {
+                "id": "D",
+                "text": "The eminent pioneers in radio broadcasting."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-33",
+            "number": "33",
+            "stem": "It is indicated in Paragraph 4 that",
+            "options": [
+              {
+                "id": "A",
+                "text": "the research on radio used to be inadequate."
+              },
+              {
+                "id": "B",
+                "text": "the charm of radio remains in the digital age."
+              },
+              {
+                "id": "C",
+                "text": "radio listeners could make unexpected gains."
+              },
+              {
+                "id": "D",
+                "text": "radio shows have changed little over the years."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-34",
+            "number": "34",
+            "stem": "The expression “talking on the brush handle” in Paragraphs 3 and 6 refers to the act of",
+            "options": [
+              {
+                "id": "A",
+                "text": "making a loud noise."
+              },
+              {
+                "id": "B",
+                "text": "having a casual chat."
+              },
+              {
+                "id": "C",
+                "text": "starting a trivial quarrel."
+              },
+              {
+                "id": "D",
+                "text": "humming a popular song."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-35",
+            "number": "35",
+            "stem": "In the last paragraph, the author intends to express the opinion that",
+            "options": [
+              {
+                "id": "A",
+                "text": "technology should be aimed at benefiting humans."
+              },
+              {
+                "id": "B",
+                "text": "actions should be taken to revive the art of listening."
+              },
+              {
+                "id": "C",
+                "text": "adolescents should form healthy social media habits."
+              },
+              {
+                "id": "D",
+                "text": "people should adopt a sensible attitude to innovations."
+              }
+            ],
+            "correctOptionId": "D"
+          }
+        ],
+        "maxScore": 10,
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D. Mark your answers on the ANSWER SHEET."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The pioneers of wireless saw it as a gift to all the people. Sir John Reith said that it would end “isolation of the spirit” and rejoiced: “It does not matter how many thousands may be listening, there is always enough for others … the genius and the fool, the wealthy and the poor listen simultaneously.”"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Between two great wars this technological innovation built a new kind of national consciousness. Opening this week, a book and exhibition curated by Beatty Rubens at the Bodleian in Oxford records how radio changed everyday life from 1922 to 1939. She draws on letters, diaries and fiction, and a 1939 field notebook of verbatim audience research by Winifred Gill."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "There’s fun in testimonies of people enjoying the sheer newness. A cartoon mocks a group failing to converse because they’re all in headphones. People report that broadcast music made workmen whistle new tunes. A woman says there have been fewer street fights since the arrival of the wireless but also less stopping and “talking on the brush handle”."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "By and large the wireless was welcome. I loved the man from the Thirties research who found that wireless suddenly offered “a lot of variety …things I thought I’d never be interested in …ice hockey perhaps”. True: for more than 80 pre-digital years, linear speech broadcasting brought the gift of serendipity, random enlivening of a car journey or dull manual task. In my own book about radio I recorded how, on one drive: “I caught up with the news, learnt some 17th-century history, and was startlingly educated by an unpretentious programme on the history of the stethoscope.”"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "But radio’s enriching serendipity is ebbing. With multiple networks and countless podcasts, a smartphone user selects what to hear and when. And while it is wonderful to take a walk with anything in your headphones, infinite choice encourages us to shrink into niche interests and sympathetic beliefs."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "A hundred years on from Marconi and Reith, is the art of mere listening endangered? Some will say the audiobook boom revives it, though I suppose you can then worry about the decline of reading. But inventions shape all of us and it is worth noticing when techno-social habits do change, and asking whether to control them a bit or shield the youngest. Whatever we do, innovation will happen. Today we fret about the isolating culture of smartphone-staring and selfie-vanity, but already in 1939 there was that lady regretting how, when all her street got wirelesses, it lost the neighbourly habit of “talking on the brush handle”. It’s enough to make a person put down the smartphone and go out front with a yard broom."
+                }
+              ]
+            }
+          ]
+        },
+        "pointsPerItem": 2,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "extension": {
+        "development": "english-reading-2026-dev"
+      }
+    },
+    {
+      "id": "reading-04",
+      "title": "阅读理解 Text 4（36–40）",
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-36",
+            "label": "36"
+          },
+          {
+            "id": "q-37",
+            "label": "37"
+          },
+          {
+            "id": "q-38",
+            "label": "38"
+          },
+          {
+            "id": "q-39",
+            "label": "39"
+          },
+          {
+            "id": "q-40",
+            "label": "40"
+          }
+        ]
+      },
+      "data": {
+        "parts": [
+          {
+            "id": "q-36",
+            "number": "36",
+            "stem": "According to Paragraph 1, Swetnam was surprised by",
+            "options": [
+              {
+                "id": "A",
+                "text": "the scarcity of tree-ring research in the U.S."
+              },
+              {
+                "id": "B",
+                "text": "the firefighting measures in ancient Europe."
+              },
+              {
+                "id": "C",
+                "text": "the forest management practices in the 1970s."
+              },
+              {
+                "id": "D",
+                "text": "the number of wildfires in precolonial times."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-37",
+            "number": "37",
+            "stem": "Paragraph 2 mainly focuses on",
+            "options": [
+              {
+                "id": "A",
+                "text": "the causes of previous burns."
+              },
+              {
+                "id": "B",
+                "text": "the treatment of diseased trees."
+              },
+              {
+                "id": "C",
+                "text": "the benefits of low-severity fires."
+              },
+              {
+                "id": "D",
+                "text": "the importance of forest ecosystems."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-38",
+            "number": "38",
+            "stem": "What did the study find about the wildfires over the past few decades?",
+            "options": [
+              {
+                "id": "A",
+                "text": "Their intensity has vastly fluctuated."
+              },
+              {
+                "id": "B",
+                "text": "Their frequency has markedly decreased."
+              },
+              {
+                "id": "C",
+                "text": "Their threats have been underestimated."
+              },
+              {
+                "id": "D",
+                "text": "Their records have been misinterpreted."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-39",
+            "number": "39",
+            "stem": "What can be inferred about modern firefighting?",
+            "options": [
+              {
+                "id": "A",
+                "text": "Its workforce needs more training."
+              },
+              {
+                "id": "B",
+                "text": "Its effectiveness is questioned by the public."
+              },
+              {
+                "id": "C",
+                "text": "It may render traditional tactics useless."
+              },
+              {
+                "id": "D",
+                "text": "It may make severe fires harder to put out."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-40",
+            "number": "40",
+            "stem": "Both Martin and Prichard would agree that",
+            "options": [
+              {
+                "id": "A",
+                "text": "it is challenging to predict large wildfires."
+              },
+              {
+                "id": "B",
+                "text": "it is urgent to assess the use of planned fires."
+              },
+              {
+                "id": "C",
+                "text": "it is necessary to introduce prescribed burns."
+              },
+              {
+                "id": "D",
+                "text": "it is rewarding to double fire detection efforts."
+              }
+            ],
+            "correctOptionId": "C"
+          }
+        ],
+        "maxScore": 10,
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D. Mark your answers on the ANSWER SHEET."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "When Tom Swetnam joined the U.S. Forest Service in the 1970s, his mandate was to “put everything out,” he recalled. But when Swetnam enrolled in graduate school at the University of Arizona’s Laboratory of Tree-Ring Research, he was surprised to find a record of repeated blazes dating back hundreds of years before European colonists arrived on the continent. Some of the trees he analyzed bore more than 20 fire scars among their rings."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The fact that fires happened so often meant they couldn’t have been severe enough to kill most trees. Instead, a growing body of research showed that frequent, low-severity fires made many ecosystems healthier. They rid the forest of dead and sick trees, reducing competition and curbing the spread of disease. Because flammable material couldn’t build up on the landscape, blazes tended to move slowly and peter out when they reached the footprints of previous burns."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "In 2022, Swetnam and other scientists teamed up to compile a database of fire-scarred trees from across the continent. Their North American tree-ring fire-scar network (NAFSN) provided the basis for a study published last month. In the study, the researchers compared the historical fire cadence with the wildfires recorded over the past few decades, and uncovered a striking shortfall. The NAFSN sites experienced less than a quarter of the number of fires that would have been expected without fire suppression."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "This deficit is a testament to the effectiveness of modern firefighting, said Kelly Martin, a past president of the International Association of Wildland Fire. “Yet the combined consequences of suppression and climate change have eroded humanity’s ability to suppress fires, particularly those that ignite under the most dangerous weather conditions.”"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "To prevent entire ecosystems from going up in smoke, Martin said, people must bring healthy fire back to the places that need it. At Yosemite National Park, Martin oversaw the use of what are known as prescribed burns to make the landscape more resilient. These fires were carefully planned and intentionally ignited during periods when weather kept the blazes easy to control, and helped eliminate some of the fuel that had built up around important park’s facilities. Research shows that these prescribed burns make subsequent wildfires less severe, even if later fires happen under the most dangerous weather conditions."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Yet even as scientists and public officials increasingly agree on the need for more fires in our forests, climate change is making this tactic more challenging, experts said. “It’s a double-edged sword because wildfires are getting more severe and larger under climate change and we need this work even more, but then the work gets more challenging,” said Susan Prichard, a fire ecologist at the University of Washington."
+                }
+              ]
+            }
+          ]
+        },
+        "pointsPerItem": 2,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "extension": {
+        "development": "english-reading-2026-dev"
+      }
+    },
+    {
+      "id": "paragraph-order-01",
+      "title": "段落排序（41–45）",
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-41",
+            "label": "41"
+          },
+          {
+            "id": "q-42",
+            "label": "42"
+          },
+          {
+            "id": "q-43",
+            "label": "43"
+          },
+          {
+            "id": "q-44",
+            "label": "44"
+          },
+          {
+            "id": "q-45",
+            "label": "45"
+          }
+        ]
+      },
+      "data": {
+        "parts": [
+          {
+            "id": "q-41",
+            "number": "41",
+            "slotId": "slot-2"
+          },
+          {
+            "id": "q-42",
+            "number": "42",
+            "slotId": "slot-3"
+          },
+          {
+            "id": "q-43",
+            "number": "43",
+            "slotId": "slot-5"
+          },
+          {
+            "id": "q-44",
+            "number": "44",
+            "slotId": "slot-7"
+          },
+          {
+            "id": "q-45",
+            "number": "45",
+            "slotId": "slot-8"
+          }
+        ],
+        "maxScore": 10,
+        "paragraphIds": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E",
+          "F",
+          "G",
+          "H"
+        ],
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The following paragraphs are given in a wrong order. For questions 41–45, reorganize them into a coherent text by choosing from A–H. Paragraphs F, H and C have been correctly placed. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "A.",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "And just read a single poem. In his Oxford lectures, Seamus Heaney argued that a poem draws a picture of reality, a “glimpsed alternative” that sets up a contradiction with your own, in ways little and large. The negotiation, between you and it, is the heart of the matter. What does the poet see that you don’t? What does the difference mean? It could be one of the best conversations you ever have. Forget self-help books; reading is self-help in action."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "B.",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "But for the most part, this isn’t what the business community does. I have yet to meet a chief executive who reads regularly. Many skip newspapers, and magazines are a stretch. They don’t have time, they say. It’s inefficient; they can get the information they need from those around them. At a pinch, they might pick up a business book before a long flight, in the hope that, like a cookbook, it will provide a foolproof recipe. Some are drawn to what I think of as “business car crash” books—the stories of Theranos, Purdue, WeWork. But outside those narrow pools of interest, a vast ocean awaits, bountiful with simmering ideas, mental adventure and imaginative refreshment."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "C.",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Neuroscientists have been at pains to demonstrate that the pleasure a book provides isn’t indulgence; it’s good for you. Reading will keep you better informed about the world but it can also improve our tech-shattered ability to concentrate. Standing in the shoes of others fine tunes our social understanding, useful as we struggle to understand friends, neighbours, customers and co-workers. Different parts of our brain engage as we simulate scenes, characters and mental states. Our imagination—remember that?—is rekindled."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "D.",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "It is undoubtedly true that all work and no play really does make Jack, or Jill, dull. The cure is right at hand. Reading is cheap, easy and, most important, it’s fun. Liberate your imagination this year."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "E.",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "We are living through a golden age of science writing, so lucid and accessible that even lay readers can relish the unpredictability of discovery. Daunted by uncertainty? Stand in the shoes of scientists and witness the degree to which breakthroughs emerge from accidents, conflict and sheer mental stamina. “We are never sure of anything,” says the physicist (and writer) Carlo Rovelli."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "F.",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "You don’t need to get out more. If, like most business people, you spend your life dashing from office to plane, train to home, boardroom to washroom, what you really need to do is stay in more, sit down—and read a book."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "G.",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Reading has also been found to make us more helpful, to reduce bias, and even to increase longevity—something we will enjoy all the more if we have a good book in our hands. (And yes, all these benefits are more closely associated with physical books than digital ones.)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "H.",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read fiction. Any fiction. Free yourself from algorithms and choose— anything. You don’t need technology for an immersive experience—just surrender to narratives across time and place. Modern (Sebastian Barry or Olga Tokarczuk), classic (Virginia Woolf or James Baldwin) or genre (Stephen King, Margaret Atwood, Georges Simenon)—it doesn’t matter. Fiction invites you to loiter unseen in the lives of others. We are living through a golden age of translation too, so you can go anywhere in time or place."
+                }
+              ]
+            }
+          ]
+        },
+        "pointsPerItem": 2,
+        "explanation": "",
+        "slots": [
+          {
+            "id": "slot-1",
+            "correctParagraphId": "F",
+            "locked": true
+          },
+          {
+            "id": "slot-2",
+            "correctParagraphId": "B",
+            "locked": false
+          },
+          {
+            "id": "slot-3",
+            "correctParagraphId": "E",
+            "locked": false
+          },
+          {
+            "id": "slot-4",
+            "correctParagraphId": "H",
+            "locked": true
+          },
+          {
+            "id": "slot-5",
+            "correctParagraphId": "A",
+            "locked": false
+          },
+          {
+            "id": "slot-6",
+            "correctParagraphId": "C",
+            "locked": true
+          },
+          {
+            "id": "slot-7",
+            "correctParagraphId": "G",
+            "locked": false
+          },
+          {
+            "id": "slot-8",
+            "correctParagraphId": "D",
+            "locked": false
+          }
+        ]
+      },
+      "extension": {
+        "development": "paragraph-order-2026-dev"
+      }
+    },
+    {
+      "id": "translation-01",
+      "title": "分句翻译（46–50）",
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-46",
+            "label": "46"
+          },
+          {
+            "id": "q-47",
+            "label": "47"
+          },
+          {
+            "id": "q-48",
+            "label": "48"
+          },
+          {
+            "id": "q-49",
+            "label": "49"
+          },
+          {
+            "id": "q-50",
+            "label": "50"
+          }
+        ]
+      },
+      "data": {
+        "parts": [
+          {
+            "id": "q-46",
+            "number": "46",
+            "segment": "Tracing the history of the term, we can see how the definition of scientific literacy has shifted over time, muddying the waters when it comes to determining the goals of science education."
+          },
+          {
+            "id": "q-47",
+            "number": "47",
+            "segment": "A return to that version of scientific literacy, which focused more on teaching what science is and how it works and less on memorizing scientific facts, seems like something society today desperately needs."
+          },
+          {
+            "id": "q-48",
+            "number": "48",
+            "segment": "Educators advanced the idea of having students complete detailed laboratory exercises in high schools in the belief that such work was beneficial primarily as a way to enhance logical reasoning and observational skills."
+          },
+          {
+            "id": "q-49",
+            "number": "49",
+            "segment": "It wasn’t until the phrase “scientific literacy” came along in the 1940s that science had the formidable slogan it needed to command public attention and make improving science education an important national goal."
+          },
+          {
+            "id": "q-50",
+            "number": "50",
+            "segment": "The intense focus on scientific literacy in the United States originally grew out of the critical role of science and technology during World War II, as well as the perceived deficiencies of American soldiers."
+          }
+        ],
+        "maxScore": 10,
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text carefully and translate the underlined segments into Chinese. Write your answers on the ANSWER SHEET. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Science education today revolves around the idea of scientific literacy—the base-level knowledge about science that nonscientists require to effectively get on in the world. This concept has served as a central goal for curriculum developers, local school boards, business and community leaders, and policymakers ever since its introduction nearly 80 years ago."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "(46) "
+                },
+                {
+                  "type": "text",
+                  "text": "Tracing the history of the term, we can see how the definition of scientific literacy has shifted over time, muddying the waters when it comes to determining the goals of science education.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " And that’s a shame, because there is much to recommend in the idea of scientific literacy as it was originally articulated in 1945, a time when science appeared to be the key to progress and scientists seemingly held the fate of the world in their hands. (47) "
+                },
+                {
+                  "type": "text",
+                  "text": "A return to that version of scientific literacy, which focused more on teaching what science is and how it works and less on memorizing scientific facts, seems like something society today desperately needs.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "In the United States, the desire to provide the public with a general, nontechnical education in science originated as far back as the late 1800s. (48) "
+                },
+                {
+                  "type": "text",
+                  "text": "Educators advanced the idea of having students complete detailed laboratory exercises in high schools in the belief that such work was beneficial primarily as a way to enhance logical reasoning and observational skills.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " The development in 1915 of the popular new subject “general science” was another effort to train students to apply the principles of science to everyday, nonscience problems."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Although these efforts were aimed at the nonscience-bound student, they never really made their way into mainstream thought and public discourse as a means to rally widespread support for the importance of science teaching in schools. (49) "
+                },
+                {
+                  "type": "text",
+                  "text": "It wasn’t until the phrase “scientific literacy” came along in the 1940s that science had the formidable slogan it needed to command public attention and make improving science education an important national goal.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "(50) "
+                },
+                {
+                  "type": "text",
+                  "text": "The intense focus on scientific literacy in the United States originally grew out of the critical role of science and technology during World War II, as well as the perceived deficiencies of American soldiers.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " As the war unfolded, science rapidly assumed a central role. Battles increasingly depended on new military technologies such as radar and the proximity fuze. Science-based analytical approaches proved remarkably successful in the hunt for German submarines in the Atlantic Ocean. And there was the (then-secret) work building the world’s first atomic bomb. As a result, scientists—physicists in particular— found themselves in high demand."
+                }
+              ]
+            }
+          ]
+        },
+        "assessment": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "46. 参考译文：",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "追溯这一术语的历史，我们可以看到科学素养的定义如何随时间推移而演变，这使得在确定科学教育的目标时，情况变得模糊不清。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "评分说明："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "47. 参考译文：",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "回归到那个版本的科学素养理念——它更侧重于教授科学的本质与运作方式，而非记忆科学事实——似乎正是当今社会所亟需的。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "评分说明："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "48. 参考译文：",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "教育家们提出了让学生在高中阶段完成详细实验训练的主张，他们认为这类训练的主要益处在于能提升逻辑推理和观察能力。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "评分说明："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "49. 参考译文：",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "直到20世纪40年代“科学素养”这一说法出现，科学才拥有了一个极具号召力的口号，得以赢得公众关注，并将改善科学教育确立为一项重要的国家目标。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "评分说明："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "50. 参考译文：",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "美国对科学素养的高度关注，最初源于科学技术在二战期间发挥的关键作用，以及当时所意识到的美国士兵的素质不足。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "评分说明："
+                }
+              ]
+            }
+          ]
+        },
+        "pointsPerItem": 2
+      },
+      "extension": {
+        "development": "segment-translation-2026-dev"
+      }
+    },
+    {
+      "id": "writing-51",
+      "title": "2026英语（一）邮件写作",
+      "outline": {
+        "level": "question",
+        "label": "51"
+      },
+      "data": {
+        "formatVersion": 1,
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "51. Read the following email from your friend Paul and write him a reply."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Hi Li Ming,"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "I was really moved by the Chinese families’ handwritten letters you posted yesterday. They are priceless! Could you please tell me a bit more about them? And are they currently on pubic display somewhere? I’m very keen to see them in person. Thanks."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Yours,\nPaul"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "You should write about 100 words on the ANSWER SHEET."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Do not use your own name in your email; use “Li Ming” instead. (10 points)"
+                }
+              ]
+            }
+          ]
+        },
+        "referenceAnswer": null,
+        "rubric": null,
+        "wordCount": {
+          "target": 100
+        },
+        "maxScore": 10
+      },
+      "extension": {
+        "development": "english-writing-2026-dev"
+      }
+    },
+    {
+      "id": "writing-52",
+      "title": "2026英语（一）图表作文",
+      "outline": {
+        "level": "question",
+        "label": "52"
+      },
+      "data": {
+        "formatVersion": 1,
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "52. Write an essay based on the charts below. In your essay, you should"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "1) describe the charts briefly,\n2) interpret the charts, and\n3) give your comments."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Write your answer in 160–200 words on the ANSWER SHEET. (20 points)"
+                }
+              ]
+            },
+            {
+              "type": "image",
+              "attrs": {
+                "assetId": "c32008154fc07be1300886e28e9048d75abea565377975a67aeee163fb365399",
+                "alt": "养老机器人消费者接受度与首要关注点调查：完全接受39.3%，部分接受32.8%，不接受27.9%；安全46.3%，价格24.9%，便利10.7%。",
+                "width": 600,
+                "align": "center"
+              }
+            }
+          ]
+        },
+        "referenceAnswer": null,
+        "rubric": null,
+        "wordCount": {
+          "min": 160,
+          "max": 200
+        },
+        "maxScore": 20
+      },
+      "extension": {
+        "development": "english-writing-2026-dev"
+      }
+    }
+  ]
+}

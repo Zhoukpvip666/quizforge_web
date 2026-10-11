@@ -30,7 +30,10 @@ class NetworkSettingsTest {
     void start(String host, String token) throws Exception { server = new QuizForgeServer(root, host, 0, token, "node"); server.start(); }
     int freePort() throws Exception { try (ServerSocket socket = new ServerSocket(0, 8, InetAddress.getByName("0.0.0.0"))) { return socket.getLocalPort(); } }
     Reply request(int port, String method, String path, JsonNode data, String token, String origin) throws Exception {
-        HttpRequest.Builder request = HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + port + path)).timeout(Duration.ofSeconds(10));
+        return addressRequest("127.0.0.1", port, method, path, data, token, origin);
+    }
+    Reply addressRequest(String host, int port, String method, String path, JsonNode data, String token, String origin) throws Exception {
+        HttpRequest.Builder request = HttpRequest.newBuilder(URI.create(NetworkAddresses.url(host, port) + path.substring(1))).timeout(Duration.ofSeconds(10));
         if (token != null) request.header("X-QuizForge-Token", token);
         if (origin != null) request.header("Origin", origin);
         if (data != null) request.header("Content-Type", "application/json");
@@ -74,6 +77,9 @@ class NetworkSettingsTest {
         assertEquals(403, publicRequest(port, "GET", SETTINGS, null, session, authority, null, forwarding).status());
         for (String path : new String[]{SETTINGS, "/api/settings/ai", "/api/settings/development"})
             assertEquals(403, publicRequest(port, "PUT", path, Json.object(), session, authority, origin, forwarding).status(), path);
+        assertEquals(403, publicRequest(port, "GET", "/api/settings/ai/credential", null, session, authority, null, forwarding).status());
+        assertEquals(403, publicRequest(port, "POST", "/api/settings/ai/test", Json.object(), session, authority, origin, forwarding).status());
+        assertEquals(200, local("GET", "/api/settings/ai/credential", null).status());
         assertEquals(403, request(port, "GET", "/api/health", null, session, null).status()); // LAN is independently disabled.
         assertEquals(403, publicRequest(server.port(), "GET", "/api/health", null, null, authority, null, null).status());
         assertEquals(403, publicRequest(server.port(), "GET", SETTINGS, null, null, "127.0.0.1:" + server.port(), null, forwarding).status());
@@ -195,5 +201,51 @@ class NetworkSettingsTest {
         assertEquals(401, request(server.port(), "GET", "/api/health", null, null, null).status()); assertEquals(200, request(server.port(), "GET", "/api/health", null, legacyToken, null).status());
         Reply status = request(server.port(), "GET", SETTINGS, null, legacyToken, null); assertEquals(200, status.status()); assertFalse(status.body().path("canManage").asBoolean());
         assertEquals(403, request(server.port(), "PUT", SETTINGS, settings(true, freePort(), PASSWORD), legacyToken, "http://127.0.0.1:" + server.port()).status());
+    }
+
+    @Test void ipv6AndIpv4ShareAuthenticationAndRemoteAdminRestrictions() throws Exception {
+        org.junit.jupiter.api.Assumptions.assumeTrue(NetworkAddresses.ipv6Available(), "OS has no IPv6 loopback");
+        start("127.0.0.1", null); int port = freePort();
+        assertEquals(200, local("PUT", SETTINGS, settings(true, port, PASSWORD)).status());
+        assertTrue(local("GET", SETTINGS, null).body().path("ipv6Supported").asBoolean());
+        assertEquals(401, addressRequest("::1", port, "GET", "/api/health", null, null, null).status());
+        Reply signedIn = addressRequest("::1", port, "POST", LOGIN, Json.object().put("password", PASSWORD), null, "http://[0:0:0:0:0:0:0:1]:" + port);
+        assertEquals(200, signedIn.status()); String session = signedIn.body().path("token").asText();
+        assertEquals(200, addressRequest("::1", port, "GET", "/api/health", null, session, null).status());
+        assertEquals(200, request(port, "GET", "/api/health", null, session, null).status());
+        assertEquals(403, addressRequest("::1", port, "GET", SETTINGS, null, session, null).status());
+        for (String path : new String[]{SETTINGS, "/api/settings/ai", "/api/settings/development"}) {
+            assertEquals(403, addressRequest("::1", port, "PUT", path, Json.object(), session, "http://[::1]:" + port).status());
+        }
+        for (String path : new String[]{"/api/settings/ai", "/api/settings/development"}) {
+            Reply readOnly = addressRequest("::1", port, "GET", path, null, session, null);
+            assertEquals(200, readOnly.status()); assertFalse(readOnly.body().path("canManage").asBoolean());
+        }
+        assertEquals(403, addressRequest("::1", port, "GET", "/api/settings/ai/credential", null, session, null).status());
+        assertEquals(403, addressRequest("::1", port, "POST", LOGIN, Json.object().put("password", PASSWORD), null, "http://[::2]:" + port).status());
+        assertEquals(200, local("PUT", SETTINGS, settings(false, port, null)).status());
+        assertFalse(local("GET", SETTINGS, null).body().path("enabled").asBoolean());
+    }
+
+    @Test void publicIpv6AuthorityAndOriginAcceptEquivalentLiteralsOnly() throws Exception {
+        start("127.0.0.1", null); int port = freePort();
+        String url = "http://[2001:db8::1234]:" + port + "/";
+        assertEquals(200, local("PUT", SETTINGS, publicSettings(false, true, port, url, PASSWORD)).status());
+        String host = "[2001:0db8:0:0:0:0:0:1234]:" + port;
+        Reply signedIn = publicRequest(port, "POST", LOGIN, Json.object().put("password", PASSWORD), null, host, url.substring(0, url.length() - 1), null);
+        assertEquals(200, signedIn.status()); String session = signedIn.body().path("token").asText();
+        assertEquals(200, publicRequest(port, "GET", "/api/health", null, session, host, null, null).status());
+        assertEquals(403, publicRequest(port, "GET", SETTINGS, null, session, host, null, null).status());
+        assertEquals(403, publicRequest(port, "GET", "/api/health", null, session, "[2001:db8::1235]:" + port, null, null).status());
+        assertEquals(403, publicRequest(port, "POST", LOGIN, Json.object().put("password", PASSWORD), null, host, "http://[2001:db8::1235]:" + port, null).status());
+        assertEquals(403, request(port, "GET", "/api/health", null, session, null).status()); // LAN remains off.
+    }
+
+    @Test void ipv6LocalAdministratorUsesOnlyTheMainLoopbackListener() throws Exception {
+        org.junit.jupiter.api.Assumptions.assumeTrue(NetworkAddresses.ipv6Available(), "OS has no IPv6 loopback");
+        start("::1", null);
+        Reply status = addressRequest("::1", server.port(), "GET", SETTINGS, null, null, null);
+        assertEquals(200, status.status()); assertTrue(status.body().path("canManage").asBoolean());
+        assertEquals(200, addressRequest("::1", server.port(), "PUT", SETTINGS, settings(false, freePort(), null), null, "http://[::1]:" + server.port()).status());
     }
 }

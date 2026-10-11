@@ -1,3 +1,4 @@
+import {installFrameCapture} from '../web/frame-capture.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -14,7 +15,7 @@ function childFixture(mode='practice',minor=1){
   const listeners=new Map(),sent=[],timers=new Map();let timerId=0;
   const parent={postMessage:message=>sent.push(structuredClone(message))},context={mode,question:{id:'parent-question'},capabilities:{canSave:mode==='practice',canEdit:mode==='edit'}};
   const boot={session:'outline-child',context,api:resolveExtensionApi({major:1,minor}).api};
-  const sandbox={parent,Promise,structuredClone,document:{body:{scrollHeight:100},documentElement:{}},ResizeObserver:class{observe(){}disconnect(){}},setTimeout(callback){const id=++timerId;timers.set(id,callback);return id;},clearTimeout:id=>timers.delete(id),addEventListener:(name,callback)=>listeners.set(name,callback)};
+  const sandbox={parent,Promise,structuredClone,installFrameCapture,document:{body:{scrollHeight:100},documentElement:{}},ResizeObserver:class{observe(){}disconnect(){}},setTimeout(callback){const id=++timerId;timers.set(id,callback);return id;},clearTimeout:id=>timers.delete(id),addEventListener:(name,callback)=>listeners.set(name,callback)};
   vm.runInNewContext(`(${bootstrapV1.toString()})(${JSON.stringify(boot)});`,sandbox);
   const receive=(value,{source=parent,session=boot.session}={})=>listeners.get('message')({source,data:{...value,channel:'quizforge-host',session}});
   return {QF:sandbox.QF,sent,timers,receive,context};
@@ -23,7 +24,7 @@ function childFixture(mode='practice',minor=1){
 function hostFixture(minor=1){
   const listeners=new Map(),sent=[],timers=new Map();let id=0,timerId=0;
   const frame={style:{},contentWindow:{postMessage:value=>sent.push(structuredClone(value))},setAttribute(){},remove(){this.removed=true;}};
-  const sandbox={Promise,resolveExtensionApi,validateContentApi,makeRequestId:()=>`outline-host-${++id}`,document:{createElement:()=>frame},window:{addEventListener:(name,callback)=>listeners.set(name,callback),removeEventListener:name=>listeners.delete(name)},setTimeout(callback){const key=++timerId;timers.set(key,callback);return key;},clearTimeout:key=>timers.delete(key)};
+  const sandbox={Promise,installFrameCapture,resolveExtensionApi,validateContentApi,makeRequestId:()=>`outline-host-${++id}`,document:{createElement:()=>frame},window:{addEventListener:(name,callback)=>listeners.set(name,callback),removeEventListener:name=>listeners.delete(name)},setTimeout(callback){const key=++timerId;timers.set(key,callback);return key;},clearTimeout:key=>timers.delete(key)};
   vm.runInNewContext(`${frameSource}\nglobalThis.mount=mountExtension;`,sandbox);
   const mounted=sandbox.mount({append(){}},{html:'',script:'',style:'',apiVersion:{major:1,minor}},{mode:'history',question:{id:'parent-question'},capabilities:{canSave:false}},{onRequest(){throw new Error('Navigation must not use save requests.');},onError(){}});
   mounted.ready.catch(()=>{});

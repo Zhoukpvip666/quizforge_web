@@ -1,0 +1,2289 @@
+{
+  "formatVersion": 1,
+  "id": "kaoyan-english1-2012",
+  "title": "2012年考研英语（一）真题",
+  "description": "依据原卷及附录参考答案制作；作文范文与评分细则留空。",
+  "features": {
+    "editing": true,
+    "whiteboard": true,
+    "history": true,
+    "exam": true
+  },
+  "questions": [
+    {
+      "id": "cloze-01",
+      "title": "完形填空（1–20）",
+      "extension": {
+        "development": "english-cloze-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Choose the best word(s) for each numbered blank and mark A, B, C or D on ANSWER SHEET 1. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The ethical judgments of the Supreme Court justices have become an important issue recently. The court cannot [[1]] its legitimacy as guardian of the rule of law [[2]] justices behave like politicians. Yet, in several instances, justices acted in ways that [[3]] the court’s reputation for being independent and impartial."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Justice Antonin Scalia, for example, appeared at political events. That kind of activity makes it less likely that the court’s decisions will be [[4]] as impartial judgments. Part of the problem is that the justices are not [[5]] by an ethics code. At the very least, the court should make itself [[6]] to the code of conduct that [[7]] to the rest of the federal judiciary."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "This and other similar cases [[8]] the question of whether there is still a [[9]] between the court and politics."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The framers of the Constitution envisioned law [[10]] having authority apart from politics. They gave justices permanent positions [[11]] they would be free to [[12]] those in power and have no need to [[13]] political support. Our legal system was designed to set law apart from politics precisely because they are so closely [[14]] ."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Constitutional law is political because it results from choices rooted in fundamental social [[15]] like liberty and property. When the court deals with social policy decisions, the law it [[16]] is inescapably political—which is why decisions split along ideological lines are so easily [[17]] as unjust."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The justices must [[18]] doubts about the court’s legitimacy by making themselves [[19]] to the code of conduct. That would make rulings more likely to be seen as separate from politics and, [[20]] , convincing as law."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-1",
+            "number": "1",
+            "options": [
+              {
+                "id": "A",
+                "text": "emphasize"
+              },
+              {
+                "id": "B",
+                "text": "maintain"
+              },
+              {
+                "id": "C",
+                "text": "modify"
+              },
+              {
+                "id": "D",
+                "text": "recognize"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-2",
+            "number": "2",
+            "options": [
+              {
+                "id": "A",
+                "text": "when"
+              },
+              {
+                "id": "B",
+                "text": "lest"
+              },
+              {
+                "id": "C",
+                "text": "before"
+              },
+              {
+                "id": "D",
+                "text": "unless"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-3",
+            "number": "3",
+            "options": [
+              {
+                "id": "A",
+                "text": "restored"
+              },
+              {
+                "id": "B",
+                "text": "weakened"
+              },
+              {
+                "id": "C",
+                "text": "established"
+              },
+              {
+                "id": "D",
+                "text": "eliminated"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-4",
+            "number": "4",
+            "options": [
+              {
+                "id": "A",
+                "text": "challenged"
+              },
+              {
+                "id": "B",
+                "text": "compromised"
+              },
+              {
+                "id": "C",
+                "text": "suspected"
+              },
+              {
+                "id": "D",
+                "text": "accepted"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-5",
+            "number": "5",
+            "options": [
+              {
+                "id": "A",
+                "text": "advanced"
+              },
+              {
+                "id": "B",
+                "text": "caught"
+              },
+              {
+                "id": "C",
+                "text": "bound"
+              },
+              {
+                "id": "D",
+                "text": "founded"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-6",
+            "number": "6",
+            "options": [
+              {
+                "id": "A",
+                "text": "resistant"
+              },
+              {
+                "id": "B",
+                "text": "subject"
+              },
+              {
+                "id": "C",
+                "text": "immune"
+              },
+              {
+                "id": "D",
+                "text": "prone"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-7",
+            "number": "7",
+            "options": [
+              {
+                "id": "A",
+                "text": "resorts"
+              },
+              {
+                "id": "B",
+                "text": "sticks"
+              },
+              {
+                "id": "C",
+                "text": "leads"
+              },
+              {
+                "id": "D",
+                "text": "applies"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-8",
+            "number": "8",
+            "options": [
+              {
+                "id": "A",
+                "text": "evade"
+              },
+              {
+                "id": "B",
+                "text": "raise"
+              },
+              {
+                "id": "C",
+                "text": "deny"
+              },
+              {
+                "id": "D",
+                "text": "settle"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-9",
+            "number": "9",
+            "options": [
+              {
+                "id": "A",
+                "text": "line"
+              },
+              {
+                "id": "B",
+                "text": "barrier"
+              },
+              {
+                "id": "C",
+                "text": "similarity"
+              },
+              {
+                "id": "D",
+                "text": "conflict"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-10",
+            "number": "10",
+            "options": [
+              {
+                "id": "A",
+                "text": "by"
+              },
+              {
+                "id": "B",
+                "text": "as"
+              },
+              {
+                "id": "C",
+                "text": "through"
+              },
+              {
+                "id": "D",
+                "text": "towards"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-11",
+            "number": "11",
+            "options": [
+              {
+                "id": "A",
+                "text": "so"
+              },
+              {
+                "id": "B",
+                "text": "since"
+              },
+              {
+                "id": "C",
+                "text": "provided"
+              },
+              {
+                "id": "D",
+                "text": "though"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-12",
+            "number": "12",
+            "options": [
+              {
+                "id": "A",
+                "text": "serve"
+              },
+              {
+                "id": "B",
+                "text": "satisfy"
+              },
+              {
+                "id": "C",
+                "text": "upset"
+              },
+              {
+                "id": "D",
+                "text": "replace"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-13",
+            "number": "13",
+            "options": [
+              {
+                "id": "A",
+                "text": "confirm"
+              },
+              {
+                "id": "B",
+                "text": "express"
+              },
+              {
+                "id": "C",
+                "text": "cultivate"
+              },
+              {
+                "id": "D",
+                "text": "offer"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-14",
+            "number": "14",
+            "options": [
+              {
+                "id": "A",
+                "text": "guarded"
+              },
+              {
+                "id": "B",
+                "text": "followed"
+              },
+              {
+                "id": "C",
+                "text": "studied"
+              },
+              {
+                "id": "D",
+                "text": "tied"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-15",
+            "number": "15",
+            "options": [
+              {
+                "id": "A",
+                "text": "concepts"
+              },
+              {
+                "id": "B",
+                "text": "theories"
+              },
+              {
+                "id": "C",
+                "text": "divisions"
+              },
+              {
+                "id": "D",
+                "text": "conventions"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-16",
+            "number": "16",
+            "options": [
+              {
+                "id": "A",
+                "text": "excludes"
+              },
+              {
+                "id": "B",
+                "text": "questions"
+              },
+              {
+                "id": "C",
+                "text": "shapes"
+              },
+              {
+                "id": "D",
+                "text": "controls"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-17",
+            "number": "17",
+            "options": [
+              {
+                "id": "A",
+                "text": "dismissed"
+              },
+              {
+                "id": "B",
+                "text": "released"
+              },
+              {
+                "id": "C",
+                "text": "ranked"
+              },
+              {
+                "id": "D",
+                "text": "distorted"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-18",
+            "number": "18",
+            "options": [
+              {
+                "id": "A",
+                "text": "suppress"
+              },
+              {
+                "id": "B",
+                "text": "exploit"
+              },
+              {
+                "id": "C",
+                "text": "address"
+              },
+              {
+                "id": "D",
+                "text": "ignore"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-19",
+            "number": "19",
+            "options": [
+              {
+                "id": "A",
+                "text": "accessible"
+              },
+              {
+                "id": "B",
+                "text": "amiable"
+              },
+              {
+                "id": "C",
+                "text": "agreeable"
+              },
+              {
+                "id": "D",
+                "text": "accountable"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-20",
+            "number": "20",
+            "options": [
+              {
+                "id": "A",
+                "text": "by all means"
+              },
+              {
+                "id": "B",
+                "text": "at all costs"
+              },
+              {
+                "id": "C",
+                "text": "in a word"
+              },
+              {
+                "id": "D",
+                "text": "as a result"
+              }
+            ],
+            "correctOptionId": "D"
+          }
+        ],
+        "pointsPerItem": 0.5,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-1",
+            "label": "1"
+          },
+          {
+            "id": "q-2",
+            "label": "2"
+          },
+          {
+            "id": "q-3",
+            "label": "3"
+          },
+          {
+            "id": "q-4",
+            "label": "4"
+          },
+          {
+            "id": "q-5",
+            "label": "5"
+          },
+          {
+            "id": "q-6",
+            "label": "6"
+          },
+          {
+            "id": "q-7",
+            "label": "7"
+          },
+          {
+            "id": "q-8",
+            "label": "8"
+          },
+          {
+            "id": "q-9",
+            "label": "9"
+          },
+          {
+            "id": "q-10",
+            "label": "10"
+          },
+          {
+            "id": "q-11",
+            "label": "11"
+          },
+          {
+            "id": "q-12",
+            "label": "12"
+          },
+          {
+            "id": "q-13",
+            "label": "13"
+          },
+          {
+            "id": "q-14",
+            "label": "14"
+          },
+          {
+            "id": "q-15",
+            "label": "15"
+          },
+          {
+            "id": "q-16",
+            "label": "16"
+          },
+          {
+            "id": "q-17",
+            "label": "17"
+          },
+          {
+            "id": "q-18",
+            "label": "18"
+          },
+          {
+            "id": "q-19",
+            "label": "19"
+          },
+          {
+            "id": "q-20",
+            "label": "20"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-01",
+      "title": "阅读理解 Text 1（21–25）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Come on—Everybody’s doing it. That whispered message, half invitation and half forcing, is what most of us think of when we hear the words peer pressure. It usually leads to no good—drinking, drugs and casual sex. But in her new book Join the Club, Tina Rosenberg contends that peer pressure can also be a positive force through what she calls the social cure, in which organizations and officials use the power of group dynamics to help individuals improve their lives and possibly the world."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Rosenberg, the recipient of a Pulitzer Prize, offers a host of examples of the social cure in action: In South Carolina, a state-sponsored antismoking program called Rage Against the Haze sets out to make cigarettes uncool. In South Africa, an HIV-prevention initiative known as loveLife recruits young people to promote safe sex among their peers."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The idea seems promising, and Rosenberg is a perceptive observer. Her critique of the lameness of many public-health campaigns is spot-on: they fail to mobilize peer pressure for healthy habits, and they demonstrate a seriously flawed understanding of psychology. “Dare to be different, please don’t smoke!” pleads one billboard campaign aimed at reducing smoking among teenagers—teenagers, who desire nothing more than fitting in. Rosenberg argues convincingly that public-health advocates ought to take a page from advertisers, so skilled at applying peer pressure."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "But on the general effectiveness of the social cure, Rosenberg is less persuasive. Join the Club is filled with too much irrelevant detail and not enough exploration of the social and biological factors that make peer pressure so powerful. The most glaring flaw of the social cure as it’s presented here is that it doesn’t work very well for very long. Rage Against the Haze failed once state funding was cut. Evidence that the loveLife program produces lasting changes is limited and mixed."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "There’s no doubt that our peer groups exert enormous influence on our behavior. An emerging body of research shows that positive health habits—as well as negative ones—spread through networks of friends via social communication. This is a subtle form of peer pressure: we unconsciously imitate the behavior we see every day."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Far less certain, however, is how successfully experts and bureaucrats can select our peer groups and steer their activities in virtuous directions. It’s like the teacher who breaks up the troublemakers in the back row by pairing them with better- behaved classmates. The tactic never really works. And that’s the problem with a social cure engineered from the outside: in the real world, as in school, we insist on choosing our own friends."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-21",
+            "number": "21",
+            "stem": "According to the first paragraph, peer pressure often emerges as",
+            "options": [
+              {
+                "id": "A",
+                "text": "a supplement to the social cure."
+              },
+              {
+                "id": "B",
+                "text": "a stimulus to group dynamics."
+              },
+              {
+                "id": "C",
+                "text": "an obstacle to social progress."
+              },
+              {
+                "id": "D",
+                "text": "a cause of undesirable behaviors."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-22",
+            "number": "22",
+            "stem": "Rosenberg holds that public-health advocates should",
+            "options": [
+              {
+                "id": "A",
+                "text": "recruit professional advertisers."
+              },
+              {
+                "id": "B",
+                "text": "learn from advertisers’ experience."
+              },
+              {
+                "id": "C",
+                "text": "stay away from commercial advertisers."
+              },
+              {
+                "id": "D",
+                "text": "recognize the limitations of advertisements."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-23",
+            "number": "23",
+            "stem": "In the author’s view, Rosenberg’s book fails to",
+            "options": [
+              {
+                "id": "A",
+                "text": "adequately probe social and biological factors."
+              },
+              {
+                "id": "B",
+                "text": "effectively evade the flaws of the social cure."
+              },
+              {
+                "id": "C",
+                "text": "illustrate the functions of state funding."
+              },
+              {
+                "id": "D",
+                "text": "produce a long-lasting social effect."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-24",
+            "number": "24",
+            "stem": "Paragraph 5 shows that our imitation of behaviors",
+            "options": [
+              {
+                "id": "A",
+                "text": "is harmful to our networks of friends."
+              },
+              {
+                "id": "B",
+                "text": "will mislead behavioral studies."
+              },
+              {
+                "id": "C",
+                "text": "occurs without our realizing it."
+              },
+              {
+                "id": "D",
+                "text": "can produce negative health habits."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-25",
+            "number": "25",
+            "stem": "The author suggests in the last paragraph that the effect of peer pressure is.",
+            "options": [
+              {
+                "id": "A",
+                "text": "harmful."
+              },
+              {
+                "id": "B",
+                "text": "desirable."
+              },
+              {
+                "id": "C",
+                "text": "profound."
+              },
+              {
+                "id": "D",
+                "text": "questionable."
+              }
+            ],
+            "correctOptionId": "D"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-21",
+            "label": "21"
+          },
+          {
+            "id": "q-22",
+            "label": "22"
+          },
+          {
+            "id": "q-23",
+            "label": "23"
+          },
+          {
+            "id": "q-24",
+            "label": "24"
+          },
+          {
+            "id": "q-25",
+            "label": "25"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-02",
+      "title": "阅读理解 Text 2（26–30）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "A deal is a deal—except, apparently, when Entergy is involved. The company, a major energy supplier in New England, provoked justified outrage in Vermont last week when it announced it was reneging on a longstanding commitment to abide by the state’s strict nuclear regulations."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Instead, the company has done precisely what it had long promised it would not: challenge the constitutionality of Vermont’s rules in the federal court, as part of a desperate effort to keep its Vermont Yankee nuclear power plant running. It’s a stunning move."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The conflict has been surfacing since 2002, when the corporation bought Vermont’s only nuclear power plant, an aging reactor in Vernon. As a condition of receiving state approval for the sale, the company agreed to seek permission from state regulators to operate past 2012. In 2006, the state went a step further, requiring that any extension of the plant’s license be subject to Vermont legislature’s approval. Then, too, the company went along."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Either Entergy never really intended to live by those commitments, or it simply didn’t foresee what would happen next. A string of accidents, including the partial collapse of a cooling tower in 2007 and the discovery of an underground pipe system leakage, raised serious questions about both Vermont Yankee’s safety and Entergy’s management—especially after the company made misleading statements about the pipe. Enraged by Entergy’s behavior, the Vermont Senate voted 26 to 4 last year against allowing an extension."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Now the company is suddenly claiming that the 2002 agreement is invalid because of the 2006 legislation, and that only the federal government has regulatory power over nuclear issues. The legal issues in the case are obscure: whereas the Supreme Court has ruled that states do have some regulatory authority over nuclear power, legal scholars say the Vermont case will offer a precedent-setting test of how far those powers extend. Certainly, there are valid concerns about the patchwork regulations that could result if every state sets its own rules. But had Entergy kept its word, that debate would be beside the point."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The company seems to have concluded that its reputation in Vermont is already so damaged that it has nothing left to lose by going to war with the state. But there should be consequences. Permission to run a nuclear plant is a public trust. Entergy runs 11 other reactors in the United States, including Pilgrim Nuclear station in Plymouth. Pledging to run Pilgrim safely, the company has applied for federal permission to keep it open for another 20 years. But as the Nuclear Regulatory Commission (NRC) reviews the company’s application, it should keep in mind what promises from Entergy are worth."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-26",
+            "number": "26",
+            "stem": "The phrase “reneging on” (Line 3, Para. 1) is closest in meaning to",
+            "options": [
+              {
+                "id": "A",
+                "text": "condemning."
+              },
+              {
+                "id": "B",
+                "text": "reaffirming."
+              },
+              {
+                "id": "C",
+                "text": "dishonoring."
+              },
+              {
+                "id": "D",
+                "text": "securing."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-27",
+            "number": "27",
+            "stem": "By entering into the 2002 agreement, Entergy intended to",
+            "options": [
+              {
+                "id": "A",
+                "text": "obtain protection from Vermont regulators."
+              },
+              {
+                "id": "B",
+                "text": "seek favor from the federal legislature."
+              },
+              {
+                "id": "C",
+                "text": "acquire an extension of its business license."
+              },
+              {
+                "id": "D",
+                "text": "get permission to purchase a power plant."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-28",
+            "number": "28",
+            "stem": "According to Paragraph 4, Entergy seems to have problems with its",
+            "options": [
+              {
+                "id": "A",
+                "text": "managerial practices."
+              },
+              {
+                "id": "B",
+                "text": "technical innovativeness."
+              },
+              {
+                "id": "C",
+                "text": "financial goals."
+              },
+              {
+                "id": "D",
+                "text": "business vision."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-29",
+            "number": "29",
+            "stem": "In the author’s view, the Vermont case will test",
+            "options": [
+              {
+                "id": "A",
+                "text": "Entergy’s capacity to fulfill all its promises."
+              },
+              {
+                "id": "B",
+                "text": "the nature of states’ patchwork regulations."
+              },
+              {
+                "id": "C",
+                "text": "the federal authority over nuclear issues."
+              },
+              {
+                "id": "D",
+                "text": "the limits of states’ power over nuclear issues."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-30",
+            "number": "30",
+            "stem": "It can be inferred from the last paragraph that",
+            "options": [
+              {
+                "id": "A",
+                "text": "Entergy’s business elsewhere might be affected."
+              },
+              {
+                "id": "B",
+                "text": "the authority of the NRC will be defied."
+              },
+              {
+                "id": "C",
+                "text": "Entergy will withdraw its Plymouth application."
+              },
+              {
+                "id": "D",
+                "text": "Vermont’s reputation might be damaged."
+              }
+            ],
+            "correctOptionId": "A"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-26",
+            "label": "26"
+          },
+          {
+            "id": "q-27",
+            "label": "27"
+          },
+          {
+            "id": "q-28",
+            "label": "28"
+          },
+          {
+            "id": "q-29",
+            "label": "29"
+          },
+          {
+            "id": "q-30",
+            "label": "30"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-03",
+      "title": "阅读理解 Text 3（31–35）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "In the idealized version of how science is done, facts about the world are waiting to be observed and collected by objective researchers who use the scientific method to carry out their work. But in the everyday practice of science, discovery frequently follows an ambiguous and complicated route. We aim to be objective, but we cannot escape the context of our unique life experiences. Prior knowledge and interests influence what we experience, what we think our experiences mean, and the subsequent actions we take. Opportunities for misinterpretation, error, and self- deception abound."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Consequently, discovery claims should be thought of as protoscience. Similar to newly staked mining claims, they are full of potential. But it takes collective scrutiny and acceptance to transform a discovery claim into a mature discovery. This is the credibility process, through which the individual researcher’s me, here, now becomes the community’s anyone, anywhere, anytime. Objective knowledge is the goal, not the starting point."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Once a discovery claim becomes public, the discoverer receives intellectual credit. But, unlike with mining claims, the community takes control of what happens next. Within the complex social structure of the scientific community, researchers make discoveries; editors and reviewers act as gatekeepers by controlling the publication process; other scientists use the new finding to suit their own purposes; and finally, the public (including other scientists) receives the new discovery and possibly accompanying technology. As a discovery claim works its way through the community, the interaction and confrontation between shared and competing beliefs about the science and the technology involved transforms an individual’s discovery claim into the community’s credible discovery."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Two paradoxes exist throughout this credibility process. First, scientific work tends to focus on some aspect of prevailing knowledge that is viewed as incomplete or incorrect. Little reward accompanies duplication and confirmation of what is already known and believed. The goal is new-search, not re-search. Not surprisingly, newly published discovery claims and credible discoveries that appear to be important and convincing will always be open to challenge and potential modification or refutation by future researchers. Second, novelty itself frequently provokes disbelief. Nobel Laureate and physiologist Albert Szent-Györgyi once described discovery as “seeing what everybody has seen and thinking what nobody has thought.” But thinking what nobody else has thought and telling others what they have missed may not change their views. Sometimes years are required for truly novel discovery claims to be accepted and appreciated."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "In the end, credibility “happens” to a discovery claim—a process that corresponds to what philosopher Annette Baier has described as the commons of the mind. “We reason together, challenge, revise, and complete each other’s reasoning and each other’s conceptions of reason.”"
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-31",
+            "number": "31",
+            "stem": "According to the first paragraph, the process of discovery is characterized by its",
+            "options": [
+              {
+                "id": "A",
+                "text": "uncertainty and complexity."
+              },
+              {
+                "id": "B",
+                "text": "misconception and deceptiveness."
+              },
+              {
+                "id": "C",
+                "text": "logicality and objectivity."
+              },
+              {
+                "id": "D",
+                "text": "systematicness and regularity."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-32",
+            "number": "32",
+            "stem": "It can be inferred from Paragraph 2 that the credibility process requires",
+            "options": [
+              {
+                "id": "A",
+                "text": "strict inspection."
+              },
+              {
+                "id": "B",
+                "text": "shared efforts."
+              },
+              {
+                "id": "C",
+                "text": "individual wisdom."
+              },
+              {
+                "id": "D",
+                "text": "persistent innovation."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-33",
+            "number": "33",
+            "stem": "Paragraph 3 shows that a discovery claim becomes credible after it",
+            "options": [
+              {
+                "id": "A",
+                "text": "has attracted the attention of the general public."
+              },
+              {
+                "id": "B",
+                "text": "has been examined by the scientific community."
+              },
+              {
+                "id": "C",
+                "text": "has received recognition from editors and reviewers."
+              },
+              {
+                "id": "D",
+                "text": "has been frequently quoted by peer scientists."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-34",
+            "number": "34",
+            "stem": "Albert Szent-Györgyi would most likely agree that",
+            "options": [
+              {
+                "id": "A",
+                "text": "scientific claims will survive challenges."
+              },
+              {
+                "id": "B",
+                "text": "discoveries today inspire future research."
+              },
+              {
+                "id": "C",
+                "text": "efforts to make discoveries are justified."
+              },
+              {
+                "id": "D",
+                "text": "scientific work calls for a critical mind."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-35",
+            "number": "35",
+            "stem": "Which of the following would be the best title of the text?",
+            "options": [
+              {
+                "id": "A",
+                "text": "Novelty as an Engine of Scientific Development."
+              },
+              {
+                "id": "B",
+                "text": "Collective Scrutiny in Scientific Discovery."
+              },
+              {
+                "id": "C",
+                "text": "Evolution of Credibility in Doing Science."
+              },
+              {
+                "id": "D",
+                "text": "Challenge to Credibility at the Gate to Science."
+              }
+            ],
+            "correctOptionId": "C"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-31",
+            "label": "31"
+          },
+          {
+            "id": "q-32",
+            "label": "32"
+          },
+          {
+            "id": "q-33",
+            "label": "33"
+          },
+          {
+            "id": "q-34",
+            "label": "34"
+          },
+          {
+            "id": "q-35",
+            "label": "35"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-04",
+      "title": "阅读理解 Text 4（36–40）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "If the trade unionist Jimmy Hoffa were alive today, he would probably represent civil servants. When Hoffa’s Teamsters were in their prime in 1960, only one in ten American government workers belonged to a union; now 36% do. In 2009 the number of unionists in America’s public sector passed that of their fellow members in the private sector. In Britain, more than half of public-sector workers but only about 15% of private-sector ones are unionized."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "There are three reasons for the public-sector unions’ thriving. First, they can shut things down without suffering much in the way of consequences. Second, they are mostly bright and well-educated. A quarter of America’s public-sector workers have a university degree. Third, they now dominate left-of-centre politics. Some of their ties go back a long way. Britain’s Labor Party, as its name implies, has long been associated with trade unionism. Its current leader, Ed Miliband, owes his position to votes from public-sector unions."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "At the state level their influence can be even more fearsome. Mark Baldassare of the Public Policy Institute of California points out that much of the state’s budget is patrolled by unions. The teachers’ unions keep an eye on schools, the CCPOA on prisons and a variety of labor groups on health care."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "In many rich countries average wages in the state sector are higher than in the private one. But the real gains come in benefits and work practices. Politicians have repeatedly “backloaded” public-sector pay deals, keeping the pay increases modest but adding to holidays and especially pensions that are already generous."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Reform has been vigorously opposed, perhaps most notoriously in education, where charter schools, academies and merit pay all faced drawn-out battles. Even though there is plenty of evidence that the quality of the teachers is the most important variable, teachers’ unions have fought against getting rid of bad ones and promoting good ones."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "As the cost to everyone else has become clearer, politicians have begun to clamp down. In Wisconsin the unions have rallied thousands of supporters against Scott Walker, the hardline Republican governor. But many within the public sector suffer under the current system, too."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "John Donahue at Harvard’s Kennedy School points out that the norms of culture in Western civil services suit those who want to stay put but is bad for high achievers. The only American public-sector workers who earn well above $250,000 a year are university sports coaches and the president of the United States. Bankers’ fat pay packets have attracted much criticism, but a public-sector system that does not reward high achievers may be a much bigger problem for America."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-36",
+            "number": "36",
+            "stem": "It can be learned from the first paragraph that",
+            "options": [
+              {
+                "id": "A",
+                "text": "Teamsters still have a large body of members."
+              },
+              {
+                "id": "B",
+                "text": "Jimmy Hoffa used to work as a civil servant."
+              },
+              {
+                "id": "C",
+                "text": "unions have enlarged their public-sector membership."
+              },
+              {
+                "id": "D",
+                "text": "the government has improved its relationship with unionists."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-37",
+            "number": "37",
+            "stem": "Which of the following is true of Paragraph 2?",
+            "options": [
+              {
+                "id": "A",
+                "text": "Public-sector unions are prudent in taking actions."
+              },
+              {
+                "id": "B",
+                "text": "Education is required for public-sector union membership."
+              },
+              {
+                "id": "C",
+                "text": "Labor Party has long been fighting against public-sector unions."
+              },
+              {
+                "id": "D",
+                "text": "Public-sector unions seldom get in trouble for their actions."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-38",
+            "number": "38",
+            "stem": "It can be learned from Paragraph 4 that the income in the state sector is",
+            "options": [
+              {
+                "id": "A",
+                "text": "illegally secured."
+              },
+              {
+                "id": "B",
+                "text": "indirectly augmented."
+              },
+              {
+                "id": "C",
+                "text": "excessively increased."
+              },
+              {
+                "id": "D",
+                "text": "fairly adjusted."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-39",
+            "number": "39",
+            "stem": "The example of the unions in Wisconsin shows that unions",
+            "options": [
+              {
+                "id": "A",
+                "text": "often run against the current political system."
+              },
+              {
+                "id": "B",
+                "text": "can change people’s political attitudes."
+              },
+              {
+                "id": "C",
+                "text": "may be a barrier to public-sector reforms."
+              },
+              {
+                "id": "D",
+                "text": "are dominant in the government."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-40",
+            "number": "40",
+            "stem": "John Donahue’s attitude towards the public-sector system is one of",
+            "options": [
+              {
+                "id": "A",
+                "text": "disapproval."
+              },
+              {
+                "id": "B",
+                "text": "appreciation."
+              },
+              {
+                "id": "C",
+                "text": "tolerance."
+              },
+              {
+                "id": "D",
+                "text": "indifference."
+              }
+            ],
+            "correctOptionId": "A"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-36",
+            "label": "36"
+          },
+          {
+            "id": "q-37",
+            "label": "37"
+          },
+          {
+            "id": "q-38",
+            "label": "38"
+          },
+          {
+            "id": "q-39",
+            "label": "39"
+          },
+          {
+            "id": "q-40",
+            "label": "40"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-b-01",
+      "title": "阅读选填（41–45）",
+      "extension": {
+        "development": "reading-gap-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "In the following text, some sentences have been removed. For Questions 41-45, choose the most suitable one from the list A-G to fit into each of the numbered blanks. There are two extra choices, which do not fit in any of the blanks. Mark your answers on ANSWER SHEET 1. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Think of those fleeting moments when you look out of an aeroplane window and realise that you are flying, higher than a bird. Now think of your laptop, thinner than a brown-paper envelope, or your cellphone in the palm of your hand. Take a moment or two to wonder at those marvels. You are the lucky inheritor of a dream come true."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The second half of the 20th century saw a collection of geniuses, warriors, entrepreneurs and visionaries labour to create a fabulous machine that could function as a typewriter and printing press, studio and theatre, paintbrush and gallery, piano and radio, the mail as well as the mail carrier. (41)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The networked computer is an amazing device, the first media machine that serves as the mode of production, means of distribution, site of reception, and place of praise and critique. The computer is the 21st century’s culture machine."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "But for all the reasons there are to celebrate the computer, we must also act with caution. (42) I call it a secret war for two reasons. First, most people do not realise that there are strong commercial agendas at work to keep them in passive consumption mode. Second, the majority of people who use networked computers to upload are not even aware of the significance of what they are doing."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "All animals download, but only a few upload. Beavers build dams and birds make nests. Yet for the most part, the animal kingdom moves through the world downloading. Humans are unique in their capacity to not only make tools but then turn around and use them to create superfluous material goods—paintings, sculpture and architecture—and superfluous experiences—music, literature, religion and philosophy. (43)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "For all the possibilities of our new culture machines, most people are still stuck in download mode. Even after the advent of widespread social media, a pyramid of production remains, with a small number of people uploading material, a slightly larger group commenting on or modifying that content, and a huge percentage remaining content to just consume. (44)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Television is a one-way tap flowing into our homes. The hardest task that television asks of anyone is to turn the power off after he has turned it on. (45)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "What counts as meaningful uploading? My definition revolves around the concept of “stickiness”—creations and experiences to which others adhere."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[A] Of course, it is precisely these superfluous things that define human culture and ultimately what it is to be human. Downloading and consuming culture requires great skills, but failing to move beyond downloading is to strip oneself of a defining constituent of humanity."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[B] Applications like tumblr.com, which allow users to combine pictures, words and other media in creative ways and then share them, have the potential to add stickiness by amusing, entertaining and enlightening others."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[C] Not only did they develop such a device but by the turn of the millennium they had also managed to embed it in a worldwide system accessed by billions of people every day."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[D] This is because the networked computer has sparked a secret war between downloading and uploading—between passive consumption and active creation—whose outcome will shape our collective future in ways we can only begin to imagine."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[E] The challenge the computer mounts to television thus bears little similarity to one format being replaced by another in the manner of record players being replaced by CD players."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[F] One reason for the persistence of this pyramid of production is that for the past half-century, much of the world’s media culture has been defined by a single medium—television—and television is defined by downloading."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[G] The networked computer offers the first chance in 50 years to reverse the flow, to encourage thoughtful downloading and, even more importantly, meaningful uploading."
+                }
+              ]
+            }
+          ]
+        },
+        "paragraphIds": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E",
+          "F",
+          "G"
+        ],
+        "slots": [
+          {
+            "id": "slot-41",
+            "locked": false,
+            "correctParagraphId": "C"
+          },
+          {
+            "id": "slot-42",
+            "locked": false,
+            "correctParagraphId": "D"
+          },
+          {
+            "id": "slot-43",
+            "locked": false,
+            "correctParagraphId": "A"
+          },
+          {
+            "id": "slot-44",
+            "locked": false,
+            "correctParagraphId": "F"
+          },
+          {
+            "id": "slot-45",
+            "locked": false,
+            "correctParagraphId": "G"
+          }
+        ],
+        "parts": [
+          {
+            "id": "q-41",
+            "number": "41",
+            "slotId": "slot-41"
+          },
+          {
+            "id": "q-42",
+            "number": "42",
+            "slotId": "slot-42"
+          },
+          {
+            "id": "q-43",
+            "number": "43",
+            "slotId": "slot-43"
+          },
+          {
+            "id": "q-44",
+            "number": "44",
+            "slotId": "slot-44"
+          },
+          {
+            "id": "q-45",
+            "number": "45",
+            "slotId": "slot-45"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-41",
+            "label": "41"
+          },
+          {
+            "id": "q-42",
+            "label": "42"
+          },
+          {
+            "id": "q-43",
+            "label": "43"
+          },
+          {
+            "id": "q-44",
+            "label": "44"
+          },
+          {
+            "id": "q-45",
+            "label": "45"
+          }
+        ]
+      }
+    },
+    {
+      "id": "translation-01",
+      "title": "分句翻译（46–50）",
+      "extension": {
+        "development": "segment-translation-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text carefully and then translate the underlined segments into Chinese. Your translation should be written clearly on ANSWER SHEET 2. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Since the days of Aristotle, a search for universal principles has characterized the scientific enterprise. In some ways, this quest for commonalities defines science. Newton’s laws of motion and Darwinian evolution each bind a host of different phenomena into a single explicatory framework."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "(46) "
+                },
+                {
+                  "type": "text",
+                  "text": "In physics, one approach takes this impulse for unification to its extreme, and seeks a theory of everything—a single generative equation for all we see.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " It is becoming less clear, however, that such a theory would be a simplification, given the dimensions and universes that it might entail. Nonetheless, unification of sorts remains a major goal."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "This tendency in the natural sciences has long been evident in the social sciences too. (47) "
+                },
+                {
+                  "type": "text",
+                  "text": "Here, Darwinism seems to offer justification, for if all humans share common origins, it seems reasonable to suppose that cultural diversity could also be traced to more constrained beginnings.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " Just as the bewildering variety of human courtship rituals might all be considered forms of sexual selection, perhaps the world’s languages, music, social and religious customs and even history are governed by universal features. (48) "
+                },
+                {
+                  "type": "text",
+                  "text": "To filter out what is unique from what is shared might enable us to understand how complex cultural behavior arose and what guides it in evolutionary or cognitive terms.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "That, at least, is the hope. But a comparative study of linguistic traits published online today supplies a reality check. Russell Gray at the University of Auckland and his colleagues consider the evolution of grammars in the light of two previous attempts to find universality in language."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The most famous of these efforts was initiated by Noam Chomsky, who suggested that humans are born with an innate language-acquisition capacity that dictates a universal grammar. A few generative rules are then sufficient to unfold the entire fundamental structure of a language, which is why children can learn it so quickly."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "(49) "
+                },
+                {
+                  "type": "text",
+                  "text": "The second, by Joshua Greenberg, takes a more empirical approach to universality, identifying traits (particularly in word order) shared by many languages, which are considered to represent biases that result from cognitive constraints.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Gray and his colleagues have put them to the test by examining four family trees that between them represent more than 2,000 languages. (50) "
+                },
+                {
+                  "type": "text",
+                  "text": "Chomsky’s grammar should show patterns of language change that are independent of the family tree or the pathway tracked through it, whereas Greenbergian universality predicts strong co-dependencies between particular types of word-order relations.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " Neither of these patterns is borne out by the analysis, suggesting that the structures of the languages are lineage-specific and not governed by universals."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-46",
+            "number": "46",
+            "segment": "In physics, one approach takes this impulse for unification to its extreme, and seeks a theory of everything—a single generative equation for all we see."
+          },
+          {
+            "id": "q-47",
+            "number": "47",
+            "segment": "Here, Darwinism seems to offer justification, for if all humans share common origins, it seems reasonable to suppose that cultural diversity could also be traced to more constrained beginnings."
+          },
+          {
+            "id": "q-48",
+            "number": "48",
+            "segment": "To filter out what is unique from what is shared might enable us to understand how complex cultural behavior arose and what guides it in evolutionary or cognitive terms."
+          },
+          {
+            "id": "q-49",
+            "number": "49",
+            "segment": "The second, by Joshua Greenberg, takes a more empirical approach to universality, identifying traits (particularly in word order) shared by many languages, which are considered to represent biases that result from cognitive constraints."
+          },
+          {
+            "id": "q-50",
+            "number": "50",
+            "segment": "Chomsky’s grammar should show patterns of language change that are independent of the family tree or the pathway tracked through it, whereas Greenbergian universality predicts strong co-dependencies between particular types of word-order relations."
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "assessment": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "46. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "在物理学领域，一种做法把这种寻求大同理论的冲动推向极端，试图 寻找包含一切的理论 —— 一个涵括我们所看到的一切的生成性公式。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "47. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "这里，达尔文学说似乎做出了证明，因为如果人类有着共同的起源， 那么似乎就有理由认为文化的多样性也可以追溯到更为有限的起源。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "48. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "从共有特征中滤出独有特征，这使我们得以理解复杂的文化行为是如 何产生的，并从进化或认知角度理解是什么引导了它的走向。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "49. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "第二次努力 —— 由乔舒亚 • 格林堡做出 —— 采用更为经验主义的方 法来研究语言的普遍性，确定了多种语言（尤其在语法词序方面）的共有特征， 这些特征被认为是代表了由认知限制产生的倾向。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "50. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "乔姆斯基的语法应该显示出语言变化的模式，这些模式并不受语言谱 系或贯穿谱系路径的影响；而格林堡式的普遍性则预言了特定的语法词序关 系类型之间所存在的紧密互依性。"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-46",
+            "label": "46"
+          },
+          {
+            "id": "q-47",
+            "label": "47"
+          },
+          {
+            "id": "q-48",
+            "label": "48"
+          },
+          {
+            "id": "q-49",
+            "label": "49"
+          },
+          {
+            "id": "q-50",
+            "label": "50"
+          }
+        ]
+      }
+    },
+    {
+      "id": "writing-51",
+      "title": "2012英语（一）应用文写作",
+      "extension": {
+        "development": "english-writing-2026-dev"
+      },
+      "data": {
+        "formatVersion": 1,
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "51. Some international students are coming to your university. Write them an email in the name of the Students’ Union to"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "1) extend your welcome and"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "2) provide some suggestions for their campus life here."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "You should write about 100 words on ANSWER SHEET 2."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Do not sign your name at the end of the letter. Use “Li Ming” instead."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Do not write the address. (10 points)"
+                }
+              ]
+            }
+          ]
+        },
+        "referenceAnswer": null,
+        "rubric": null,
+        "wordCount": {
+          "target": 100
+        },
+        "maxScore": 10
+      },
+      "outline": {
+        "level": "question",
+        "label": "51"
+      }
+    },
+    {
+      "id": "writing-52",
+      "title": "2012英语（一）图画／图表作文",
+      "extension": {
+        "development": "english-writing-2026-dev"
+      },
+      "data": {
+        "formatVersion": 1,
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "52. Write an essay of 160-200 words based on the following drawing. In your essay, you should"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "1) describe the drawing briefly,"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "2) explain its intended meaning, and"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "3) give your comments."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "You should write neatly on ANSWER SHEET 2. (20 points)"
+                }
+              ]
+            },
+            {
+              "type": "image",
+              "attrs": {
+                "assetId": "5d93f94c8caa558bb2bf15e4e23122d6ac22be328c95ef0fc7827573fba80b89",
+                "alt": "2012年作文原题图表"
+              }
+            }
+          ]
+        },
+        "referenceAnswer": null,
+        "rubric": null,
+        "wordCount": {
+          "min": 160,
+          "max": 200
+        },
+        "maxScore": 20
+      },
+      "outline": {
+        "level": "question",
+        "label": "52"
+      }
+    }
+  ]
+}

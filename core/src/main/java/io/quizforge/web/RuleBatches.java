@@ -15,6 +15,37 @@ final class RuleBatches {
     static void validate(RuleEngine rules, List<Library.Question> questions) {
         run(rules, questions, "validateBank", null, questions.stream().map(Library.Question::data).toList());
     }
+    /** Share process startup while retaining every original collection/chunk's fresh VM. */
+    static void validateCollections(RuleEngine rules, List<List<Library.Question>> collections) {
+        ArrayNode combined = Json.MAPPER.createArrayNode(), resets = Json.MAPPER.createArrayNode();
+        Library.Extension extension = null; int combinedBytes = 0;
+        for (List<Library.Question> questions : collections) {
+            int cursor = 0;
+            while (cursor < questions.size()) {
+                ArrayNode chunk = Json.MAPPER.createArrayNode(); int bytes = 0;
+                while (cursor < questions.size() && chunk.size() < MAX_ITEMS) {
+                    Library.Question question = questions.get(cursor); int encoded = size(question.data());
+                    if (!chunk.isEmpty() && (long) bytes + encoded > TARGET_BYTES) break;
+                    if (extension == null) extension = question.extension();
+                    chunk.add(question.data()); bytes += encoded; cursor++;
+                }
+                // Never split an original chunk merely to fill a combined request:
+                // splitting would reset state partway through that original VM.
+                if (!combined.isEmpty() && (combined.size() + chunk.size() > MAX_ITEMS || (long) combinedBytes + bytes > TARGET_BYTES)) {
+                    validateChunks(rules, extension, combined, resets);
+                    combined = Json.MAPPER.createArrayNode(); resets = Json.MAPPER.createArrayNode(); combinedBytes = 0;
+                }
+                if (!combined.isEmpty()) resets.add(combined.size());
+                combined.addAll(chunk); combinedBytes += bytes;
+            }
+        }
+        if (!combined.isEmpty()) validateChunks(rules, extension, combined, resets);
+    }
+    private static void validateChunks(RuleEngine rules, Library.Extension extension, ArrayNode questions, ArrayNode resets) {
+        var request = Json.object().put("op", "validateBank");
+        request.set("questions", questions); request.set("contextResetOffsets", resets);
+        rules.run(extension, request);
+    }
     static List<Library.Question> outline(RuleEngine rules, List<Library.Question> questions) {
         var enabled = questions.stream().filter(question -> question.outline() == null && question.extension().outlineItemsDeclared()).toList();
         var byId = new java.util.HashMap<String, List<Library.OutlineItem>>();

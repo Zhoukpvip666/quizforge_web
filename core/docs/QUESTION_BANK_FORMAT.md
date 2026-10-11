@@ -37,13 +37,15 @@
 
 ## 整库功能开关
 
-可选根 `features` 控制这一整本题库（含混合题库），默认三项全开，不支持每题覆盖：
+可选根 `features` 控制这一整本题库（含混合题库），编辑、白板、历史、考试默认全开，不支持每题覆盖：
 
 ```json
-"features": {"editing": true, "whiteboard": false, "history": false}
+"features": {"whiteboard": false, "history": false, "exam": false}
 ```
 
-仅允许 `editing/whiteboard/history` 三个 boolean，省略对象或某一项等于 true。未知字段、非布尔值及 `questions[].features` 均拒绝。collection 响应返回归一后的 `features`，拓展协议版本及独立绑定不变。
+仅允许 `editing/whiteboard/history/exam` 四个 boolean，四项省略均等于 true，仅显式 false 关闭对应功能。未知字段、非布尔值及 `questions[].features` 均拒绝。collection 响应返回归一后的 `features`，拓展协议版本及独立绑定不变。
+
+- `exam:false`：关闭考试入口；省略或 true 时保留练习并显示“开始考试”，开始前选择时长或不限时；宿主统一交卷、评分。详细生命周期与拓展要求见 [考试模式](EXAM_MODE.md)。
 
 - `editing:false`：关闭该库的题目编辑，服务端同时拒绝编辑请求。
 - `whiteboard:false`：关闭白板和对应写入；不关闭答案的自动更新。
@@ -51,7 +53,7 @@
 
 `history:false` 和 `editing:true` 可同时使用：题目数据及编辑图片仍可保存到题库文件，练习数据不持久化。关闭历史不代表删除原有持久数据；Agent 不得自行读写或清理状态目录。
 
-正式及开发拓展样例使用相同 features 和 QF 管线，已实现的编辑可受控保存 examples 题目文件；未完善的操作明确报错，不能假保存。新制作样例省略 features 或全部 true，默认开放编辑、白板和历史，不需功能选择询问；已存在的显式 false 仍允许，validator 提醒制作规范而不硬拦。
+正式及开发拓展样例使用相同 features 和 QF 管线，已实现的编辑可受控保存 examples 题目文件；未完善的操作明确报错，不能假保存。新制作样例省略 features 或全部 true，默认开放编辑、白板、历史和考试声明，不需功能选择询问；已存在的显式 false 仍允许，validator 提醒制作规范而不硬拦。
 
 普通题库制作应第一步一次询问需要关闭哪几项（默认全开），用户确认后再分析材料、选型、评审 UI 和生成，见 [Agent 工作流](AGENT_BANK_WORKFLOW.md)。
 

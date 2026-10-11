@@ -33,10 +33,10 @@ function fixture({requestImpl,collection}={}){
     request:async(path,options)=>{requests.push({path,options});return requestImpl(path,options);},
     prepareAssets:assets=>prepareExtensionAssets(assets,async dependency=>({id:dependency.id,version:dependency.version,script:'frozen SDK',style:''})),el:()=>new Element(),active:()=>pane,
     disposeEditorSession(){},disposeScoreSummary(){},syncPracticeCamera(){},renderOutline(){},updateChrome(){},saveStatus(){},setEditorLayout(){},pageRequest(){},notice(){},
-    mountExtension(container,assets,context){
+    mountExtension(container,assets,context,options){
       const frame=new Element();container.append(frame);live++;maxLive=Math.max(maxLive,live);let destroyed=false;
       const plugin={frame,ready:Promise.resolve(),destroy(){if(destroyed)return;destroyed=true;live--;frame.remove();}};
-      mounted.push({assets,context,plugin});return plugin;
+      mounted.push({assets,context,plugin,options});return plugin;
     },
   };
   vm.runInNewContext(`${routingSource}\nglobalThis.host={showQuestion,loadQuestion,showHistoryQuestion};`,sandbox);
@@ -55,6 +55,16 @@ test('mixed navigation routes each question to its own assets and mounts only th
   assert.deepEqual(f.mounted.map(value=>value.context.question.id),['a','b','c']);
   assert.equal(f.requests.length,2);assert.equal(f.maxLive,2);assert.equal(f.live,1);assert.equal(f.pane.frameHost.children.length,1);
   f.pane.plugin.destroy();
+});
+
+test('server-state recovery fences late writes from the displayed frame while allowing resource reads',async()=>{
+  const f=fixture({requestImpl:async()=>({html:'choice',script:'',style:''})});
+  await f.showQuestion(f.pane,'a',{payload:payload('a',single)});
+  const options=f.mounted[0].options;
+  f.pane.recovering=true;
+  const blocked=await options.onRequest('save',{purpose:'draft',data:{answer:{value:'stale'}}});
+  assert.equal(blocked.ok,false);assert.equal(blocked.error.code,'READ_ONLY');
+  f.pane.recovering=false;f.pane.plugin.destroy();
 });
 
 test('a changed question extension refreshes its outline and loads the exact new version',async()=>{
@@ -101,7 +111,7 @@ test('mixed extensions from one folder resolve only their own frozen history pag
   const f=fixture({requestImpl:async()=>{throw new Error('History cannot fetch live package pages');}});
   f.pane.view='history';f.pane.historyView=createHistoryView({questions:[{payload:payload('a',choice),pageKey:'choice'},{payload:payload('b',essay),pageKey:'essay'}],pages:{choice:{html:'frozen choice',script:'',style:'',extension:choice},essay:{html:'frozen essay',script:'',style:'',extension:essay}}});
   await f.showHistoryQuestion(f.pane,'b');await f.showHistoryQuestion(f.pane,'a');
-  assert.deepEqual(f.mounted.map(row=>row.assets.html),['frozen essay','frozen choice']);assert.equal(f.maxLive,1);assert.equal(f.requests.length,0);f.pane.plugin.destroy();
+  assert.deepEqual(f.mounted.map(row=>row.assets.html),['frozen essay','frozen choice']);assert.equal(f.maxLive,2);assert.equal(f.live,1);assert.equal(f.requests.length,0);f.pane.plugin.destroy();
 });
 
 test('mixed history mounts only referenced frozen assets with readonly capabilities',async()=>{
@@ -110,7 +120,7 @@ test('mixed history mounts only referenced frozen assets with readonly capabilit
   const f=fixture({requestImpl:async()=>{throw new Error('History must not load a live extension');}});
   f.pane.view='history';f.pane.historyView=createHistoryView({questions:[a,b],pages,collection:{extension:null,questions:[{id:'b'},{id:'a'}]}});
   await f.showHistoryQuestion(f.pane,'b');await f.showHistoryQuestion(f.pane,'a');
-  assert.deepEqual(f.mounted.map(value=>value.assets.html),['frozen text','frozen choice']);assert.equal(f.requests.length,0);assert.equal(f.maxLive,1);
+  assert.deepEqual(f.mounted.map(value=>value.assets.html),['frozen text','frozen choice']);assert.equal(f.requests.length,0);assert.equal(f.maxLive,2);assert.equal(f.live,1);
   for(const {context}of f.mounted){assert.equal(context.mode,'history');for(const allowed of Object.values(context.capabilities))assert.equal(allowed,false);}
   assert.equal(f.pane.historyQuestion.payload.extension.id,'choice');f.pane.plugin.destroy();
 });

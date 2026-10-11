@@ -38,7 +38,7 @@ function fixture(t){
   const changes=[],mounts=[],calls=[];
   const pane={view:'history',kind:'bank',collection:{title:'当前题库',questions:[{id:'live'}],states:{}},historyEntry:record,historyView:createHistoryView(record),node,viewport,tools,stage,world,frameHost,loading:false,draftMode:true,historyDraftMode:false,questionId:'live',payload:null};
   pane.whiteboard=mountWhiteboard(viewport,{toolbarContainer:tools,onChange:value=>changes.push(value),onViewChange:camera=>sandbox.host.resizeStage(pane,camera)});t.after(()=>pane.whiteboard.destroy());
-  const sandbox={...context,document,structuredClone,practiceViewport,createHistoryView,historyProgress,phoneLayout:{matches:false},active:()=>pane,$:selector=>document.querySelector(selector),draftFullscreen:{sync(){}},historyTime:()=> '时间',developmentTitle:()=> '',prepareAssets:async value=>structuredClone(value),disposeEditorSession(){},disposeScoreSummary(target){target.summaryShown=false;target.node.classList.remove('is-summary');},allowDiscardEditor:async()=>true,allowLeaveDevelopmentInput:()=>true,flushPane:async()=>{calls.push('flush');},historyPath:()=>'/history',request:async()=>{calls.push('request');return record;},renderOutline(){},saveStatus(){},setEditorLayout(){},pageRequest(){},notice(){},el:(tag,classes,text)=>{const element=document.createElement(tag);element.className=classes;if(text!=null)element.textContent=text;return element;},mountExtension:(container,_page,ctx)=>{
+  const sandbox={catalog:{banks:[],extensions:[]},...context,document,structuredClone,practiceViewport,createHistoryView,historyProgress,phoneLayout:{matches:false},active:()=>pane,$:selector=>document.querySelector(selector),draftFullscreen:{sync(){}},historyTime:()=> '时间',developmentTitle:()=> '',prepareAssets:async value=>structuredClone(value),disposeEditorSession(){},disposeScoreSummary(target){target.summaryShown=false;target.node.classList.remove('is-summary');},allowDiscardEditor:async()=>true,allowLeaveDevelopmentInput:()=>true,flushPane:async()=>{calls.push('flush');},historyPath:()=>'/history',request:async()=>{calls.push('request');return record;},renderOutline(){},saveStatus(){},setEditorLayout(){},pageRequest(){},notice(){},el:(tag,classes,text)=>{const element=document.createElement(tag);element.className=classes;if(text!=null)element.textContent=text;return element;},mountExtension:(container,_page,ctx)=>{
     const frame=document.createElement('iframe');Object.defineProperty(frame,'offsetHeight',{value:400});container.append(frame);mounts.push(ctx);return {frame,ready:Promise.resolve(),destroy(){frame.remove();}};
   }};
   vm.runInNewContext(hostSource+'\nglobalThis.host={toggleDraftMode,showHistory,showHistoryQuestion,updateChrome,syncPracticeCamera,resizeStage};',sandbox);
@@ -72,6 +72,16 @@ test('history retains draft mode across question navigation and restores each ca
   await f.showHistoryQuestion(f.pane,'a');assert.equal(f.pane.summaryShown,false);assert.equal(f.document.querySelector('#draft-toggle').hidden,false);
   assert.deepEqual(f.pane.whiteboard.getViewCamera(),f.record.questions[0].payload.draft.viewport);
   assert.deepEqual(f.changes,[]);assert.deepEqual(f.calls,[]);
+});
+
+test('exam history keeps its label, frozen question navigation and read-only draft switching',async t=>{
+  const f=fixture(t);f.pane.historyEntry={...f.record,mode:'exam',examId:'attempt'};
+  await f.showHistoryQuestion(f.pane,'a');assert.match(f.document.querySelector('#mode-label').textContent,/只读历史 · 考试 · 已完成/);
+  await f.toggleDraftMode();await f.showHistoryQuestion(f.pane,'b');
+  assert.equal(f.pane.historyQuestionId,'b');assert.equal(f.pane.historyDraftMode,true);
+  assert.deepEqual(f.pane.whiteboard.getDraft(),f.record.questions[1].payload.draft);
+  for(const mounted of f.mounts)for(const value of Object.values(mounted.capabilities))assert.equal(value,false);
+  assert.deepEqual(f.calls,[]);assert.deepEqual(f.changes,[]);
 });
 
 test('history uses frozen whiteboard permissions and a new record starts in practice layout',async t=>{

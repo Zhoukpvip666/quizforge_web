@@ -13,10 +13,11 @@ export function createAiClient({request,path,makeRequestId,settled,onConfirmed,c
     return value;
   };
   return async(method,args={},contentVersion)=>{
+    if(args.targetId!==undefined&&(typeof args.targetId!=='string'||args.targetId.length===0||args.targetId.length>128||args.targetId!==args.targetId.trim()||/[\u0000-\u001f\u007f-\u009f<>]/u.test(args.targetId)))throw new Error('评分目标编号无效');
     let data;
-    if(method==='ai-grade')data=await post(`${path}/ai/grade`,{contentVersion,force:args.force===true});
+    if(method==='ai-grade')data=await post(`${path}/ai/grade`,{contentVersion,force:args.force===true,...(args.targetId===undefined?{}:{targetId:args.targetId})});
     else if(method==='ai-task'){
-      data=await request(args.taskId?taskPath(args.taskId):`${path}/ai/current`);
+      data=await request(args.taskId?taskPath(args.taskId):`${path}/ai/current${args.targetId===undefined?'':`?targetId=${encodeURIComponent(args.targetId)}`}`);
     }
     else if(method==='ai-retry')data=await post(`${taskPath(args.taskId)}/retry`,{});
     else if(method==='ai-confirm'){

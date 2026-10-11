@@ -1,0 +1,2270 @@
+{
+  "formatVersion": 1,
+  "id": "kaoyan-english1-2021",
+  "title": "2021年考研英语（一）真题",
+  "description": "依据原卷及附录参考答案制作；作文范文与评分细则留空。",
+  "features": {
+    "editing": true,
+    "whiteboard": true,
+    "history": true,
+    "exam": true
+  },
+  "questions": [
+    {
+      "id": "cloze-01",
+      "title": "完形填空（1–20）",
+      "extension": {
+        "development": "english-cloze-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Choose the best word(s) for each numbered blank and mark A, B, C or D on the ANSWER SHEET. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Fluid intelligence is the type of intelligence that has to do with short-term memory and the ability to think quickly, logically, and abstractly in order to solve new problems. It [[1]] in young adulthood, levels out for a period of time, and then [[2]] starts to slowly decline as we age. But [[3]] aging is inevitable, scientists are finding out that certain changes in brain function may not be."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "One study found that muscle loss and the [[4]] of body fat around the abdomen are associated with a decline in fluid intelligence. This suggests the [[5]] that lifestyle factors might help prevent or [[6]] this type of decline."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The researchers looked at data that [[7]] measurements of lean muscle and abdominal fat from more than 4,000 middle-to-older-aged men and women and [[8]] that data to reported changes in fluid intelligence over a six-year period. They found that middle-aged people [[9]] higher measures of abdominal fat [[10]] worse on measures of fluid intelligence as the years [[11]] ."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "For women, the association may be [[12]] to changes in immunity that resulted from excess abdominal fat; in men, the immune system did not appear to be [[13]] . It is hoped that future studies could"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[[14]] these differences and perhaps lead to different [[15]] for men and women."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[[16]] , there are steps you can [[17]] to help reduce abdominal fat and maintain lean muscle mass as you age in order to protect both your physical and mental [[18]] . The two highly recommended lifestyle approaches are maintaining or increasing your [[19]] of aerobic exercise and following a Mediterranean-style [[20]] that is high in fiber and eliminates highly processed foods."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-1",
+            "number": "1",
+            "options": [
+              {
+                "id": "A",
+                "text": "pauses"
+              },
+              {
+                "id": "B",
+                "text": "peaks"
+              },
+              {
+                "id": "C",
+                "text": "returns"
+              },
+              {
+                "id": "D",
+                "text": "fades"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-2",
+            "number": "2",
+            "options": [
+              {
+                "id": "A",
+                "text": "alternatively"
+              },
+              {
+                "id": "B",
+                "text": "formally"
+              },
+              {
+                "id": "C",
+                "text": "generally"
+              },
+              {
+                "id": "D",
+                "text": "accidentally"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-3",
+            "number": "3",
+            "options": [
+              {
+                "id": "A",
+                "text": "until"
+              },
+              {
+                "id": "B",
+                "text": "since"
+              },
+              {
+                "id": "C",
+                "text": "once"
+              },
+              {
+                "id": "D",
+                "text": "while"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-4",
+            "number": "4",
+            "options": [
+              {
+                "id": "A",
+                "text": "accumulation"
+              },
+              {
+                "id": "B",
+                "text": "detection"
+              },
+              {
+                "id": "C",
+                "text": "consumption"
+              },
+              {
+                "id": "D",
+                "text": "separation"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-5",
+            "number": "5",
+            "options": [
+              {
+                "id": "A",
+                "text": "requirement"
+              },
+              {
+                "id": "B",
+                "text": "decision"
+              },
+              {
+                "id": "C",
+                "text": "goal"
+              },
+              {
+                "id": "D",
+                "text": "possibility"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-6",
+            "number": "6",
+            "options": [
+              {
+                "id": "A",
+                "text": "utilize"
+              },
+              {
+                "id": "B",
+                "text": "ensure"
+              },
+              {
+                "id": "C",
+                "text": "seek"
+              },
+              {
+                "id": "D",
+                "text": "delay"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-7",
+            "number": "7",
+            "options": [
+              {
+                "id": "A",
+                "text": "modified"
+              },
+              {
+                "id": "B",
+                "text": "included"
+              },
+              {
+                "id": "C",
+                "text": "supported"
+              },
+              {
+                "id": "D",
+                "text": "predicted"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-8",
+            "number": "8",
+            "options": [
+              {
+                "id": "A",
+                "text": "compared"
+              },
+              {
+                "id": "B",
+                "text": "devoted"
+              },
+              {
+                "id": "C",
+                "text": "converted"
+              },
+              {
+                "id": "D",
+                "text": "applied"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-9",
+            "number": "9",
+            "options": [
+              {
+                "id": "A",
+                "text": "against"
+              },
+              {
+                "id": "B",
+                "text": "above"
+              },
+              {
+                "id": "C",
+                "text": "by"
+              },
+              {
+                "id": "D",
+                "text": "with"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-10",
+            "number": "10",
+            "options": [
+              {
+                "id": "A",
+                "text": "lived"
+              },
+              {
+                "id": "B",
+                "text": "scored"
+              },
+              {
+                "id": "C",
+                "text": "managed"
+              },
+              {
+                "id": "D",
+                "text": "played"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-11",
+            "number": "11",
+            "options": [
+              {
+                "id": "A",
+                "text": "ran out"
+              },
+              {
+                "id": "B",
+                "text": "set off"
+              },
+              {
+                "id": "C",
+                "text": "went by"
+              },
+              {
+                "id": "D",
+                "text": "drew in"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-12",
+            "number": "12",
+            "options": [
+              {
+                "id": "A",
+                "text": "attributable"
+              },
+              {
+                "id": "B",
+                "text": "superior"
+              },
+              {
+                "id": "C",
+                "text": "parallel"
+              },
+              {
+                "id": "D",
+                "text": "resistant"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-13",
+            "number": "13",
+            "options": [
+              {
+                "id": "A",
+                "text": "restored"
+              },
+              {
+                "id": "B",
+                "text": "involved"
+              },
+              {
+                "id": "C",
+                "text": "isolated"
+              },
+              {
+                "id": "D",
+                "text": "controlled"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-14",
+            "number": "14",
+            "options": [
+              {
+                "id": "A",
+                "text": "alter"
+              },
+              {
+                "id": "B",
+                "text": "spread"
+              },
+              {
+                "id": "C",
+                "text": "explain"
+              },
+              {
+                "id": "D",
+                "text": "remove"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-15",
+            "number": "15",
+            "options": [
+              {
+                "id": "A",
+                "text": "compensations"
+              },
+              {
+                "id": "B",
+                "text": "symptoms"
+              },
+              {
+                "id": "C",
+                "text": "treatments"
+              },
+              {
+                "id": "D",
+                "text": "demands"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-16",
+            "number": "16",
+            "options": [
+              {
+                "id": "A",
+                "text": "Meanwhile"
+              },
+              {
+                "id": "B",
+                "text": "Likewise"
+              },
+              {
+                "id": "C",
+                "text": "Therefore"
+              },
+              {
+                "id": "D",
+                "text": "Instead"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-17",
+            "number": "17",
+            "options": [
+              {
+                "id": "A",
+                "text": "change"
+              },
+              {
+                "id": "B",
+                "text": "watch"
+              },
+              {
+                "id": "C",
+                "text": "take"
+              },
+              {
+                "id": "D",
+                "text": "count"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-18",
+            "number": "18",
+            "options": [
+              {
+                "id": "A",
+                "text": "coordination"
+              },
+              {
+                "id": "B",
+                "text": "process"
+              },
+              {
+                "id": "C",
+                "text": "formation"
+              },
+              {
+                "id": "D",
+                "text": "well-being"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-19",
+            "number": "19",
+            "options": [
+              {
+                "id": "A",
+                "text": "space"
+              },
+              {
+                "id": "B",
+                "text": "love"
+              },
+              {
+                "id": "C",
+                "text": "knowledge"
+              },
+              {
+                "id": "D",
+                "text": "level"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-20",
+            "number": "20",
+            "options": [
+              {
+                "id": "A",
+                "text": "design"
+              },
+              {
+                "id": "B",
+                "text": "diet"
+              },
+              {
+                "id": "C",
+                "text": "routine"
+              },
+              {
+                "id": "D",
+                "text": "prescription"
+              }
+            ],
+            "correctOptionId": "B"
+          }
+        ],
+        "pointsPerItem": 0.5,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-1",
+            "label": "1"
+          },
+          {
+            "id": "q-2",
+            "label": "2"
+          },
+          {
+            "id": "q-3",
+            "label": "3"
+          },
+          {
+            "id": "q-4",
+            "label": "4"
+          },
+          {
+            "id": "q-5",
+            "label": "5"
+          },
+          {
+            "id": "q-6",
+            "label": "6"
+          },
+          {
+            "id": "q-7",
+            "label": "7"
+          },
+          {
+            "id": "q-8",
+            "label": "8"
+          },
+          {
+            "id": "q-9",
+            "label": "9"
+          },
+          {
+            "id": "q-10",
+            "label": "10"
+          },
+          {
+            "id": "q-11",
+            "label": "11"
+          },
+          {
+            "id": "q-12",
+            "label": "12"
+          },
+          {
+            "id": "q-13",
+            "label": "13"
+          },
+          {
+            "id": "q-14",
+            "label": "14"
+          },
+          {
+            "id": "q-15",
+            "label": "15"
+          },
+          {
+            "id": "q-16",
+            "label": "16"
+          },
+          {
+            "id": "q-17",
+            "label": "17"
+          },
+          {
+            "id": "q-18",
+            "label": "18"
+          },
+          {
+            "id": "q-19",
+            "label": "19"
+          },
+          {
+            "id": "q-20",
+            "label": "20"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-01",
+      "title": "阅读理解 Text 1（21–25）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "How can Britain’s train operators possibly justify yet another increase to rail passenger fares? It has become a grimly reliable annual ritual: every January the cost of travelling by train rises, imposing a significant extra burden on those who have no option but to use the rail network to get to work or otherwise. This year’s rise, an average of 2.7 per cent, may be a fraction lower than last year’s, but it is still well above the official Consumer Price Index (CPI) measure of inflation."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Successive governments have permitted such increases on the grounds that the cost of investing in and running the rail network should be borne by those who use it, rather than the general taxpayer. Why, the argument goes, should a car-driving pensioner from Lincolnshire have to subsidise the daily commute of a stockbroker from Surrey? Equally, there is a sense that the travails of commuters in the South East, many of whom will face among the biggest rises, have received too much attention compared to those who must endure the relatively poor infrastructure of the Midlands and the North."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "However, over the past 12 months, those commuters have also experienced some of the worst rail strikes in years. It is all very well train operators trumpeting the improvements they are making to the network, but passengers should be able to expect a basic level of service for the substantial sums they are now paying to travel. The responsibility for the latest wave of strikes rests on the unions. However, there is a strong case that those who have been worst affected by industrial action should receive compensation for the disruption they have suffered."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The Government has pledged to change the law to introduce a minimum service requirement so that, even when strikes occur, services can continue to operate. This should form part of a wider package of measures to address the long-running problems on Britain’s railways. Yes, more investment is needed, but passengers will not be willing to pay more indefinitely if they must also endure cramped, unreliable services, interrupted by regular chaos when timetables are changed, or planned maintenance is managed incompetently. The threat of nationalisation may have been seen off for now, but it will return with a vengeance if the justified anger of passengers is not addressed in short order."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-21",
+            "number": "21",
+            "stem": "The author holds that this year’s increase in rail passenger fares",
+            "options": [
+              {
+                "id": "A",
+                "text": "will ease train operators’ burden."
+              },
+              {
+                "id": "B",
+                "text": "has kept pace with inflation."
+              },
+              {
+                "id": "C",
+                "text": "is a big surprise to commuters."
+              },
+              {
+                "id": "D",
+                "text": "remains an unreasonable measure."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-22",
+            "number": "22",
+            "stem": "The stockbroker in Paragraph 2 is used to stand for",
+            "options": [
+              {
+                "id": "A",
+                "text": "car drivers."
+              },
+              {
+                "id": "B",
+                "text": "rail travellers."
+              },
+              {
+                "id": "C",
+                "text": "local investors."
+              },
+              {
+                "id": "D",
+                "text": "ordinary taxpayers."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-23",
+            "number": "23",
+            "stem": "It is indicated in Paragraph 3 that train operators",
+            "options": [
+              {
+                "id": "A",
+                "text": "are offering compensation to commuters."
+              },
+              {
+                "id": "B",
+                "text": "are trying to repair relations with the unions."
+              },
+              {
+                "id": "C",
+                "text": "have failed to provide an adequate service."
+              },
+              {
+                "id": "D",
+                "text": "have suffered huge losses owing to the strikes."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-24",
+            "number": "24",
+            "stem": "If unable to calm down passengers, the railways may have to face",
+            "options": [
+              {
+                "id": "A",
+                "text": "a change of ownership."
+              },
+              {
+                "id": "B",
+                "text": "a reduction of revenue."
+              },
+              {
+                "id": "C",
+                "text": "the loss of investment."
+              },
+              {
+                "id": "D",
+                "text": "the collapse of operations."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-25",
+            "number": "25",
+            "stem": "Which of the following would be the best title for the text?",
+            "options": [
+              {
+                "id": "A",
+                "text": "Ever-rising Fares Aren’t Sustainable"
+              },
+              {
+                "id": "B",
+                "text": "Who Are to Blame for the Strikes?"
+              },
+              {
+                "id": "C",
+                "text": "Constant Complaining Doesn’t Work"
+              },
+              {
+                "id": "D",
+                "text": "Can Nationalisation Bring Hope?"
+              }
+            ],
+            "correctOptionId": "A"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-21",
+            "label": "21"
+          },
+          {
+            "id": "q-22",
+            "label": "22"
+          },
+          {
+            "id": "q-23",
+            "label": "23"
+          },
+          {
+            "id": "q-24",
+            "label": "24"
+          },
+          {
+            "id": "q-25",
+            "label": "25"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-02",
+      "title": "阅读理解 Text 2（26–30）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Last year marked the third year in a row that Indonesia’s bleak rate of deforestation has slowed in pace. One reason for the turnaround may be the country’s antipoverty program."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "In 2007, Indonesia started phasing in a program that gives money to its poorest residents under certain conditions, such as requiring people to keep kids in school or get regular medical care. Called conditional cash transfers or CCTs, these social assistance programs are designed to reduce inequality and break the cycle of poverty. They’re already used in dozens of countries worldwide. In Indonesia, the program has provided enough food and medicine to substantially reduce severe growth problems among children."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "But CCT programs don’t generally consider effects on the environment. In fact, poverty alleviation and environmental protection are often viewed as conflicting goals, says Paul Ferraro, an economist at Johns Hopkins University."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "That’s because economic growth can be correlated with environmental degradation, while protecting the environment is sometimes correlated with greater poverty. However, those correlations don’t prove cause and effect. The only previous study analyzing causality, based on an area in Mexico that had instituted CCTs, supported the traditional view. There, as people got more money, some of them may have more cleared land for cattle to raise for meat, Ferraro says."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Such programs do not have to negatively affect the environment, though. Ferraro wanted to see if Indonesia’s poverty-alleviation program was affecting deforestation. Indonesia has the third-largest area of tropical forest in the world and one of the highest deforestation rates."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Ferraro analyzed satellite data showing annual forest loss from 2008 to 2012— including during Indonesia’s phase-in of the antipoverty program—in 7,468 forested villages across 15 provinces. “We see that the program is associated with a 30 percent reduction in deforestation,” Ferraro says."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "That’s likely because the rural poor are using the money as makeshift insurance policies against inclement weather, Ferraro says. Typically, if rains are delayed, people may clear land to plant more rice to supplement their harvests. With the CCTs, individuals instead can use the money to supplement their harvests."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Whether this research translates elsewhere is anybody’s guess. Ferraro suggests the results may transfer to other parts of Asia, due to commonalities such as the importance of growing rice and market access. And regardless of transferability, the study shows that what’s good for people may also be good for the the environment. Even if this program didn’t reduce poverty, Ferraro says, “the value of the avoided deforestation just for carbon dioxide emissions alone is more than the program costs.”"
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-26",
+            "number": "26",
+            "stem": "According to the first two paragraphs, CCT programs aim to",
+            "options": [
+              {
+                "id": "A",
+                "text": "improve local education systems."
+              },
+              {
+                "id": "B",
+                "text": "lower deforestation rates."
+              },
+              {
+                "id": "C",
+                "text": "help poor families get better off."
+              },
+              {
+                "id": "D",
+                "text": "facilitate health care reform."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-27",
+            "number": "27",
+            "stem": "The study based on an area in Mexico is cited to show that",
+            "options": [
+              {
+                "id": "A",
+                "text": "economic growth tends to cause environmental degradation."
+              },
+              {
+                "id": "B",
+                "text": "cattle rearing has been a major means of livelihood for the poor."
+              },
+              {
+                "id": "C",
+                "text": "CCT programs have helped preserve traditional lifestyles."
+              },
+              {
+                "id": "D",
+                "text": "antipoverty efforts require the participation of local farmers."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-28",
+            "number": "28",
+            "stem": "In his study about Indonesia, Ferraro intends to find out",
+            "options": [
+              {
+                "id": "A",
+                "text": "its acceptance level of CCTs."
+              },
+              {
+                "id": "B",
+                "text": "its annual rate of poverty alleviation."
+              },
+              {
+                "id": "C",
+                "text": "the role of its forests in climate change."
+              },
+              {
+                "id": "D",
+                "text": "the relation of CCTs to its forest loss."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-29",
+            "number": "29",
+            "stem": "According to Ferraro, the CCT program in Indonesia is most valuable in that",
+            "options": [
+              {
+                "id": "A",
+                "text": "it will benefit other Asian countries."
+              },
+              {
+                "id": "B",
+                "text": "it will reduce regional inequality."
+              },
+              {
+                "id": "C",
+                "text": "it can boost grain production."
+              },
+              {
+                "id": "D",
+                "text": "it can protect the environment."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-30",
+            "number": "30",
+            "stem": "What is the text centered on?",
+            "options": [
+              {
+                "id": "A",
+                "text": "The debates over a program."
+              },
+              {
+                "id": "B",
+                "text": "The effects of a program."
+              },
+              {
+                "id": "C",
+                "text": "The transferability of a study."
+              },
+              {
+                "id": "D",
+                "text": "The process of a study."
+              }
+            ],
+            "correctOptionId": "B"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-26",
+            "label": "26"
+          },
+          {
+            "id": "q-27",
+            "label": "27"
+          },
+          {
+            "id": "q-28",
+            "label": "28"
+          },
+          {
+            "id": "q-29",
+            "label": "29"
+          },
+          {
+            "id": "q-30",
+            "label": "30"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-03",
+      "title": "阅读理解 Text 3（31–35）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "As a historian who’s always searching for the text or the image that makes us re-evaluate the past, I’ve become preoccupied with looking for photographs that show our Victorian ancestors smiling (what better way to shatter the image of 19th- century prudery?). I’ve found quite a few, and—since I started posting them on Twitter—they have been causing quite a stir. People have been surprised to see evidence that Victorians had fun and could, and did, laugh. They are noting that the Victorians suddenly seem to become more human as the hundred-or-so years that separate us fade away through our common experience of laughter."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Of course, I need to concede that my collection of “Smiling Victorians” makes up only a tiny percentage of the vast catalogue of photographic portraiture created between 1840 and 1900, the majority of which show sitters posing miserably and stiffly in front of painted backdrops, or staring absently into the middle distance. How do we explain this trend?"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "During the 1840s and 1850s, in the early days of photography, exposure times were notoriously long: the daguerreotype photographic method (producing an image on a silvered copper plate) could take several minutes to complete, resulting in blurred images as sitters shifted position or adjusted their limbs. The thought of holding a fixed grin as the camera performed its magical duties was too much to contemplate, and so a non-committal blank stare became the norm."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "But exposure times were much quicker by the 1880s, and the introduction of the Box Brownie and other portable cameras meant that, though slow by today’s digital standards, the exposure was almost instantaneous. Spontaneous smiles were relatively easy to capture by the 1890s, so we must look elsewhere for an explanation of why Victorians still hesitated to smile."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "One explanation might be the loss of dignity displayed through a cheesy grin. “Nature gave us lips to conceal our teeth,” ran one popular Victorian saying, alluding to the fact that before the birth of proper dentistry, mouths were often in a shocking state of hygiene. A flashing set of healthy and clean, regular “pearly whites” was a rare sight in Victorian society, the preserve of the super-rich (and even then, dental hygiene was not guaranteed)."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "A toothy grin (especially when there were gaps or blackened teeth) lacked class: drunks, tramps and music hall performers might gurn and grin with a smile as wide as Lewis Carroll’s gum-exposing Cheshire Cat, but it was not a becoming look for properly bred persons. Even Mark Twain, a man who enjoyed a hearty laugh, said that when it came to photographic portraits there could be “nothing more damning than a silly, foolish smile fixed forever”."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-31",
+            "number": "31",
+            "stem": "According to Paragraph 1, the author’s posts on Twitter",
+            "options": [
+              {
+                "id": "A",
+                "text": "illustrated the development of Victorian photography."
+              },
+              {
+                "id": "B",
+                "text": "changed people’s impression of the Victorians."
+              },
+              {
+                "id": "C",
+                "text": "highlighted social media’s role in Victorian studies."
+              },
+              {
+                "id": "D",
+                "text": "re-evaluated the Victorian’s notion of public image."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-32",
+            "number": "32",
+            "stem": "What does the author say about the Victorian portraits he has collected?",
+            "options": [
+              {
+                "id": "A",
+                "text": "They are in popular use among historians."
+              },
+              {
+                "id": "B",
+                "text": "They show effects of different exposure times."
+              },
+              {
+                "id": "C",
+                "text": "They are rare among photographs of that age."
+              },
+              {
+                "id": "D",
+                "text": "They mirror 19th-century social conventions."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-33",
+            "number": "33",
+            "stem": "What might have kept the Victorians from smiling for pictures in the 1890s?",
+            "options": [
+              {
+                "id": "A",
+                "text": "Their unhealthy dental condition."
+              },
+              {
+                "id": "B",
+                "text": "Their inherent social sensitiveness."
+              },
+              {
+                "id": "C",
+                "text": "Their tension before the camera."
+              },
+              {
+                "id": "D",
+                "text": "Their distrust of new inventions."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-34",
+            "number": "34",
+            "stem": "Mark Twain is quoted to show that the disapproval of smiles in pictures was",
+            "options": [
+              {
+                "id": "A",
+                "text": "a thought-provoking idea."
+              },
+              {
+                "id": "B",
+                "text": "a deep-rooted belief."
+              },
+              {
+                "id": "C",
+                "text": "a misguided attitude."
+              },
+              {
+                "id": "D",
+                "text": "a controversial view."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-35",
+            "number": "35",
+            "stem": "Which of the following questions does the text answer?",
+            "options": [
+              {
+                "id": "A",
+                "text": "When did the Victorians start to view photography differently?"
+              },
+              {
+                "id": "B",
+                "text": "What made photography develop slowly in the Victorian period?"
+              },
+              {
+                "id": "C",
+                "text": "Why did most Victorians look stern in photographs?"
+              },
+              {
+                "id": "D",
+                "text": "How did smiling in photographs become a post-Victorian norm?"
+              }
+            ],
+            "correctOptionId": "C"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-31",
+            "label": "31"
+          },
+          {
+            "id": "q-32",
+            "label": "32"
+          },
+          {
+            "id": "q-33",
+            "label": "33"
+          },
+          {
+            "id": "q-34",
+            "label": "34"
+          },
+          {
+            "id": "q-35",
+            "label": "35"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-04",
+      "title": "阅读理解 Text 4（36–40）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "From the early days of broadband, advocates for consumers and web- based companies worried that the cable and phone companies selling broadband connections had the power and incentive to favor affiliated websites over their rivals’. That’s why there has been such a strong demand for rules that would prevent broadband providers from picking winners and losers online, preserving the freedom and innovation that have been the lifeblood of the internet."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Yet that demand has been almost impossible to fill—in part because of pushback from broadband providers, anti-regulatory conservatives and the courts. A federal appeals court weighed in again Tuesday, but instead of providing a badly needed resolution, it only prolonged the fight. At issue before the U.S. Court of Appeals for the District of Columbia Circuit was the latest take of the Federal Communications Commission (FCC) on net neutrality, adopted on a party-line vote in 2017. The Republican penned order not only eliminated the strict net neutrality rules the FCC had adopted when it had a Democratic majority in 2015, but rejected the commission’s authority to require broadband providers to do much of anything. The order also declared that state and local governments couldn’t regulate broadband providers either."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The commission argued that other agencies would protect against anti- competitive behavior, such as a broadband-providing conglomerate like AT&T favoring its own video-streaming service at the expense of Netflix and Apple TV. Yet the FCC also ended the investigations of broadband providers that imposed data caps on their rivals’ streaming services but not their own."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "On Tuesday, the appeals court unanimously upheld the 2017 order deregulating broadband providers, citing a Supreme Court ruling from 2005 that upheld a similarly deregulatory move. But Judge Patricia Millett rightly argued in a concurring opinion that “the result is unhinged from the realities of modern broadband service,” and said Congress or the Supreme Court could intervene to “avoid trapping internet regulation in technological anachronism.”"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "In the meantime, the court threw out the FCC’s attempt to block all state rules on net neutrality, while preserving the commission’s power to preempt individual state laws that undermine its order. That means more battles like the one now going on between the Justice Department and California, which enacted a tough net neutrality law in the wake of the FCC’s abdication."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The endless legal battles and back-and-forth at the FCC cry out for Congress to act. It needs to give the commission explicit authority once and for all to bar broadband providers from meddling in the traffic on their network and to create clear rules protecting openness and innovation online."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-36",
+            "number": "36",
+            "stem": "There has long been concern that broadband providers would",
+            "options": [
+              {
+                "id": "A",
+                "text": "show partiality in treating clients."
+              },
+              {
+                "id": "B",
+                "text": "bring web-based firms under control."
+              },
+              {
+                "id": "C",
+                "text": "slow down the traffic on their network."
+              },
+              {
+                "id": "D",
+                "text": "intensify competition with their rivals."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-37",
+            "number": "37",
+            "stem": "Faced with the demand for net neutrality rules, the FCC",
+            "options": [
+              {
+                "id": "A",
+                "text": "sticks to an out-of-date order."
+              },
+              {
+                "id": "B",
+                "text": "has allowed the states to intervene."
+              },
+              {
+                "id": "C",
+                "text": "has issued a special resolution."
+              },
+              {
+                "id": "D",
+                "text": "takes an anti-regulatory stance."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-38",
+            "number": "38",
+            "stem": "What can be learned about AT&T from Paragraph 3?",
+            "options": [
+              {
+                "id": "A",
+                "text": "It is in pursuit of quality service."
+              },
+              {
+                "id": "B",
+                "text": "It is under the FCC’S investigation."
+              },
+              {
+                "id": "C",
+                "text": "It protects against unfair competition."
+              },
+              {
+                "id": "D",
+                "text": "It engages in anti-competitive practices."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-39",
+            "number": "39",
+            "stem": "Judge Patricia Millett argues that the appeals court’s decision",
+            "options": [
+              {
+                "id": "A",
+                "text": "conveys an ambiguous message."
+              },
+              {
+                "id": "B",
+                "text": "is out of touch with reality."
+              },
+              {
+                "id": "C",
+                "text": "is at odds with its earlier rulings."
+              },
+              {
+                "id": "D",
+                "text": "focuses on trivialities."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-40",
+            "number": "40",
+            "stem": "What does the author argue in the last paragraph?",
+            "options": [
+              {
+                "id": "A",
+                "text": "Broadband providers’ rights should be protected."
+              },
+              {
+                "id": "B",
+                "text": "The FCC should be put under strict supervision."
+              },
+              {
+                "id": "C",
+                "text": "Congress needs to take action to ensure net neutrality."
+              },
+              {
+                "id": "D",
+                "text": "Rules need to be set to diversify online services."
+              }
+            ],
+            "correctOptionId": "C"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-36",
+            "label": "36"
+          },
+          {
+            "id": "q-37",
+            "label": "37"
+          },
+          {
+            "id": "q-38",
+            "label": "38"
+          },
+          {
+            "id": "q-39",
+            "label": "39"
+          },
+          {
+            "id": "q-40",
+            "label": "40"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-b-01",
+      "title": "阅读选填（41–45）",
+      "extension": {
+        "development": "reading-gap-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "In the following text, some sentences have been removed. For Questions 41-45, choose the most suitable one from the list A-G to fit into each of the numbered blanks. There are two extra choices, which do not fit in any of the blanks. Mark your answers on the ANSWER SHEET. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "In the movies and on television, artificial intelligence (AI) is typically depicted as something sinister that will upend our way of life. When it comes to AI in business, we often hear about it in relation to automation and the impending loss of jobs, but in what ways is AI changing companies and the larger economy that don’t involve doom-and-gloom mass unemployment predictions?"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "A recent survey of manufacturing and service industries from Tata Consultancy Services found that companies currently use AI more often in computer-to-computer activities than in automating human activities. Here are a few ways AI is aiding companies without replacing employees:"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Better hiring practices"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Companies are using artificial intelligence to remove some of the unconscious bias from hiring decisions. “There are experiments that show that, naturally, the results of interviews are much more biased than what AI does,” says Pedro Domingos, author of The Master Algorithm: How the Quest for the Ultimate Learning Machine Will Remake Our World and a computer science professor at the University of Washington. In addition, “(41) ” One company that’s doing this is called Blendoor. It uses analytics to help identify where there may be bias in the hiring process."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "More effective marketing"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Some AI software can analyze and optimize marketing email subject lines to increase open rates. One company in the UK, Phrasee, claims their software can outperform humans by up to 10 percent when it comes to email open rates. This can mean millions more in revenue. (42) These are “tools that help people use data, not a replacement for people,” says Patrick H. Winston, a professor of artificial intelligence and computer science at MIT."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Saving customers money"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Energy companies can use AI to help customers reduce their electricity bills, saving them money while helping the environment. Companies can also optimize their own energy use and cut down on the cost of electricity. Insurance companies, meanwhile, can base their premiums on AI models that more accurately assess risk. Domingos says, “(43) ”"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Improved accuracy"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "“Machine learning often provides a more reliable form of statistics, which makes data more valuable,” says Winston. It “helps people make smarter decisions.” (44)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Protecting and maintaining infrastructure"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "A number of companies, particularly in energy and transportation, use AI image processing technology to inspect infrastructure and prevent equipment failure or leaks before they happen. “If they fail first and then you fix them, it’s very expensive,” says Domingos. “(45) ”"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[A] AI replaces the boring parts of your job. If you’re doing research, you can have AI go out and look for relevant sources and information that otherwise you just wouldn’t have time for."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[B] There are also companies like Acquisio, which analyzes advertising performance across multiple channels like Adwords, Bing and social media and makes adjustments or suggestions about where advertising funds will yield best results."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[C] We’re also giving our customers better channels versus picking up the phone to accomplish something beyond human scale."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[D] One accounting firm, EY, uses an AI system that helps review contracts during an audit. This process, along with employees reviewing the contracts, is faster and more accurate."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[E] AI looks at résumés in greater numbers than humans would be able to, and selects the more promising candidates."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[F] You want to predict if something needs attention now and point to where it’s useful for employees to go to."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[G] Before, they might not insure the ones who felt like a high risk or charge them too much, or they would charge them too little and then it would cost the company money."
+                }
+              ]
+            }
+          ]
+        },
+        "paragraphIds": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E",
+          "F",
+          "G"
+        ],
+        "slots": [
+          {
+            "id": "slot-41",
+            "locked": false,
+            "correctParagraphId": "E"
+          },
+          {
+            "id": "slot-42",
+            "locked": false,
+            "correctParagraphId": "B"
+          },
+          {
+            "id": "slot-43",
+            "locked": false,
+            "correctParagraphId": "G"
+          },
+          {
+            "id": "slot-44",
+            "locked": false,
+            "correctParagraphId": "D"
+          },
+          {
+            "id": "slot-45",
+            "locked": false,
+            "correctParagraphId": "F"
+          }
+        ],
+        "parts": [
+          {
+            "id": "q-41",
+            "number": "41",
+            "slotId": "slot-41"
+          },
+          {
+            "id": "q-42",
+            "number": "42",
+            "slotId": "slot-42"
+          },
+          {
+            "id": "q-43",
+            "number": "43",
+            "slotId": "slot-43"
+          },
+          {
+            "id": "q-44",
+            "number": "44",
+            "slotId": "slot-44"
+          },
+          {
+            "id": "q-45",
+            "number": "45",
+            "slotId": "slot-45"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-41",
+            "label": "41"
+          },
+          {
+            "id": "q-42",
+            "label": "42"
+          },
+          {
+            "id": "q-43",
+            "label": "43"
+          },
+          {
+            "id": "q-44",
+            "label": "44"
+          },
+          {
+            "id": "q-45",
+            "label": "45"
+          }
+        ]
+      }
+    },
+    {
+      "id": "translation-01",
+      "title": "分句翻译（46–50）",
+      "extension": {
+        "development": "segment-translation-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text carefully and then translate the underlined segments into Chinese. Write your answers on the ANSWER SHEET. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "World War II was the watershed event for higher education in modern Western societies. (46) "
+                },
+                {
+                  "type": "text",
+                  "text": "Those societies came out of the war with levels of enrollment that had been roughly constant at 3%-5% of the relevant age groups during the decades before the war.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " But after the war, great social and political changes arising out of the successful war against Fascism created a growing demand in European and American economies for increasing numbers of graduates with more than a secondary school education. (47) "
+                },
+                {
+                  "type": "text",
+                  "text": "And the demand that rose in those societies for entry to higher education extended to groups and social classes that had not thought of attending a university before the war.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " These demands resulted in a very rapid expansion of the systems of higher education, beginning in the 1960s and developing very rapidly (though unevenly) during the 1970s and 1980s."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The growth of higher education manifests itself in at least three quite different ways, and these in turn have given rise to different sets of problems. There was first the rate of growth: (48) "
+                },
+                {
+                  "type": "text",
+                  "text": "in many countries of Western Europe, the numbers of students in higher education doubled within five-year periods during the 1960s and doubled again in seven, eight, or 10 years by the middle of the 1970s. ",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": "Second, growth obviously affected the absolute size both of systems and individual institutions. And third, growth was reflected in changes in the proportion of the relevant age group enrolled in institutions of higher education."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Each of these manifestations of growth carried its own peculiar problems in its wake. For example, a high growth rate placed great strains on the existing structures of governance, of administration, and above all of socialization. When a faculty or department grows from, say, five to 20 members within three or four years, (49) "
+                },
+                {
+                  "type": "text",
+                  "text": "and when the new staff are predominantly young men and women fresh from postgraduate study, they largely define the norms of academic life in that faculty.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " And if the postgraduate student population also grows rapidly and there is loss of a close apprenticeship relationship between faculty members and students, the student culture becomes the chief socializing force for new postgraduate students, with consequences for the intellectual and academic life of the institution—this was seen in America as well as in France, Italy, West Germany, and Japan. (50) "
+                },
+                {
+                  "type": "text",
+                  "text": "High growth rates increased the chances for academic innovation; they also weakened the forms and processes by which teachers and students are admitted into a community of scholars during periods of stability or slow growth. ",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": "In the 1960s and 1970s, European universities saw marked changes in their governance arrangements, with empowerment of junior faculty and to some degree of students as well."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-46",
+            "number": "46",
+            "segment": "Those societies came out of the war with levels of enrollment that had been roughly constant at 3%-5% of the relevant age groups during the decades before the war."
+          },
+          {
+            "id": "q-47",
+            "number": "47",
+            "segment": "And the demand that rose in those societies for entry to higher education extended to groups and social classes that had not thought of attending a university before the war."
+          },
+          {
+            "id": "q-48",
+            "number": "48",
+            "segment": "in many countries of Western Europe, the numbers of students in higher education doubled within five-year periods during the 1960s and doubled again in seven, eight, or 10 years by the middle of the 1970s."
+          },
+          {
+            "id": "q-49",
+            "number": "49",
+            "segment": "and when the new staff are predominantly young men and women fresh from postgraduate study, they largely define the norms of academic life in that faculty."
+          },
+          {
+            "id": "q-50",
+            "number": "50",
+            "segment": "High growth rates increased the chances for academic innovation; they also weakened the forms and processes by which teachers and students are admitted into a community of scholars during periods of stability or slow growth."
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "assessment": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "46. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "战争结束时，那些社会的高校入学率为相应年龄人群的 3%-5%，这一 水平在战前数十年里大致保持稳定。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "47. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "那些社会中对于接受高等教育的需求增加了，其范围扩大到战前没有 考虑过上大学的群体和社会阶层。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "48. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "在许多西欧国家，高等院校的学生数量在二十世纪六十年代期间五年 翻了一番，之后经过七、八或十年的时间到七十年代中期又翻了一番。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "49. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "当绝大多数新教职员工是刚刚完成研究生学业的年轻人时，他们就在 很大程度上确立了所在院系的学术生活规范。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "50. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "高增长率增加了学术创新的可能性，同时也弱化了在稳定时期或缓慢 增长时期接纳教师和学生进入学者群体的那些形式和流程。"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-46",
+            "label": "46"
+          },
+          {
+            "id": "q-47",
+            "label": "47"
+          },
+          {
+            "id": "q-48",
+            "label": "48"
+          },
+          {
+            "id": "q-49",
+            "label": "49"
+          },
+          {
+            "id": "q-50",
+            "label": "50"
+          }
+        ]
+      }
+    },
+    {
+      "id": "writing-51",
+      "title": "2021英语（一）应用文写作",
+      "extension": {
+        "development": "english-writing-2026-dev"
+      },
+      "data": {
+        "formatVersion": 1,
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "51. A foreign friend of yours has recently graduated from college and intends to find a job in China. Write him/her an e-mail to make some suggestions."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "You should write about 100 words on the ANSWER SHEET."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Do not use your own name in the email; use “Li Ming” instead. ( 10 points)"
+                }
+              ]
+            }
+          ]
+        },
+        "referenceAnswer": null,
+        "rubric": null,
+        "wordCount": {
+          "target": 100
+        },
+        "maxScore": 10
+      },
+      "outline": {
+        "level": "question",
+        "label": "51"
+      }
+    },
+    {
+      "id": "writing-52",
+      "title": "2021英语（一）图画／图表作文",
+      "extension": {
+        "development": "english-writing-2026-dev"
+      },
+      "data": {
+        "formatVersion": 1,
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "52. Write an essay of 160-200 words based on the picture below. In your essay, you should"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "1) describe the picture briefly,"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "2) interpret the implied meaning, and"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "3) give your comments."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Write your answer on the ANSWER SHEET. (20 points)"
+                }
+              ]
+            },
+            {
+              "type": "image",
+              "attrs": {
+                "assetId": "00ccd731721cec66a70d1af3b75ccf7e91c4b6ad94046da1200cfb5d46d2aa88",
+                "alt": "2021年作文原题图表"
+              }
+            }
+          ]
+        },
+        "referenceAnswer": null,
+        "rubric": null,
+        "wordCount": {
+          "min": 160,
+          "max": 200
+        },
+        "maxScore": 20
+      },
+      "outline": {
+        "level": "question",
+        "label": "52"
+      }
+    }
+  ]
+}

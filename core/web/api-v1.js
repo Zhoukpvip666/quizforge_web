@@ -30,9 +30,11 @@ export function bootstrapV1(boot) {
     // Old frozen pages predate public service metadata. Infer only the profiles
     // shipped by the host; an unknown pinned provider receives no schema claims.
     const basic=['basic-formatting','images'],advanced=[...basic,'advanced-formatting','tables','math','image-resize'];
-    const knownAdvanced=['1.1.0','1.1.1','1.1.2'].includes(dependency.version);
+    const cameraProvider=dependency.version==='1.1.3';
+    if(cameraProvider)advanced.push('camera-capture');
+    const knownAdvanced=['1.1.0','1.1.1','1.1.2','1.1.3'].includes(dependency.version);
     const known=knownAdvanced||dependency.version==='1.0.0';
-    const metadata=boot.contentApi||(known?{major:1,minor:0,documentFormat:1,documentProfile:knownAdvanced?'advanced-v1':'basic-v1',capabilities:knownAdvanced?advanced:basic}:null);
+    const metadata=boot.contentApi||(known?{major:1,minor:cameraProvider?1:0,documentFormat:1,documentProfile:knownAdvanced?'advanced-v1':'basic-v1',capabilities:knownAdvanced?advanced:basic}:null);
     const publicApi=metadata?Object.freeze({major:metadata.major,minor:metadata.minor,documentFormat:metadata.documentFormat,documentProfile:metadata.documentProfile,capabilities:Object.freeze([...metadata.capabilities])}):null;
     library.configure?.({resources,setExpanded:options=>invoke('editor-layout',options).then(unwrap),loadEditor(){
       if(!editorLoading)editorLoading=(async()=>{

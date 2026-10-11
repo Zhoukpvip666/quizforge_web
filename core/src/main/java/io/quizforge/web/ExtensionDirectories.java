@@ -10,7 +10,7 @@ import java.util.List;
 
 /** Folders organize installed single-type extensions; they never become identities. */
 final class ExtensionDirectories {
-    private static final int MAX_GROUP_DEPTH = 4, MAX_DIRECTORIES = 1000, MAX_EXTENSIONS = 200;
+    private static final int MAX_GROUP_DEPTH = 1, MAX_DIRECTORIES = 1000, MAX_EXTENSIONS = 200;
     private ExtensionDirectories() { }
     static List<Path> scan(Path directory) {
         if (!Files.exists(directory, LinkOption.NOFOLLOW_LINKS)) return List.of();
@@ -27,7 +27,7 @@ final class ExtensionDirectories {
             if (depth > MAX_GROUP_DEPTH + 1 || leaves.size() >= MAX_EXTENSIONS) throw new IOException("Extension directory depth or count exceeds the limit");
             leaves.add(directory); return;
         }
-        if (depth > MAX_GROUP_DEPTH) throw new IOException("Extension groups may be nested at most four levels");
+        if (depth > MAX_GROUP_DEPTH) throw new IOException("拓展分组只支持一层");
         try (var entries = Files.list(directory)) {
             List<Path> children = entries.filter(path -> Files.isSymbolicLink(path) || Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)).sorted(Comparator.naturalOrder()).limit(MAX_DIRECTORIES + 1L).toList();
             for (Path child : children) {

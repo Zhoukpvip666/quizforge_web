@@ -79,6 +79,14 @@ class RichTextServiceTest {
         assertEquals("1.1.3", fixture.get("/api/extensions/generic/1.0.0/page").body().at("/dependencies/0/version").asText());
         assertFalse(manifest().path("requiresRichText").has("version")); assertFalse(manifest().has("dependencies"));
     }
+    @Test void cameraCaptureUsesMinorOneAndOnlyTheAdvancedProfile() throws Exception {
+        provider("1.0.0", "basic"); provider("1.1.3", "camera"); ObjectNode next = registry("1.1.3");
+        ((ObjectNode) next.path("api")).put("minor", 1); ((ObjectNode) next.at("/profiles/1")).withArray("capabilities").add("camera-capture"); registry(next);
+        RichTextService service = new RichTextService(root); ObjectNode value = manifest(), request = requirement("advanced-v1").put("minMinor", 1); request.putArray("capabilities").add("camera-capture"); value.set("requiresRichText", request);
+        var resolution = service.resolve(value); assertEquals(1, resolution.contentApi().path("minor").asInt()); assertEquals("1.1.3", resolution.dependencies().getFirst().version());
+        request.put("documentProfile", "basic-v1"); assertEquals("UNSUPPORTED_RICHTEXT_CAPABILITY", assertThrows(ApiException.class, () -> service.resolve(value)).code);
+        request.put("documentProfile", "advanced-v1").put("minMinor", 2); assertEquals("UNSUPPORTED_RICHTEXT_API", assertThrows(ApiException.class, () -> service.resolve(value)).code);
+    }
     @Test void legacyBasicSchemaNeverReceivesAdvancedProvider() throws Exception {
         provider("1.0.0", "basic"); provider("1.1.2", "advanced"); registry(registry("1.1.2")); legacy("1.0.0"); fixture.start(null);
         JsonNode page = fixture.get("/api/extensions/generic/1.0.0/page").body(); assertEquals("1.0.0", page.at("/dependencies/0/version").asText());

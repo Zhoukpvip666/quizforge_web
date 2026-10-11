@@ -74,7 +74,17 @@ test('page preparation rejects unsupported content contracts before any provider
   const source=readFileSync(new URL('../web/frame.js',import.meta.url),'utf8').replace(/^import[^\r\n]*\r?\n/gm,'').replace('export function mountExtension','function mountExtension');
   const created=[],sandbox={resolveExtensionApi,validateContentApi,document:{createElement:()=>created.push('frame')},makeRequestId:()=>created.push('id')};
   vm.runInNewContext(`${source}\nglobalThis.mount=mountExtension;`,sandbox);
-  assert.throws(()=>sandbox.mount({}, {...page,contentApi:{...page.contentApi,minor:1}}, {},{}),error=>error.code==='UNSUPPORTED_CONTENT_API');assert.deepEqual(created,[],'Direct mount must validate before IDs, iframes or scripts are created.');
+  assert.throws(()=>sandbox.mount({}, {...page,contentApi:{...page.contentApi,minor:2}}, {},{}),error=>error.code==='UNSUPPORTED_CONTENT_API');assert.deepEqual(created,[],'Direct mount must validate before IDs, iframes or scripts are created.');
+});
+
+test('camera metadata loads through host validation and remains available through the public facade',async()=>{
+  const camera={...contract('advanced-v1'),minor:1,capabilities:[...advanced,'camera-capture']};
+  const prepared=await prepareExtensionAssets({contentApi:camera,dependencies:[{id:'quizforge.richtext',version:'1.1.3'}]},async()=>({script:'camera provider',style:''}));
+  assert.equal(prepared.contentApi,camera);assert.equal(prepared.libraries.length,1);
+  for(const value of [{...camera,minor:0},{...camera,documentProfile:'basic-v1'},{...camera,minor:2}])assert.throws(()=>validateContentApi(value),error=>error.code==='UNSUPPORTED_CONTENT_API');
+  const current=bridgeFixture({version:'1.1.3',contentApi:camera}),frozen=bridgeFixture({version:'1.1.3',contentApi:undefined});
+  assert.deepEqual(plain(current.QF.content.api),camera);assert.deepEqual(plain(frozen.QF.content.api),camera);
+  current.receive({kind:'dispose'});frozen.receive({kind:'dispose'});
 });
 
 test('router authorizes only the concrete provider selected for the active or frozen page',async()=>{
@@ -87,16 +97,16 @@ test('router authorizes only the concrete provider selected for the active or fr
 });
 
 test('the self-contained iframe facade renders and edits through actual immutable Tiptap packages',async t=>{
-  for(const version of ['1.0.0','1.1.2']){
+  for(const version of ['1.0.0','1.1.2','1.1.3']){
     const dom=new JSDOM('<!doctype html><main id="host"></main>',{runScripts:'dangerously',pretendToBeVisual:true,url:'http://localhost/'});t.after(()=>dom.window.close());
     const {window}=dom,sent=[];window.structuredClone=structuredClone;window.ResizeObserver=class{observe(){}disconnect(){}};
     window.postMessage=message=>sent.push(plain(message));
     const light=readFileSync(new URL(`../shared/richtext/${version}/richtext.js`,import.meta.url),'utf8'),heavy=readFileSync(new URL(`../shared/richtext/${version}/richtext-editor.js`,import.meta.url),'utf8');
-    const boot={session:`real-${version}`,nonce:'host',context:{mode:'practice'},api:resolveExtensionApi().api,dependencies:[{id:'quizforge.richtext',version}],...(version==='1.1.2'?{contentApi:contract('advanced-v1')}:{})};
+    const boot={session:`real-${version}`,nonce:'host',context:{mode:'practice'},api:resolveExtensionApi().api,dependencies:[{id:'quizforge.richtext',version}],...(version==='1.1.3'?{contentApi:{...contract('advanced-v1'),minor:1,capabilities:[...advanced,'camera-capture']}}:version==='1.1.2'?{contentApi:contract('advanced-v1')}:{})};
     window.eval(`(${bootstrapV1.toString()})(${JSON.stringify(boot)});`);window.eval(light);
     const content=window.QF.content,host=window.document.getElementById('host'),value=doc('统一文档格式');
     const formula={type:'doc',content:[{type:'blockMath',attrs:{latex:'x+1'}}]};
-    assert.equal(content.validateDocument(formula),version==='1.1.2','The legacy basic profile must not acquire nodes rejected by its unchanged rules.');
+    assert.equal(content.validateDocument(formula),version!=='1.0.0','The legacy basic profile must not acquire nodes rejected by its unchanged rules.');
     const view=content.render(host,value);await view.ready;assert.equal(host.textContent,'统一文档格式');assert.equal(sent.some(item=>item.method==='sdk-editor'),false);view.destroy();
     const editor=content.createEditor(host,{doc:value});await tick();const request=sent.find(item=>item.method==='sdk-editor');assert.deepEqual(request.args,{id:'quizforge.richtext',version});
     window.dispatchEvent(new window.MessageEvent('message',{source:window.parent,data:{channel:'quizforge-host',session:boot.session,kind:'reply',id:request.id,reply:{ok:true,data:{script:heavy}}}}));

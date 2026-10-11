@@ -173,6 +173,13 @@ export class WhiteboardModel {
 
   clear() { return this.draft.strokes.length > 0 && this.replaceStrokes([]); }
 
+  editStrokes(strokes) {
+    // Validate the complete edit before changing ink or its undo history.
+    const next = normalizeDraft({ ...this.draft, strokes }).strokes;
+    if (JSON.stringify(next) === JSON.stringify(this.draft.strokes)) return false;
+    return this.replaceStrokes(next);
+  }
+
   undo() {
     const change = this.undoStack.pop();
     if (!change) return false;

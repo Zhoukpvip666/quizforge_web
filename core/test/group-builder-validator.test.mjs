@@ -19,7 +19,7 @@ function fixture(t){
   cpSync(path.join(product,'core/server/rules-runner.cjs'),path.join(root,'core/server/rules-runner.cjs'),{recursive:true});
   write('core/package.json',{type:'module'});
   for(const name of ['ajv','fast-deep-equal','fast-uri','json-schema-traverse','require-from-string'])cpSync(path.join(product,'core/node_modules',name),path.join(root,'core/node_modules',name),{recursive:true});
-  const leaves={one:'extensions/基础/one',two:'extensions/基础/深层/two'},refs={};
+  const leaves={one:'extensions/基础/one',two:'extensions/语言/two'},refs={};
   for(const [kind,base]of Object.entries(leaves)){
     const manifest={id:'fixture.'+kind,version:'1.0.0',name:'Type '+kind,requiresApi:{major:1,minMinor:2,capabilities:['practice','editor','score']},entry:'practice.html',script:'practice.js',style:'practice.css',rules:'rules.js',questionSchema:'question.schema.json',answerSchema:'answer.schema.json',examples:'examples/bank.json'};
     refs[kind]={id:manifest.id,version:manifest.version};write(base+'/manifest.json',manifest);
@@ -71,10 +71,10 @@ test('leaf schema and synchronous rules remain independent after directory group
   const result=f.run();assert.equal(result.code,1);assert.equal(result.report.errors[0].code,'RULE_REJECTED');assert.equal(result.report.errors[0].location,'/questions/1/data');
 });
 
-test('group discovery respects four group levels and stops scanning inside leaf source directories',t=>{
-  const f=fixture(t),deep='extensions/a/b/c/d/one';mkdirSync(path.dirname(path.join(f.root,deep)),{recursive:true});renameSync(path.join(f.root,f.leaves.one),path.join(f.root,deep));
+test('group discovery allows one group level and stops scanning inside leaf source directories',t=>{
+  const f=fixture(t),deep='extensions/a/one';mkdirSync(path.dirname(path.join(f.root,deep)),{recursive:true});renameSync(path.join(f.root,f.leaves.one),path.join(f.root,deep));
   f.write(deep+'/src/another/manifest.json',{types:[]});assert.equal(f.run().code,0);
-  const tooDeep='extensions/a/b/c/d/e/one';mkdirSync(path.dirname(path.join(f.root,tooDeep)),{recursive:true});renameSync(path.join(f.root,deep),path.join(f.root,tooDeep));
+  const tooDeep='extensions/a/b/one';mkdirSync(path.dirname(path.join(f.root,tooDeep)),{recursive:true});renameSync(path.join(f.root,deep),path.join(f.root,tooDeep));
   const result=f.run();assert.equal(result.report.errors[0].code,'EXTENSION_GROUP_DEPTH_LIMIT');assert.equal(result.report.summary.ruleBatches,0);
 });
 

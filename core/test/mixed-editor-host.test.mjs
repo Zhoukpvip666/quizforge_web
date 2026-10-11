@@ -22,6 +22,6 @@ test('bank editors switch independent grouped extensions and restore their own d
   }};
   vm.runInNewContext(editorSource+'\nglobalThis.show=showEditorQuestion;',sandbox);
   await sandbox.show(pane,'a');mounted[0].draft.text='unfinished choice';await sandbox.show(pane,'b');mounted[1].draft.text='unfinished essay';await sandbox.show(pane,'a');
-  assert.deepEqual(mounted.map(row=>row.assets.html),['choice-editor','essay-editor','choice-editor']);assert.equal(mounted.at(-1).draft.text,'unfinished choice');assert.equal(drafts.get('b').text,'unfinished essay');assert.equal(pane.editState.extension.id,'choice');assert.equal(maxLive,1);assert.equal(live,1);assert.equal(frameHost.children.length,1);
+  assert.deepEqual(mounted.map(row=>row.assets.html),['choice-editor','essay-editor','choice-editor']);assert.equal(mounted.at(-1).draft.text,'unfinished choice');assert.equal(drafts.get('b').text,'unfinished essay');assert.equal(pane.editState.extension.id,'choice');assert.equal(maxLive,2);assert.equal(live,1);assert.equal(frameHost.children.length,1);
   pane.editorSession.destroy();assert.equal(live,0);
 });

@@ -14,7 +14,7 @@ final class AiProviderException extends RuntimeException {
             case "AI_AUTH" -> "模型认证失败，请检查 API 密钥。";
             case "AI_QUOTA" -> "模型配额或余额不足，请检查供应商配置或账户。";
             case "AI_CONFIG" -> "模型地址、名称或能力配置不匹配。";
-            case "AI_VISION_UNSUPPORTED" -> "本题含图片，请使用已启用图片能力的模型配置。";
+            case "AI_VISION_UNSUPPORTED" -> "本题含图片，请在主机 AI 设置中测试模型的图片识别能力，或更换视觉模型。";
             case "AI_INPUT_LIMIT" -> "评分内容或图片超过本次调用上限。";
             case "AI_IMAGE_UNAVAILABLE" -> "评分所需的图片资源无法读取。";
             case "AI_RATE_LIMIT" -> "模型暂时限制请求，请稍后重试。";

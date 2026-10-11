@@ -1,3 +1,4 @@
+import {renderLibraryView} from '../web/views/library-view.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -17,13 +18,13 @@ const hostSource=part('function transitionTo(', '\nconst active=')+
   part('async function openCollection(', '\nfunction renderOutline(')+
   part('function syncSidebars(', '\nasync function refreshCatalog(')+
   part('async function refreshCatalog(', "\n$('#refresh')")+
-  part("for(const key of ['library','outline']){for(const suffix", '\nfor(const media');
+  part("for(const key of ['library','outline'])$(`#${key}-toggle`)", '\nfor(const media');
 
 function fixture(t,{drawer=false,developmentEnabled=false}={}){
   const dom=new JSDOM(html,{url:'http://localhost/'});t.after(()=>dom.window.close());
   const document=dom.window.document,collections=new Map(),errors=[],saved=[];
   const descriptors=new Map();
-  const sandbox={document,$:selector=>document.querySelector(selector),collections,activeKey:null,listMode:'bank',transition:Promise.resolve(),
+  const sandbox={renderLibraryView,document,$:selector=>document.querySelector(selector),collections,activeKey:null,listMode:'bank',transition:Promise.resolve(),
     catalog:{banks:[],extensions:[],developmentEnabled},collapsedExtensionGroups:new Set(),extensionGroups,createDraftBuffer,collectionFeature,practiceSaveLabel,
     sidebarPreferences:{library:true,outline:true},libraryDrawer:{matches:drawer},outlineDrawer:{matches:drawer},localStorage:dom.window.localStorage,
     active:()=>collections.get(sandbox.activeKey),notice(){},failure:error=>errors.push(error),renderOutline(){},renderRecovery(){},saveStatus(){},
@@ -54,7 +55,7 @@ function fixture(t,{drawer=false,developmentEnabled=false}={}){
 
 test('the title row keeps both sidebar controls and the collection tab bar is gone',t=>{
   const f=fixture(t);f.host.syncSidebars();
-  assert.equal(f.document.querySelector('#tabs,.tab-header,.tab-close'),null);
+  assert.equal(f.document.querySelector('#tabs,.tab-header,.tab-close,#library-hide,#outline-hide'),null);
   for(const key of ['library','outline']){
     const toggle=f.document.querySelector(`#${key}-toggle`),sidebar=f.document.querySelector(`.${key}`);
     assert.equal(toggle.closest('.document-header')!=null,true);
@@ -103,13 +104,13 @@ test('turning developer mode off without any banks shows the welcome page and ke
   assert.equal(f.collections.has('extension:sample'),true);assert.equal(f.collections.get('extension:sample').node.hidden,true);assert.deepEqual(f.errors,[]);
 });
 
-test('the relocated controls open mobile drawers and retain their hide buttons and scrim',t=>{
+test('the title controls open and close mobile drawers with the scrim',t=>{
   const f=fixture(t,{drawer:true});f.host.syncSidebars();
   f.document.querySelector('#library-toggle').click();
   assert.equal(f.document.querySelector('.library').classList.contains('open'),true);assert.equal(f.document.querySelector('#scrim').hidden,false);
   f.document.querySelector('#outline-toggle').click();
   assert.equal(f.document.querySelector('.library').classList.contains('open'),false);assert.equal(f.document.querySelector('.outline').classList.contains('open'),true);
-  f.document.querySelector('#outline-hide').click();assert.equal(f.document.querySelector('#scrim').hidden,true);
+  f.document.querySelector('#outline-toggle').click();assert.equal(f.document.querySelector('#scrim').hidden,true);
 });
 
 test('sidebar switching saves answers and ink, releases the inactive runtime and restores its question',async t=>{

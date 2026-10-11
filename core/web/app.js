@@ -2,9 +2,9 @@ import {request,readResource,setAccessToken,collectionPath,questionPath,makeRequ
 import {mountExtension} from './frame.js';
 import {prepareExtensionAssets} from './page-assets.js';
 import {mountWhiteboard} from './whiteboard.js';
+import {captureDraftRegion} from './whiteboard-capture.js';
 import {createWriteQueue,createDraftBuffer} from './write-queue.js';
 import {createQuestionCache} from './question-cache.js';
-import {consecutiveQuestionGroups} from './outline-groups.js';
 import {navigateOutlineTarget} from './outline-navigation.js';
 import {practiceViewport} from './view-camera.js';
 import {createHistoryView,historyProgress} from './history-view.js';
@@ -12,17 +12,23 @@ import {createEditorSession} from './editor-session.js';
 import {mountPracticeSummary} from './practice-summary.js';
 import {bindNetworkSettings} from './network-settings.js';
 import {bindAiSettings} from './ai-settings.js';
+import {bindExamMode} from './exam-mode.js';
 import {bindDevelopmentSettings} from './development-settings.js';
 import {createDevelopmentWatcher} from './development-watch.js';
 import {createAiClient} from './ai-client.js';
 import {createDraftFullscreen} from './draft-fullscreen.js';
-import {visibleQuestions,visibleQuestionId,hasScoreSummary,navigationIndex,stateFor,contextFor,collectionFeature,canEditCollection,practiceSaveLabel,canViewDraft,draftViewActive} from './practice-context.js';
+import {visibleQuestions,visibleQuestionId,hasScoreSummary,navigationIndex,stateFor,contextFor,collectionFeature,canEditCollection,practiceSaveLabel,canViewDraft,draftViewActive,examActive} from './practice-context.js';
 import {createExtensionRouter} from './extension-requests.js';
 import {questionExtension,collectionHasExtension,extensionPageRoute,sameQuestionStamp,unusedPagePrefixes} from './extension-pages.js';
-import {extensionGroups} from './extension-groups.js';
+import {renderLibraryView} from './views/library-view.js';
+import {renderOutlineView} from './views/outline-view.js';
+import {bindLibraryManagement} from './library-management.js';
+import {bindLibraryTransfer} from './library-transfer.js';
+import {bindLibraryResize} from './library-resize.js';
+import {bindSaveRecovery} from './save-recovery.js';
 
 const $=selector=>document.querySelector(selector);
-const catalog={banks:[],extensions:[],developmentEnabled:false},collections=new Map();
+const catalog={banks:[],extensions:[],groups:{banks:[],extensions:[]},canManage:false,developmentEnabled:false},collections=new Map();
 const collapsedExtensionGroups=new Set();
 const questionsCache=createQuestionCache(),pagesCache=createQuestionCache({capacity:4,maxBytes:4*1024*1024});
 const sdkCache=createQuestionCache({capacity:4,maxBytes:8*1024*1024});
@@ -83,7 +89,7 @@ function renderRecovery(){
   $('#recovery-message').textContent=failed.some(value=>value.error.code==='CONTENT_CONFLICT')?'题目内容已更改，当前输入仍保留。请读取服务器状态后重新作答。':failed.some(value=>value.error.status===409)?'保存状态发生冲突。当前输入仍保留，可重试，或读取服务器已保存的内容。':pane?.development?'仍有内容未保存，当前输入保留。可以切题后返回重试。':'仍有内容未保存，切题已暂停。当前输入仍保留。';
 }
 function enqueueInk(pane,value){
-  if(pane.loading||pane.closed||!pane.questionId||pane.view!=='practice'||!collectionFeature(pane,'whiteboard'))return;
+  if(pane.loading||pane.recovering||pane.closed||!pane.questionId||pane.view!=='practice'||!collectionFeature(pane,'whiteboard'))return;
   resizeStage(pane,value.viewport);
   pane.ink.replace(value);
   clearTimeout(pane.inkTimer);
@@ -98,6 +104,7 @@ async function saveInk(pane){
 }
 async function flushPane(pane){
   if(!pane||pane.closed)return;
+  if(pane.exam&&!examActive(pane)){await pane.writes.settled();return true;}
   pane.node.inert=true;
   try{
     if(!pane.development||!pane.plugin?.hasError)await pane.plugin?.flush();
@@ -112,8 +119,8 @@ async function flushPane(pane){
   }
 }
 const pageRequest=createExtensionRouter({
-  readResource:(id,pane)=>readResource(id,{development:pane.kind.startsWith('development')}),
-  uploadResource:(args,pane)=>request(`/api/${pane.kind.startsWith('development')?'development/':''}resources`,{method:'POST',headers:pane.view==='practice'&&!collectionFeature(pane,'history')?{'X-QuizForge-Transient-Resource':'true'}:{},body:JSON.stringify(args)}),
+  readResource:(id,pane)=>pane.exam?request(`${collectionPath('exam',pane.id)}/resources/${id}`):readResource(id,{development:pane.kind.startsWith('development')}),
+  uploadResource:(args,pane)=>request(pane.exam?`${collectionPath('exam',pane.id)}/resources`:`/api/${pane.kind.startsWith('development')?'development/':''}resources`,{method:'POST',headers:pane.view==='practice'&&!collectionFeature(pane,'history')?{'X-QuizForge-Transient-Resource':'true'}:{},body:JSON.stringify(args)}),
   loadSdk:(id,version)=>sdkCache.load(`${id}:${version}:editor`,()=>request(`/api/sdk/${encodeURIComponent(id)}/${encodeURIComponent(version)}/editor`)),
   save:mutate,
   navigate:(pane,id)=>transitionTo(()=>navigateQuestion(pane,id)),
@@ -123,7 +130,7 @@ const pageRequest=createExtensionRouter({
 function requestAi(pane,method,args){
     const qid=pane.questionId;
     const client=createAiClient({request,path:questionPath(pane.kind,pane.id,qid),makeRequestId,confirmations:pane.aiConfirmations??=new Map(),
-      shouldRefreshTask:task=>{const result=stateFor(pane,qid).result;return result?.gradingStatus==='pending'||result?.aiAssessment?.taskId!==task.taskId;},
+      shouldRefreshTask:task=>{const result=stateFor(pane,qid).result,assessment=task.targetId===undefined?result?.aiAssessment:result?.aiAssessments?.[task.targetId];return result?.gradingStatus==='pending'||assessment?.taskId!==task.taskId;},
       settled:async()=>{await pane.writes.settled();if(pane.writes.hasFailures)throw new Error('请先完成保存后再评分');},
       onConfirmed:value=>{if(value.state.revision<(pane.collection.states[qid]?.revision??0))return;questionsCache.set(questionCacheKey(pane,qid),value);pane.collection.states[qid]=value.state;
         if(!pane.closed&&pane.questionId===qid&&pane.view==='practice'){pane.payload=value;pane.plugin?.update(contextFor(pane));}
@@ -141,11 +148,11 @@ async function showQuestion(pane,qid,{payload:prepared,collection:descriptor=pan
     const payload=prepared||await loadQuestion(pane,qid);
     const pkg=questionExtension(payload,descriptor,qid);
     if(!collectionHasExtension(descriptor,qid,pkg))descriptor=await request(collectionPath(pane.kind,pane.id));
-    const page=extensionPageRoute(pkg,payload.stamp?.packageVersion);
+    const page=pane.exam?{key:`exam:${pane.id}:${qid}`,path:`${questionPath('exam',pane.id,qid)}/page`}:extensionPageRoute(pkg,payload.stamp?.packageVersion);
     const assets=await prepareAssets(await pagesCache.load(page.key,()=>request(page.path)));
     {
       candidateHost=el('div','development-preview-candidate');pane.frameHost.append(candidateHost);
-      candidatePlugin=mountExtension(candidateHost,assets,contextFor({...pane,collection:descriptor,questionId:qid,payload,view:'practice'}),{onLayout:(options,frame)=>setEditorLayout(pane,options,frame),onRequest:(method,args)=>pane.plugin===candidatePlugin&&pane.questionId===qid?pageRequest(pane,method,args):['resource-get','sdk-editor'].includes(method)?pageRequest({...pane,view:'development-loading',pageAssets:assets},method,args):Promise.resolve({ok:false,error:{code:'READ_ONLY',message:'当前题卡未处于活动状态'}}),onError:message=>{if(!pane.closed&&pane.plugin===candidatePlugin)showPageFailure(pane,new Error(message));}});
+      candidatePlugin=mountExtension(candidateHost,assets,contextFor({...pane,collection:descriptor,questionId:qid,payload,view:'practice'}),{onLayout:(options,frame)=>setEditorLayout(pane,options,frame),onRequest:(method,args)=>!pane.recovering&&pane.plugin===candidatePlugin&&pane.questionId===qid?pageRequest(pane,method,args):['resource-get','sdk-editor'].includes(method)?pageRequest({...pane,view:'development-loading',pageAssets:assets},method,args):Promise.resolve({ok:false,error:{code:'READ_ONLY',message:'当前题卡未处于活动状态'}}),onError:message=>{if(!pane.closed&&pane.plugin===candidatePlugin)showPageFailure(pane,new Error(message));}});
       await candidatePlugin.ready;
       if(pane.closed||!canCommit())throw new Error('开发预览已切换');
     }
@@ -160,7 +167,7 @@ async function showQuestion(pane,qid,{payload:prepared,collection:descriptor=pan
     pane.viewport.scrollTop=0;pane.viewport.scrollLeft=0;
     const zoom=Math.max(.25,Math.min(1,(pane.viewport.clientWidth-24)/760));
     const draft=collectionFeature(pane,'whiteboard')&&structuredClone(payload.draft)||{schemaVersion:1,viewport:{x:(pane.viewport.clientWidth/zoom-760)/2,y:0,zoom},strokes:[],paper:{color:'#ffffff',pattern:'plain'}};
-    pane.whiteboard.setReadOnly(false);pane.whiteboard.load(draft);pane.tools.hidden=!pane.draftMode;pane.whiteboard.setMode(pane.draftMode?'draft':'practice');
+    pane.whiteboard.setReadOnly(!!pane.exam&&!examActive(pane));pane.whiteboard.load(draft);pane.tools.hidden=!pane.draftMode;pane.whiteboard.setMode(pane.draftMode?'draft':'practice');
     syncPracticeCamera(pane);
     pane.plugin=candidatePlugin;
     await pane.plugin.ready;
@@ -271,8 +278,8 @@ async function showScoreSummary(pane){
     pane.view=history?'history':'summary';pane.summaryShown=true;pane.outlineItemId=null;pane.scoreSummary=summary;
     pane.node.classList.remove('is-edit','is-draft');pane.node.classList.add('is-summary');pane.tools.hidden=true;
     pane.whiteboard.load(null);pane.whiteboard.setMode('practice');pane.viewport.scrollTop=0;pane.viewport.scrollLeft=0;
-    pane.summaryCard=mountPracticeSummary(pane.frameHost,summary,{readonly:history,history:collectionFeature(pane,'history'),onFinish:value=>finishPractice(pane,value),onRestart:value=>restartPractice(pane,value)});
-    syncPracticeCamera(pane);renderOutline();saveStatus(history?'只读汇总':summary.finished?(collectionFeature(pane,'history')?'练习已完成':'当前会话 · 已完成'):'');
+    pane.summaryCard=mountPracticeSummary(pane.frameHost,summary,{readonly:history||!!pane.exam,history:collectionFeature(pane,'history'),exam:!!pane.exam,onFinish:value=>finishPractice(pane,value),onRestart:value=>restartPractice(pane,value)});
+    syncPracticeCamera(pane);renderOutline();saveStatus(pane.exam?'':history?'只读汇总':summary.finished?(collectionFeature(pane,'history')?'练习已完成':'当前会话 · 已完成'):'');
   }finally{pane.loading=false;updateChrome();}
 }
 async function finishPractice(pane,summary){
@@ -314,12 +321,12 @@ async function restartPractice(pane,summary){
     }finally{pane.loading=false;pendingWrites--;}
   });
 }
-const historyPath=pane=>`${collectionPath(pane.kind,pane.id)}/history`;
+const historyPath=pane=>`${collectionPath(pane.exam?.bankKind??pane.kind,pane.exam?.bankId??pane.id)}/history`;
 const historyTime=value=>new Date(value).toLocaleString('zh-CN',{hour12:false});
 let historyDeleting=false,historyDeleteDecision=null;
 function historyError(message=''){const node=$('#history-error');node.textContent=message;node.hidden=!message;}
 function confirmHistoryDelete(row){
-  $('#history-delete-detail').textContent=`${row.collectionTitle} · ${historyTime(row.createdAt)}`;
+  $('#history-delete-detail').textContent=`${row.mode==='exam'?'考试 · ':''}${row.collectionTitle} · ${historyTime(row.createdAt)}`;
   $('#history-delete-dialog').showModal();
   return new Promise(resolve=>{historyDeleteDecision=resolve;});
 }
@@ -346,9 +353,10 @@ function renderHistoryList(pane){
   for(const row of pane.historyRecords){
     const item=el('div','history-list-item'),button=el('button','history-row'),body=el('span','history-row-body'),remove=el('button','history-delete');
     item.dataset.historyId=row.id;button.type='button';remove.type='button';
-    body.append(el('strong','',row.collectionTitle),el('small','',`${historyTime(row.updatedAt||row.createdAt)} · ${historyProgress(row)}`));
+    const title=el('strong','',row.collectionTitle);if(row.mode==='exam')title.append(el('span','history-exam-badge','考试'));
+    body.append(title,el('small','',`${historyTime(row.updatedAt||row.createdAt)} · ${historyProgress(row)}`));
     button.append(body,el('span','history-score',`${row.summary?.score??row.score} / ${row.summary?.maxScore??row.maxScore}`));
-    remove.title='删除记录';remove.setAttribute('aria-label',`删除 ${historyTime(row.createdAt)} 的历史记录`);
+    remove.title='删除记录';remove.setAttribute('aria-label',`删除 ${historyTime(row.createdAt)} 的${row.mode==='exam'?'考试':''}历史记录`);
     remove.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M9 6V4h6v2M5 6l1 14h12l1-14M10 10v6M14 10v6"/></svg>';
     button.addEventListener('click',()=>{if(historyDeleting)return;$('#history-dialog').close();transitionTo(()=>showHistory(pane,row.id));});
     remove.addEventListener('click',async()=>{
@@ -366,7 +374,7 @@ function renderHistoryList(pane){
     });
     item.append(button,remove);list.append(item);
   }
-  if(!pane.historyRecords.length)list.append(el('p','list-empty','还没有历史记录。首次提交后，会在这里保存本轮题库作答。'));
+  if(!pane.historyRecords.length)list.append(el('p','list-empty','还没有历史记录。练习提交后或考试完成后，会在这里保存记录。'));
 }
 async function openHistoryList(pane){
   if(!pane||!collectionFeature(pane,'history'))return;await flushPane(pane);
@@ -381,24 +389,29 @@ async function showHistory(pane,id){
   if(!await allowDiscardEditor(pane))return;await flushPane(pane);if(!allowLeaveDevelopmentInput(pane))return;
   const entry=await request(`${historyPath(pane)}/${encodeURIComponent(id)}`);
   const historyView=createHistoryView(entry),qid=historyView.questions[0].id;
-  disposeEditorSession(pane);
-  disposeScoreSummary(pane);
-  pane.view='history';pane.historyEntry=entry;pane.historyView=historyView;pane.historyDraftMode=false;pane.editState=null;
-  await showHistoryQuestion(pane,qid);
+  await showHistoryQuestion(pane,qid,{historyEntry:entry,historyView,historyDraftMode:false});
 }
-async function showHistoryQuestion(pane,qid){
-  const entry=pane.historyView.entry(qid);
+async function showHistoryQuestion(pane,qid,{historyEntry=pane.historyEntry,historyView=pane.historyView,historyDraftMode=pane.historyDraftMode}={}){
+  const entry=historyView.entry(qid);
   pane.loading=true;
+  let candidateHost=null,candidatePlugin=null;
   try{
     const assets=await prepareAssets(entry.page);
+    const historyQuestion={...entry,page:assets},next={...pane,view:'history',historyEntry,historyView,historyDraftMode,historyQuestion,historyQuestionId:qid,summaryShown:false};
+    candidateHost=el('div','development-preview-candidate');pane.frameHost.append(candidateHost);
+    candidatePlugin=mountExtension(candidateHost,assets,contextFor(next),{onLayout:(options,frame)=>setEditorLayout(pane,options,frame),onRequest:(method,args)=>pageRequest(pane.plugin===candidatePlugin?pane:next,method,args),onError:message=>{if(active()===pane&&pane.plugin===candidatePlugin)notice(message);}});
+    await candidatePlugin.ready;
+    if(pane.closed)throw new Error('题库页面已关闭');
+    disposeEditorSession(pane);
     disposeScoreSummary(pane);
-    pane.plugin?.destroy();pane.plugin=null;pane.frameHost.replaceChildren();pane.historyQuestion=entry;pane.historyQuestionId=qid;pane.outlineItemId=null;
+    pane.plugin?.destroy();pane.plugin=null;
+    for(const child of [...pane.frameHost.children])if(child!==candidateHost)child.remove();candidateHost.classList.remove('development-preview-candidate');
+    pane.view='history';pane.historyEntry=historyEntry;pane.historyView=historyView;pane.historyDraftMode=historyDraftMode;pane.editState=null;pane.historyQuestion=historyQuestion;pane.historyQuestionId=qid;pane.outlineItemId=null;
     const draft=draftViewActive(pane);
     pane.node.classList.remove('is-edit');pane.node.classList.toggle('is-draft',draft);pane.tools.hidden=!draft;pane.viewport.scrollTop=0;pane.viewport.scrollLeft=0;
     pane.whiteboard.setReadOnly(true);pane.whiteboard.load(entry.payload.draft);pane.whiteboard.setMode(draft?'draft':'practice');
-    pane.historyQuestion.page=assets;
-    pane.plugin=mountExtension(pane.frameHost,assets,contextFor(pane),{onLayout:(options,frame)=>setEditorLayout(pane,options,frame),onRequest:(method,args)=>pageRequest(pane,method,args),onError:message=>{if(active()===pane)notice(message);}});
-    await pane.plugin.ready;syncPracticeCamera(pane);saveStatus('只读快照');renderOutline();
+    pane.plugin=candidatePlugin;syncPracticeCamera(pane);saveStatus('只读快照');renderOutline();
+  }catch(error){if(pane.plugin!==candidatePlugin){candidatePlugin?.destroy();candidateHost?.remove();}throw error;
   }finally{pane.loading=false;updateChrome();}
 }
 function disposeEditorSession(pane){
@@ -434,18 +447,18 @@ async function showEditorQuestion(pane,qid){
         savedDraft.draft=null;
       }
       value.editor=await prepareAssets(value.editor);
-      if(!pane.development){if(old?.plugin){await session.suspend(pane.questionId);pane.plugin=null;}else if(oldPlugin){oldPlugin.destroy();pane.plugin=null;}}
-      if(!entry)entry=session.add(qid,{id:qid,value,plugin:null,container:null,scrollTop:0});else entry.value=value;
-      pane.editState=value;pane.editorSession=session;pane.view='edit';pane.questionId=qid;
       const container=el('div','editor-question-container');container.hidden=true;pane.frameHost.append(container);
-      const plugin=mountExtension(container,value.editor,{mode:'edit',question:value.question,...(pane.development?{development:pane.development}:{}),capabilities:{canEdit:true}},{editorDraft:savedDraft.draft,onDirty:()=>scheduleEditorDraft(pane),onLayout:(options,frame)=>setEditorLayout(pane,options,frame),onRequest:(method,args)=>['resource-get','sdk-editor'].includes(method)||pane.plugin===plugin?pageRequest({...pane,view:'edit',editState:value},method,args):Promise.resolve({ok:false,error:{code:'READ_ONLY',message:'当前编辑题卡未处于活动状态'}}),onError:message=>{if(active()===pane){if(pane.development)showPageFailure(pane,new Error(message),qid);else notice(message);}}});
+      let plugin;
       try{
+        plugin=mountExtension(container,value.editor,{mode:'edit',question:value.question,...(pane.development?{development:pane.development}:{}),capabilities:{canEdit:true}},{editorDraft:savedDraft.draft,onDirty:()=>{if(pane.plugin===plugin)scheduleEditorDraft(pane);},onLayout:(options,frame)=>setEditorLayout(pane,options,frame),onRequest:(method,args)=>['resource-get','sdk-editor'].includes(method)||pane.plugin===plugin?pageRequest({...pane,view:'edit',editState:value},method,args):Promise.resolve({ok:false,error:{code:'READ_ONLY',message:'当前编辑题卡未处于活动状态'}}),onError:message=>{if(active()===pane&&pane.plugin===plugin){if(pane.development)showPageFailure(pane,new Error(message),qid);else notice(message);}}});
         await plugin.ready;
-        if(pane.development){
-          if(old?.plugin){try{await session.suspend(previous.questionId);}catch(error){if(session.values().filter(item=>item.plugin).length>=4)throw new Error('开发编辑器已有 4 张题卡保留未保存输入，请先完成保存。');old.container.hidden=true;}}
-          else oldPlugin?.destroy();
-        }
-      }catch(error){plugin.destroy();container.remove();session.remove(qid);if(pane.development){Object.assign(pane,previous);pane.plugin=oldPlugin;}throw error;}
+        if(pane.closed)throw new Error('题库页面已关闭');
+        // Keep the current form and any suspended target draft until the new
+        // editor has registered and the old form can be durably suspended.
+        if(old?.plugin){try{await session.suspend(previous.questionId);}catch(error){if(!pane.development)throw error;if(session.values().filter(item=>item.plugin).length>=4)throw new Error('开发编辑器已有 4 张题卡保留未保存输入，请先完成保存。');old.container.hidden=true;}}
+        else oldPlugin?.destroy();
+      }catch(error){plugin?.destroy();container.remove();Object.assign(pane,previous);pane.plugin=oldPlugin;throw error;}
+      if(!entry)entry=session.add(qid,{id:qid,value,plugin:null,container:null,scrollTop:0});else entry.value=value;
       entry.plugin=plugin;entry.container=container;entry.changed=!!savedDraft.changed;
     }
     // Invalid intermediate forms are persisted before the previous iframe
@@ -527,7 +540,7 @@ function watchDevelopment(pane,descriptor){
       questionsCache.deleteCollection(`${pane.key}:`);
       const payload=await loadQuestion(pane,qid,{fresh:true});if(!isCurrent())return false;
       await showQuestion(pane,qid,{collection,payload,preserveFrame:true,canCommit:isCurrent});
-      pane.development={...next.development,folder:next.development?.folder||pane.development?.folder||pane.id};pane.developmentDescriptor=next;
+      pane.development=next.development||{};pane.developmentDescriptor=next;
       if(isCurrent()){pane.viewport.scrollTop=scroll;syncDevelopmentCatalog(pane,next);updateChrome();renderLibrary();}return isCurrent();
     }),onError:error=>{if(active()===pane)saveStatus(error.status===401?'预览连接已失效':'文件暂未就绪，保留上次预览','error');},
   });
@@ -546,7 +559,8 @@ async function openCollection(kind,id){
   const node=el('section','question-pane'),tools=el('div','qf-whiteboard-tool-row'),viewport=el('div','question-viewport'),stage=el('div','question-stage'),world=el('div','question-world'),frameHost=el('div','question-frame-wrapper');
   tools.hidden=true;world.append(frameHost);stage.append(world);viewport.append(stage);node.append(tools,viewport);$('#panes').append(node);
   const pane={key,kind,id,collection,node,tools,viewport,stage,world,frameHost,questionId:null,payload:null,plugin:null,whiteboard:null,writes:null,ink:createDraftBuffer(),draftMode:false,historyDraftMode:false,view:'practice',historyEntry:null,historyRecords:[],historyView:null,historyQuestion:null,historyQuestionId:null,editState:null,editorSession:null,loading:true,closed:false,inkTimer:null};
-  if(development){pane.development=development.development||{folder:id};pane.developmentDescriptor=development;}
+  if(kind==='exam'){pane.exam=collection.exam;examControls.observe(pane.exam);}
+  if(development){pane.development=development.development||{};pane.developmentDescriptor=development;}
   pane.writes=makeWriteQueue(pane);
   attachRuntime(pane);
   pane.sizeObserver=new ResizeObserver(()=>syncPracticeCamera(pane));pane.sizeObserver.observe(viewport);
@@ -556,7 +570,7 @@ async function openCollection(kind,id){
   await showQuestion(pane,collection.questions[0].id);
 }
 function activate(key){const selected=collections.get(key);if(selected){collections.delete(key);collections.set(key,selected);}activeKey=key;notice('');for(const pane of collections.values()){pane.node.hidden=pane.key!==key;pane.plugin?.setActive?.(pane.key===key);pane.developmentWatcher?.setActive(pane.key===key);}$('#welcome').hidden=!!selected;renderLibrary();renderOutline();updateChrome();renderRecovery();closeDrawers();const pane=active();saveStatus(pane?.writes.hasFailures?'仍有内容未保存':pane?.view==='history'?'只读快照':pane?.view==='edit'?'编辑中':pane?.payload&&pane.payload.state.status!=='unanswered'?practiceSaveLabel(pane):'',pane?.writes.hasFailures?'error':'');}
-function attachRuntime(pane){if(pane.whiteboard)return;pane.whiteboard=mountWhiteboard(pane.viewport,{toolbarContainer:pane.tools,onChange:value=>enqueueInk(pane,value),onViewChange:camera=>resizeStage(pane,camera),onFullscreen:()=>draftFullscreen.toggle()});pane.whiteboard.setFullscreenState(draftFullscreen.getState());pane.sizeObserver?.observe(pane.viewport);pane.worldObserver?.observe(pane.world);}
+function attachRuntime(pane){if(pane.whiteboard)return;pane.whiteboard=mountWhiteboard(pane.viewport,{toolbarContainer:pane.tools,onChange:value=>enqueueInk(pane,value),onViewChange:camera=>resizeStage(pane,camera),onFullscreen:()=>draftFullscreen.toggle(),onCapture:value=>captureDraftRegion(value,{viewport:pane.viewport,frame:pane.plugin?.frame,capture:pane.plugin?.captureRegion?.bind(pane.plugin)})});pane.whiteboard.setFullscreenState(draftFullscreen.getState());pane.sizeObserver?.observe(pane.viewport);pane.worldObserver?.observe(pane.world);}
 async function suspendPane(pane){
   if(!pane||pane.closed||!pane.whiteboard)return;
   const saved=await flushPane(pane);clearTimeout(pane.editorTimer);
@@ -587,58 +601,22 @@ async function activateReady(key){
   }
 }
 function renderLibrary(){
-  $('.library-switch').hidden=!catalog.developmentEnabled;if(!catalog.developmentEnabled)listMode='bank';
-  $('#welcome p').textContent=catalog.developmentEnabled?'选择左侧题库，或到拓展列表体验样例。':'选择左侧题库，开始练习。';
-  $('#show-banks').setAttribute('aria-selected',String(listMode==='bank'));$('#show-extensions').setAttribute('aria-selected',String(listMode==='extension'));$('#library-label').textContent=listMode==='bank'?'我的题库':'题型拓展';
-  const root=$('#library-list');root.replaceChildren();const rows=listMode==='bank'?catalog.banks:catalog.extensions;
-  const appendItem=(container,row)=>{const kind=row.kind?.startsWith('development')?row.kind:listMode,key=`${kind}:${row.id}`,button=el('button',`library-item${key===activeKey?' active':''}`);button.dataset.itemId=row.id;
-    const body=el('span','item-body'),title=el('span','item-title',row.title||row.name);if(row.development)title.append(el('span','development-badge','开发版'));body.append(title);body.append(el('span',`item-meta${row.error?' item-error':''}`,row.error?(typeof row.error==='string'?row.error:row.error.message):`${row.questionCount??0} ${listMode==='bank'?'道题目':'道样例'}${row.version&&!row.development?' · v'+row.version:''}`));
-    button.append(el('span','item-icon',listMode==='bank'?'▤':row.development?'⌘':'◇'),body);button.addEventListener('click',()=>{if(row.error){notice(typeof row.error==='string'?row.error:row.error.message);return;}transitionTo(()=>openCollection(kind,row.id));});container.append(button);
-  };
-  const appendGroups=(container,nodes)=>{for(const group of nodes){
-    if(group.kind!=='group'){appendItem(container,group.row);continue;}
-    const section=el('section','extension-group'),toggle=el('button','extension-group-toggle'),arrow=el('span','extension-group-arrow'),body=el('div','extension-group-body');
-    toggle.type='button';toggle.dataset.extensionGroup=group.path;body.id=`extension-group-${encodeURIComponent(group.path)}`;toggle.setAttribute('aria-controls',body.id);arrow.setAttribute('aria-hidden','true');toggle.append(arrow,el('span','extension-group-label',group.name));
-    const sync=()=>{const expanded=!collapsedExtensionGroups.has(group.path);body.hidden=!expanded;arrow.textContent=expanded?'▾':'▸';toggle.setAttribute('aria-expanded',String(expanded));toggle.setAttribute('aria-label',`${expanded?'折叠':'展开'} ${group.path}`);};
-    toggle.addEventListener('click',()=>{if(collapsedExtensionGroups.has(group.path))collapsedExtensionGroups.delete(group.path);else collapsedExtensionGroups.add(group.path);sync();});sync();appendGroups(body,group.children);section.append(toggle,body);container.append(section);
-  }};
-  if(listMode==='extension')appendGroups(root,extensionGroups(rows));else for(const row of rows)appendItem(root,row);
-  if(!rows.length)root.append(el('p','list-empty',listMode==='bank'?'目录中还没有题库。添加文件后刷新列表。':'目录中还没有拓展。添加文件后刷新列表。'));
+  listMode=renderLibraryView({document,catalog,listMode,activeKey,collapsedGroups:collapsedExtensionGroups,onNotice:notice,
+    onOpen:(kind,id)=>transitionTo(()=>openCollection(kind,id)),
+    onManage:(target,row,action)=>libraryManager.open(target,row,action),onExport:row=>libraryTransfer.exportGroup(row)});
 }
 function renderOutline(){
-  const pane=active(),root=$('#outline-list');root.replaceChildren();const rows=visibleQuestions(pane),qid=visibleQuestionId(pane);
-  const roundScores=new Map(pane?.summaryShown?(pane.scoreSummary?.questions||[]).map(question=>[question.id,question]):[]);
-  const statusLabels={unanswered:'未作答',correct:'正确',incorrect:'错误'};
-  for(const group of consecutiveQuestionGroups(rows,pane?.view==='history'?pane.historyView.extension:pane?.collection.extension)){
-    const section=el('section','outline-group'),matrix=el('div','outline-matrix');section.append(el('h2','outline-group-title',group.name),matrix);root.append(section);
-    for(const {question:row,number}of group.items){
-    const children=row.outlineItems||[],label=String(row.outlineLabel??number),state=stateFor(pane,row.id),roundScore=roundScores.get(row.id),submitted=roundScore?roundScore.submitted===true:state.status==='submitted';
-    const jump=itemId=>transitionTo(async()=>{await navigateOutlineTarget(pane,row.id,itemId,{navigateQuestion,renderOutline});closeDrawers();});
-    if(children.length){
-      const details=Array.isArray(roundScore?.outlineStates)?roundScore.outlineStates:roundScore&&!roundScore.submitted&&state.status==='submitted'?[]:state.outlineStates;
-      const childStates=new Map((Array.isArray(details)?details:[]).filter(item=>typeof item?.id==='string'&&Object.hasOwn(statusLabels,item.status)).map(item=>[item.id,item.status]));
-      for(const item of children){
-        const status=submitted?(childStates.get(item.id)||''):'unanswered';
-        const selected=row.id===qid&&pane.outlineItemId===item.id,child=el('button',`outline-item outline-child ${status}${selected?' active':''}`,item.label);
-        const statusLabel=statusLabels[status]||'未提供小题状态';
-        child.type='button';child.dataset.questionId=row.id;child.dataset.outlineItemId=item.id;child.title=`第 ${label} 题 · ${item.label} · ${statusLabel}`;child.setAttribute('aria-label',`第 ${label} 题，小题 ${item.label}：${statusLabel}`);child.setAttribute('aria-current',selected?'true':'false');
-        child.addEventListener('click',()=>jump(item.id));matrix.append(child);
-      }
-      continue;
-    }
-    const result=roundScore||state.result;
-    const status=!submitted?'unanswered':Number.isFinite(result?.score)&&Number.isFinite(result?.maxScore)&&result.score===result.maxScore?'correct':'incorrect';
-    const parentActive=row.id===qid;
-    const button=el('button',`outline-item ${status}${parentActive?' active':''}`,label);button.type='button';button.dataset.questionId=row.id;button.setAttribute('aria-current',parentActive?'true':'false');button.setAttribute('aria-label',`第 ${label} 题：${row.title}`);button.title=`第 ${label} 题 · ${row.title}`;
-    button.addEventListener('click',()=>jump(null));matrix.append(button);
-    }
-  }
-  if(hasScoreSummary(pane)){const button=el('button',`outline-score-summary${pane.summaryShown?' active':''}`,'分值汇总');button.addEventListener('click',()=>transitionTo(async()=>{await showScoreSummary(pane);closeDrawers();}));root.append(button);}
+  const pane=active();
+  renderOutlineView({document,pane,
+    onNavigate:(qid,itemId)=>transitionTo(async()=>{await navigateOutlineTarget(pane,qid,itemId,{navigateQuestion,renderOutline});closeDrawers();}),
+    onSummary:()=>transitionTo(async()=>{await showScoreSummary(pane);closeDrawers();})});
 }
 function updateChrome(){
+  if(typeof examControls!=='undefined')examControls.sync();
   draftFullscreen.sync();
+  $('#document-group').hidden=true;
   const pane=active(),view=pane?.view,draft=draftViewActive(pane),draftButton=$('#draft-toggle');draftButton.hidden=!canViewDraft(pane);draftButton.disabled=!!pane?.loading;draftButton.setAttribute('aria-pressed',String(draft));draftButton.replaceChildren(el('span','','✎'),document.createTextNode(draft?(view==='history'?' 返回练习':' 返回作答'):' 草稿'));
-  $('#history-open').hidden=!pane?.payload||!collectionFeature(pane,'history')||!!pane.summaryShown&&!pane.scoreSummary?.historyId;$('#history-open').disabled=!!pane?.loading;
+  $('#history-open').hidden=!pane?.payload||pane?.exam?.status==='in-progress'||!collectionFeature(pane,'history')||!!pane.summaryShown&&!pane.scoreSummary?.historyId;$('#history-open').disabled=!!pane?.loading;
   $('#edit-open').hidden=!pane?.payload||!canEditCollection(pane)||view!=='practice';$('#edit-open').disabled=!!pane?.loading;
   $('#development-badge').hidden=!pane?.development;$('#development-badge').textContent=pane?.development?developmentTitle(pane):'';
   for(const id of ['development-edit','development-return','development-publish-open'])$(`#${id}`).hidden=true;
@@ -646,10 +624,12 @@ function updateChrome(){
   $('#history-choose').hidden=!collectionFeature(pane,'history')||!['history','history-deleted'].includes(view);$('#return-practice').hidden=!['history','history-deleted'].includes(view);
   for(const id of ['edit-cancel','edit-save']){$(`#${id}`).hidden=view!=='edit';$(`#${id}`).disabled=!!pane?.loading;}
   $('#edit-save').textContent='保存全部修改';
-  $('#mode-label').textContent=view==='history'?`只读历史 · ${historyProgress(pane.historyEntry)} · ${historyTime(pane.historyEntry.createdAt)}`:view==='history-deleted'?'记录已删除，请选择其他记录或返回作答。':view==='edit'?'编辑题库 · 切题保留未保存内容，保存后仅重置内容有改动的题目':'';
+  $('#mode-label').textContent=view==='history'?`只读历史 · ${pane.historyEntry.mode==='exam'?'考试 · ':''}${historyProgress(pane.historyEntry)} · ${historyTime(pane.historyEntry.createdAt)}`:view==='history-deleted'?'记录已删除，请选择其他记录或返回作答。':view==='edit'?'编辑题库 · 切题保留未保存内容，保存后仅重置内容有改动的题目':'';
   if(!pane){$('#document-title').textContent='选择一本题库';$('#progress-text').textContent='';$('#previous').disabled=true;$('#next').disabled=true;saveStatus('');return;}
   const rows=visibleQuestions(pane),index=navigationIndex(pane),count=rows.length;
-  $('#document-title').textContent=view==='history'?pane.historyEntry.collectionTitle:pane.collection.title;
+  const libraryRow=(['extension','development'].includes(pane.kind)?catalog.extensions:catalog.banks).find(row=>row.id===pane.id&&(row.kind||(['extension','development'].includes(pane.kind)?'extension':'bank'))===pane.kind);
+  $('#document-group').textContent=libraryRow?.group||'';$('#document-group').hidden=!libraryRow?.group;
+  $('#document-title').textContent=view==='history'?pane.historyEntry.collectionTitle:libraryRow?.displayName||pane.collection.title;
   $('#progress-text').textContent=pane.summaryShown?'分值汇总':view==='history-deleted'?'历史记录已删除':index<0?'正在加载题目…':`第 ${index+1} 题 / 共 ${count} 题`;
   $('#previous').disabled=pane.loading||index<=0;$('#next').disabled=pane.loading||!count||index>=(hasScoreSummary(pane)?count:count-1);
   for(const [id,label]of [['previous',pane.summaryShown?'返回最后一题':'上一题'],['next',index===count-1&&hasScoreSummary(pane)?'查看分值汇总':'下一题']]){$(`#${id}`).title=label;$(`#${id}`).setAttribute('aria-label',label);}
@@ -680,7 +660,7 @@ async function refreshCatalog(){
   try{
     const [value,settings]=await Promise.all([request('/api/catalog',{timeoutMs:60000}),request('/api/settings/development')]);
     const returnToBanks=listMode==='extension'||catalog.developmentEnabled&&!active()||['extension','development','development-bank'].includes(active()?.kind);
-    catalog.banks=value.banks;catalog.extensions=value.extensions;catalog.developmentEnabled=settings.enabled===true;renderLibrary();
+    catalog.banks=value.banks;catalog.extensions=value.extensions;catalog.groups=value.groups||{banks:[],extensions:[]};catalog.canManage=value.canManage===true;catalog.developmentEnabled=settings.enabled===true;renderLibrary();
     if(!catalog.developmentEnabled&&returnToBanks){
       const previous=[...collections.values()].filter(pane=>pane.kind==='bank'&&catalog.banks.some(row=>row.id===pane.id&&!row.error)).at(-1),first=catalog.banks.find(row=>!row.error);
       if(previous||first)await openCollection(previous?.kind||first.kind||'bank',previous?.id||first.id);
@@ -691,10 +671,44 @@ async function refreshCatalog(){
   finally{button.classList.remove('is-loading');}
 }
 function switchList(kind){if(kind==='extension'&&!catalog.developmentEnabled)return;listMode=kind;renderLibrary();const open=[...collections.values()].filter(pane=>kind==='bank'?['bank','development-bank'].includes(pane.kind):['extension','development'].includes(pane.kind)).at(-1);const first=(kind==='bank'?catalog.banks:catalog.extensions).find(row=>!row.error);if(open||first)transitionTo(()=>openCollection(open?.kind||first.kind||kind,open?.id||first.id));}
+
 $('#show-banks').addEventListener('click',()=>switchList('bank'));$('#show-extensions').addEventListener('click',()=>switchList('extension'));
 $('#refresh').addEventListener('click',()=>transitionTo(async()=>{for(const pane of collections.values())await flushPane(pane);questionsCache.clear();pagesCache.clear();await refreshCatalog();for(const pane of collections.values())pane.needsRefresh=true;if(activeKey)await activateReady(activeKey);}));
-$('#retry-save').addEventListener('click',()=>transitionTo(async()=>{const pane=active();if(!pane)return;pane.node.inert=true;await pane.plugin?.flush();pane.whiteboard.flush();await pane.writes.settled();await saveInk(pane);for(const value of pane.writes.failures){await pane.writes.enqueue(value.questionId,value.action,value.data,{contentVersion:value.contentVersion});}if(!pane.writes.hasFailures)notice('');}));
-$('#load-saved').addEventListener('click',()=>{const pane=active();if(!pane||!confirm('读取服务器状态会放弃当前未保存的答案和笔迹，是否继续？'))return;transitionTo(async()=>{pane.node.inert=true;await pane.plugin?.flush();await pane.writes.settled();const payload=await loadQuestion(pane,pane.questionId,{fresh:true});clearTimeout(pane.inkTimer);pane.inkTimer=null;pane.ink.clear();pane.writes.clear();await showQuestion(pane,pane.questionId,{payload});notice(collectionFeature(pane,'history')?'已读取服务器保存的状态。':'已读取当前会话状态。');});});
+const prepareLibraryChange=()=>transitionTo(async()=>{
+    if([...collections.values()].some(pane=>pane.view==='edit'))throw new Error('请先保存或取消题目编辑，再修改目录。');
+    for(const pane of collections.values())if(await flushPane(pane)===false)throw new Error('请先保存未完成的开发输入，再修改目录。');
+  });
+
+async function applyLibraryChange(result,operation){
+    const previous={banks:catalog.banks,extensions:catalog.extensions};
+    if(result.catalog){Object.assign(catalog,result.catalog);renderLibrary();}
+    else await refreshCatalog();
+    let activeChanged=false,anyChanged=false;
+    for(const pane of [...collections.values()]){
+      const rows=['extension','development'].includes(pane.kind)?catalog.extensions:catalog.banks;
+      const matches=row=>row.id===pane.id&&(row.kind||(['extension','development'].includes(pane.kind)?'extension':'bank'))===pane.kind&&!row.error;
+      const row=rows.find(matches),oldRows=['extension','development'].includes(pane.kind)?previous.extensions:previous.banks,old=oldRows.find(matches);
+      if(row){
+        if(!old?.contentRevision||row.contentRevision!==old.contentRevision||row.title!==old.title||row.name!==old.name||row.path!==old.path){pane.needsRefresh=true;anyChanged=true;activeChanged||=pane.key===activeKey;}
+        continue;
+      }
+      anyChanged=true;pane.closed=true;pane.developmentWatcher?.destroy();clearTimeout(pane.inkTimer);clearTimeout(pane.editorTimer);pane.sizeObserver?.disconnect();pane.worldObserver?.disconnect();if(pane.retainedQuestions)disposeRetainedQuestions(pane);disposeEditorSession(pane);disposeScoreSummary(pane);pane.plugin?.destroy();pane.whiteboard?.destroy();pane.node.remove();collections.delete(pane.key);
+    }
+    if(anyChanged||!collections.has(activeKey)){questionsCache.clear();pagesCache.clear();}
+    if(!collections.has(activeKey)){activeKey=null;const first=(listMode==='bank'?catalog.banks:catalog.extensions).find(row=>!row.error);if(first)await openCollection(first.kind||listMode,first.id);else activate(null);}
+    else if(activeChanged)await activateReady(activeKey);
+    notice(operation.action==='delete'?`已移入回收目录：${result.archivedTo}`:'目录已更新。');
+}
+const libraryManager=bindLibraryManagement({request,getContext:()=>({kind:listMode,catalog}),beforeChange:prepareLibraryChange,
+  onChanged:(result,operation)=>transitionTo(()=>applyLibraryChange(result,operation))});
+const libraryTransfer=bindLibraryTransfer({request,getContext:()=>({kind:listMode,catalog}),beforeChange:prepareLibraryChange,onMessage:notice,
+  onImported:result=>transitionTo(async()=>{
+    await refreshCatalog();questionsCache.clear();pagesCache.clear();
+    if(!activeKey){const first=catalog.banks.find(row=>!row.error);if(first)await openCollection(first.kind||'bank',first.id);}
+    notice(`已导入「${result.group}」：${result.importedBanks} 本题库、${result.importedExtensions} 个拓展；跳过 ${result.skippedBanks} 本相同题库、${result.skippedExtensions} 个相同拓展。`);
+  })});
+$('#library-new-group').addEventListener('click',()=>libraryManager.open('group',null,'create'));
+bindSaveRecovery({document,active,transitionTo,loadQuestion,showQuestion,saveInk,notice,collectionFeature});
 $('#draft-toggle').addEventListener('click',()=>transitionTo(()=>toggleDraftMode()));
 for(const [id,offset]of [['previous',-1],['next',1]])$(`#${id}`).addEventListener('click',()=>transitionTo(async()=>{const pane=active();if(!pane)return;const rows=visibleQuestions(pane),index=navigationIndex(pane),target=rows[index+offset];if(target)await navigateQuestion(pane,target.id);else if(index+offset===rows.length&&hasScoreSummary(pane))await showScoreSummary(pane);}));
 for(const id of ['history-open','history-choose'])$(`#${id}`).addEventListener('click',()=>transitionTo(()=>openHistoryList(active())));
@@ -708,11 +722,24 @@ $('#return-practice').addEventListener('click',()=>transitionTo(()=>returnToPrac
 $('#edit-open').addEventListener('click',()=>transitionTo(()=>openEditor(active())));
 $('#edit-save').addEventListener('click',()=>transitionTo(()=>saveEditor(active())));
 $('#edit-cancel').addEventListener('click',()=>transitionTo(()=>returnToPractice(active())));
-for(const key of ['library','outline']){for(const suffix of ['toggle','hide'])$(`#${key}-${suffix}`).addEventListener('click',()=>toggleSidebar(key));}
+for(const key of ['library','outline'])$(`#${key}-toggle`).addEventListener('click',()=>toggleSidebar(key));
 for(const media of [libraryDrawer,outlineDrawer])media.addEventListener('change',closeDrawers);
 phoneLayout.addEventListener('change',()=>{for(const pane of collections.values())syncPracticeCamera(pane);});
 $('#scrim').addEventListener('click',closeDrawers);syncSidebars();
+bindLibraryResize({shell:$('.app-shell'),library:$('.library'),handle:$('#library-resize')});
 bindAiSettings({request});
+const examControls=bindExamMode({document,request,active,collectionPath,makeRequestId,flush:pane=>transitionTo(()=>flushPane(pane)),open:(kind,id)=>transitionTo(()=>openCollection(kind,id)),onError:failure,refresh:(pane,value)=>transitionTo(()=>refreshExam(pane,value))});
+async function refreshExam(pane,exam){
+  if(pane.closed)return;const changed=pane.exam?.status!==exam.status||JSON.stringify(pane.exam?.gradingErrors||[])!==JSON.stringify(exam.gradingErrors||[]);pane.exam=exam;
+  if(changed){
+    await pane.writes.settled();
+    questionsCache.deleteCollection(`${pane.key}:`);pane.writes.clear();pane.ink.clear();clearTimeout(pane.inkTimer);pane.inkTimer=null;
+    if(exam.gradingErrors?.length){pane.plugin?.update(contextFor(pane));notice('交卷已锁定，部分题目评分失败。请重试评分。');}
+    else if(active()===pane&&pane.view==='practice')await showQuestion(pane,pane.questionId,{payload:await loadQuestion(pane,pane.questionId,{fresh:true}),collection:await request(collectionPath('exam',pane.id))});
+    else pane.needsRefresh=true;
+  }
+  if(active()===pane)updateChrome();
+}
 bindNetworkSettings({request,beforeSave:()=>transitionTo(async()=>{for(const pane of collections.values())await flushPane(pane);})});
 bindDevelopmentSettings({request,beforeSave:settings=>transitionTo(()=>prepareDevelopmentSettings(settings)),onSaved:settings=>transitionTo(async()=>{for(const pane of collections.values())if(pane.development&&settings.enabled)pane.developmentWatcher?.invalidate();await refreshCatalog();})});
 document.addEventListener('quizforge-auth-required',()=>{const dialog=$('#access-dialog');if(!dialog.open)dialog.showModal();});

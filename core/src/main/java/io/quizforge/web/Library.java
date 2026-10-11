@@ -87,23 +87,55 @@ final class Library {
     private Map<String, Extension> developmentExtensions = Map.of(), developmentOriginals = Map.of();
     private Map<String, Collection> developmentPreviews = Map.of(), developmentBanks = Map.of();
     private Map<String, ObjectNode> developmentUiBanks = Map.of();
-    private Map<String, String> developmentBankFingerprints = Map.of(), developmentBankFolders = Map.of();
     private Map<String, Path> bankPaths = Map.of();
     private ObjectNode catalog = Json.object();
     private String previousSignature = null;
+    private record RuleCheck(List<List<OutlineItem>> outlineItems) { }
+    private record PreparedCollection(String id, String title, String description, String kind, Extension extension,
+                                      List<Question> questions, BankFeatures features, String checkKey, RuleCheck checked) { }
+    @FunctionalInterface private interface CollectionApplied { void accept(Collection collection) throws IOException; }
+    private record PendingCollection(PreparedCollection prepared, java.util.function.Supplier<PreparedCollection> prepare,
+                                     Runnable before, CollectionApplied applied, ObjectNode entry, String code, String description) { }
+    // Only successful checks from the current catalog survive the next directory scan.
+    private Map<String, RuleCheck> ruleChecks = Map.of();
+    private String checksRunnerRevision = "";
     Library(Path root, RuleEngine engine) { this(root, root, engine); }
     Library(Path root, Path codeRoot, RuleEngine engine) { this(root, codeRoot, engine, settings(root)); }
     Library(Path root, Path codeRoot, RuleEngine engine, DevelopmentSettings developmentSettings) { this.root = root; this.codeRoot = codeRoot; this.engine = engine; resources = new ResourceStore(root); developmentResources = new ResourceStore(root.resolve(".development")); richText = new RichTextService(codeRoot); this.developmentSettings = developmentSettings; }
     private static DevelopmentSettings settings(Path root) { try { return new DevelopmentSettings(root); } catch (IOException e) { throw new ApiException(503, "DEVELOPMENT_SETTINGS_UNAVAILABLE", "Developer settings cannot be read"); } }
 
-    synchronized ObjectNode catalog() { refresh(); return catalog.deepCopy(); }
-    synchronized Collection collection(String kind, String id) {
+    synchronized ObjectNode catalog() { refresh(); return new LibraryManagement(root).catalog(catalog); }
+    synchronized ObjectNode manage(JsonNode request) throws IOException {
+        ObjectNode outcome = new LibraryManagement(root).change(request, catalog());
+        outcome.set("catalog", catalog()); return outcome;
+    }
+    synchronized LibraryArchive.Download exportGroup(String group) throws IOException {
+        refresh();
+        return new LibraryArchive(root, resources).exportGroup(group);
+    }
+    synchronized ObjectNode importArchive(java.io.InputStream input) throws IOException {
+        try {
+            return new LibraryArchive(root, resources).importPackage(input, staging -> {
+                Library candidate = new Library(staging, codeRoot, engine, new DevelopmentSettings(staging));
+                ObjectNode checked = candidate.catalog();
+                for (String section : List.of("banks", "extensions")) for (JsonNode row : checked.path(section)) {
+                    if (row.has("error")) throw new ApiException(422, "INVALID_LIBRARY_ARCHIVE", "导入校验失败：" + row.path("title").asText(row.path("name").asText(row.path("id").asText())) + "：" + row.path("error").asText());
+                }
+            });
+        } finally { previousSignature = null; }
+    }
+    private java.util.function.Function<String, Collection> examCollections;
+    void examCollections(java.util.function.Function<String, Collection> resolver) { examCollections = resolver; }
+    Collection collection(String kind, String id) {
+        if (kind.equals("exam") && examCollections != null) return examCollections.apply(id);
+        synchronized (this) {
         refresh();
         if (kind.startsWith("development")) developmentSettings.requireEnabled();
         Map<String, Collection> values = switch (kind) { case "bank" -> banks; case "extension" -> previews; case "development" -> developmentPreviews; case "development-bank" -> developmentBanks; default -> throw ApiException.bad("Invalid collection kind"); };
         Collection collection = values.get(id);
         if (collection == null) throw new ApiException(404, "COLLECTION_NOT_FOUND", "Collection unavailable; inspect catalog errors");
         return collection;
+        }
     }
     synchronized ObjectNode page(String id, String version) {
         refresh(); Extension extension = extensions.get(id + "@" + version);
@@ -152,12 +184,17 @@ final class Library {
     synchronized ObjectNode developmentBank(String id) {
         developmentSettings.requireEnabled();
         try {
-            JsonNode raw = developmentBankSource(id); String folder = developmentFolder(raw);
-            ObjectNode result = development(folder); String packageRevision = result.path("revision").asText();
+            JsonNode raw = developmentBankSource(id); List<String> folders = developmentFolders(raw);
+            Collection bank = collection("development-bank", id);
+            ObjectNode result = folders.size() == 1 ? development(folders.getFirst()) : Json.object();
             result.put("id", id).put("kind", "development-bank").put("title", Json.text(raw, "title", 300));
-            BankFeatures features = BankFeatures.read(raw); result.set("features", features.json()); result.put("canEdit", result.path("canEdit").asBoolean() && features.editing());
-            collection("development-bank", id); result.set("collection", Json.object().put("kind", "development-bank").put("id", id));
-            result.put("revision", bankDevelopmentRevision(Json.fingerprint(raw, "quizforge-development-bank-v1"), packageRevision)); return result;
+            result.put("description", optional(raw, "description", 4000));
+            result.set("development", bankDevelopmentMetadata(folders));
+            ArrayNode used = result.putArray("extensions"); boolean canEdit = false;
+            for (Extension extension : bank.extensions()) { used.add(extensionReference(extension)); canEdit |= editorPage(extension) != null; }
+            result.set("features", bank.features().json()); result.put("canEdit", canEdit && bank.features().editing());
+            result.set("collection", Json.object().put("kind", "development-bank").put("id", id));
+            result.put("revision", developmentBankRevision(raw)); return result;
         } catch (IOException e) { throw new ApiException(422, "INVALID_DEVELOPMENT_BANK", "Development bank or preview page cannot be read"); }
     }
     private Path developmentDirectory(String folder) {
@@ -179,7 +216,7 @@ final class Library {
             if (!candidate.path("id").asText().equals(id)) continue;
             if (raw != null) throw ApiException.bad("Duplicate bank ID"); raw = candidate;
         }
-        if (raw == null || developmentFolder(raw) == null) throw new ApiException(404, "DEVELOPMENT_BANK_NOT_FOUND", "Development bank is unavailable");
+        if (raw == null || developmentFolders(raw).isEmpty()) throw new ApiException(404, "DEVELOPMENT_BANK_NOT_FOUND", "Development bank is unavailable");
         ExtensionApi.requireBank(raw); return raw;
     }
     synchronized ObjectNode developmentRevision(String folder) {
@@ -190,8 +227,15 @@ final class Library {
     }
     synchronized ObjectNode developmentBankRevision(String id) {
         developmentSettings.requireEnabled();
-        try { JsonNode raw = developmentBankSource(id); String revision = developmentRevision(developmentFolder(raw)).path("revision").asText(); return Json.object().put("revision", bankDevelopmentRevision(Json.fingerprint(raw, "quizforge-development-bank-v1"), revision)); }
+        try { return Json.object().put("revision", developmentBankRevision(developmentBankSource(id))); }
         catch (IOException e) { throw new ApiException(422, "INVALID_DEVELOPMENT_BANK", "Development bank is being edited or cannot be read"); }
+    }
+    private String developmentBankRevision(JsonNode raw) {
+        List<String> folders = developmentFolders(raw);
+        ArrayNode revisions = Json.MAPPER.createArrayNode();
+        for (String folder : folders) revisions.add(Json.object().put("folder", folder).put("revision", developmentRevision(folder).path("revision").asText()));
+        String revision = folders.size() == 1 ? revisions.get(0).path("revision").asText() : Json.fingerprint(revisions, "quizforge-development-bindings-v1");
+        return bankDevelopmentRevision(Json.fingerprint(raw, "quizforge-development-bank-v1"), revision);
     }
     private static String bankDevelopmentRevision(String bankFingerprint, String revision) { return ResourceStore.hash((bankFingerprint + ":" + revision).getBytes(StandardCharsets.UTF_8)); }
     synchronized ObjectNode developmentPublishPlan(String folder) throws IOException {
@@ -436,6 +480,9 @@ final class Library {
         List<Path> bankFiles = bankFiles(root.resolve("question-banks"));
         String signature = signature(extensionFolders, bankFiles);
         if (signature.equals(previousSignature)) return;
+        String runnerRevision = runnerRevision();
+        if (!runnerRevision.equals(checksRunnerRevision)) ruleChecks = Map.of();
+        var nextChecks = new HashMap<String, RuleCheck>();
         boolean transientRuleFailure = false;
         Map<String, Extension> nextExtensions = new LinkedHashMap<>();
         Map<String, Collection> nextBanks = new LinkedHashMap<>(), nextPreviews = new HashMap<>();
@@ -443,12 +490,13 @@ final class Library {
         Map<String, Extension> nextDevelopmentExtensions = new HashMap<>(), nextDevelopmentOriginals = new HashMap<>();
         Map<String, Collection> nextDevelopmentPreviews = new HashMap<>(), nextDevelopmentBanks = new HashMap<>();
         Map<String, ObjectNode> nextUiBanks = new HashMap<>();
-        Map<String, String> nextBankFingerprints = new HashMap<>(), nextBankFolders = new HashMap<>();
         Map<String, Path> nextBankPaths = new HashMap<>();
+        var pending = new ArrayList<PendingCollection>();
         ArrayNode extensionCatalog = Json.MAPPER.createArrayNode(), bankCatalog = Json.MAPPER.createArrayNode();
         var developmentNames = new HashMap<String, Integer>(); for (Path folder : extensionFolders) if (DevelopmentExtensions.marked(folder)) developmentNames.merge(fallback(folder), 1, Integer::sum);
         for (Path folder : extensionFolders) {
             ObjectNode entry = Json.object().put("id", fallback(folder)).put("version", "?").put("name", fallback(folder)).put("description", "").put("questionCount", 0);
+            entry.put("path", LibraryManagement.relative(root.resolve("extensions"), folder));
             String group = ExtensionDirectories.group(root.resolve("extensions"), folder); if (!group.isEmpty()) entry.put("group", group);
             if (DevelopmentExtensions.marked(folder)) {
                 if (!developmentSettings.enabled()) continue;
@@ -462,11 +510,13 @@ final class Library {
                     if (!Json.id(rawExamples, "id").equals("examples")) throw ApiException.bad("Invalid example ID");
                     JsonNode example = DevelopmentExtensions.bindRuntimeExamples(rawExamples, original, extension);
                     var available = Map.of(extension.id() + "@" + extension.version(), extension, "development:" + value.folder(), extension);
-                    Collection preview = parseResolvedCollection(example, "development", extension, value.folder(), available);
-                    developmentResources.importExtensionAssets(folder, staticAssets(folder, developmentDeclaration(folder)));
-                    nextDevelopmentOriginals.put(value.folder(), original); nextDevelopmentExtensions.put(value.folder(), extension); nextDevelopmentPreviews.put(value.folder(), preview);
-                    entry.put("questionCount", preview.questions().size()).put("version", original.version());
-                    entry.set("features", preview.features().json());
+                    PreparedCollection prepared = prepareCollection(example, "development", extension, value.folder(), available, nextChecks);
+                    pending.add(new PendingCollection(prepared, null, null, preview -> {
+                        developmentResources.importExtensionAssets(folder, staticAssets(folder, developmentDeclaration(folder)));
+                        nextDevelopmentOriginals.put(value.folder(), original); nextDevelopmentExtensions.put(value.folder(), extension); nextDevelopmentPreviews.put(value.folder(), preview);
+                        entry.put("questionCount", preview.questions().size()).put("version", original.version());
+                        entry.set("features", preview.features().json()); entry.put("contentRevision", catalogRevision(preview));
+                    }, entry, "INVALID_DEVELOPMENT", "Invalid development marker, page or runtime package"));
                 } catch (Exception e) { transientRuleFailure |= transientRules(e); catalogError(entry, e, "INVALID_DEVELOPMENT", "Invalid development marker, page or runtime package"); }
                 extensionCatalog.add(entry); continue;
             }
@@ -477,17 +527,25 @@ final class Library {
                 if (nextExtensions.containsKey(key)) throw ApiException.bad("Duplicate extension version"); nextExtensions.put(key, extension);
                 try {
                     JsonNode raw = Json.read(extension.examples(), 8 * 1024 * 1024); if (!Json.id(raw, "id").equals("examples")) throw ApiException.bad("Invalid example ID");
-                    Collection preview = parseResolvedCollection(raw, "extension", extension, extension.id(), nextExtensions);
-                    entry.put("questionCount", preview.questions().size());
-                    entry.set("features", preview.features().json());
-                    Collection previous = nextPreviews.get(extension.id());
-                    if (previous == null || compareVersion(extension.version(), previous.extensions().get(0).version()) > 0) nextPreviews.put(extension.id(), preview);
+                    PreparedCollection prepared = prepareCollection(raw, "extension", extension, extension.id(), nextExtensions, nextChecks);
+                    pending.add(new PendingCollection(prepared, null, null, preview -> {
+                        entry.put("questionCount", preview.questions().size()); entry.set("features", preview.features().json());
+                        entry.put("contentRevision", catalogRevision(preview)); Collection previous = nextPreviews.get(extension.id());
+                        if (previous == null || compareVersion(extension.version(), previous.extensions().get(0).version()) > 0) nextPreviews.put(extension.id(), preview);
+                    }, entry, "INVALID_EXTENSION_EXAMPLES", "Invalid extension examples or question data"));
                 } catch (Exception e) { transientRuleFailure |= transientRules(e); catalogError(entry, e, "INVALID_EXTENSION_EXAMPLES", "Invalid extension examples or question data"); }
             } catch (Exception e) { catalogError(entry, e, "INVALID_EXTENSION", "Invalid extension manifest or declared assets"); }
             extensionCatalog.add(entry);
         }
+        // Banks may only bind development packages whose preview was prepared successfully.
+        transientRuleFailure |= applyPendingCollections(pending, nextChecks); pending.clear();
+        var reservedBankIds = new HashSet<String>();
         for (Path file : bankFiles) {
             ObjectNode entry = Json.object().put("id", fallback(file).replaceFirst("\\.json$", "")).put("title", fallback(file)).put("description", "").put("questionCount", 0);
+            Path bankItem = BankDirectories.item(root.resolve("question-banks"), file);
+            entry.put("path", LibraryManagement.relative(root.resolve("question-banks"), bankItem));
+            String group = LibraryManagement.relative(root.resolve("question-banks"), bankItem.getParent());
+            if (!group.isEmpty()) entry.put("group", group);
             try {
                 JsonNode raw = Json.read(file, 8 * 1024 * 1024);
                 if (!developmentSettings.enabled() && hasDevelopmentReference(raw)) continue;
@@ -495,28 +553,35 @@ final class Library {
                 BankFeatures bankFeatures = BankFeatures.read(raw); entry.set("features", bankFeatures.json());
                 String id = Json.id(raw, "id"), title = Json.text(raw, "title", 300);
                 entry.put("id", id).put("title", title).put("description", optional(raw, "description", 4000));
-                String devFolder = developmentFolder(raw);
-                if (devFolder != null) {
+                List<String> devFolders = developmentFolders(raw); boolean developmentBank = !devFolders.isEmpty();
+                if (developmentBank) {
                     if (!developmentSettings.enabled()) continue;
-                    entry.put("kind", "development-bank"); entry.set("development", Json.object().put("folder", devFolder));
-                    nextBankFingerprints.put(id, Json.fingerprint(raw, "quizforge-development-bank-v1")); nextBankFolders.put(id, devFolder);
-                    DevelopmentExtensions.Package value = nextDevelopment.get(devFolder);
-                    if (value == null) throw ApiException.bad("Missing development extension");
-                    entry.put("kind", "development-bank").set("development", value.metadata());
+                    entry.put("kind", "development-bank"); entry.set("development", bankDevelopmentMetadata(devFolders));
+                    for (String folder : devFolders) if (!nextDevelopment.containsKey(folder)) throw ApiException.bad("Missing development extension");
                 }
-                if (file.getFileName().toString().equals("bank.json") && !file.getParent().equals(root.resolve("question-banks"))) (devFolder == null ? resources : developmentResources).importAssets(file.getParent());
+                if (file.getFileName().toString().equals("bank.json") && !file.getParent().equals(root.resolve("question-banks"))) (developmentBank ? developmentResources : resources).importAssets(file.getParent());
                 var available = new HashMap<>(nextExtensions); for (var value : nextDevelopmentExtensions.entrySet()) available.put("development:" + value.getKey(), value.getValue());
                 Extension extension = raw.has("extension") ? resolveExtension(raw.get("extension"), available) : null;
-                if (nextBanks.containsKey(id) || nextDevelopmentBanks.containsKey(id) || nextUiBanks.containsKey(id)) throw ApiException.bad("Duplicate bank ID");
-                Collection bank = parseResolvedCollection(raw, devFolder == null ? "bank" : "development-bank", extension, id, available);
-                if (devFolder != null) for (Extension value : bank.extensions()) developmentResources.importExtensionAssets(value.directory(), staticAssets(value.directory(), developmentDeclaration(value.directory())));
-                if (bank.extension() == null) entry.putNull("extension");
-                else entry.set("extension", extensionReference(bank.extension()));
-                ArrayNode used = entry.putArray("extensions"); for (Extension value : bank.extensions()) used.add(extensionReference(value));
-                (devFolder == null ? nextBanks : nextDevelopmentBanks).put(id, bank); nextBankPaths.put(id, file); entry.put("questionCount", bank.questions().size());
+                Runnable unique = () -> { if (nextBanks.containsKey(id) || nextDevelopmentBanks.containsKey(id) || nextUiBanks.containsKey(id)) throw ApiException.bad("Duplicate bank ID"); };
+                java.util.function.Supplier<PreparedCollection> prepare = () -> prepareCollection(raw, developmentBank ? "development-bank" : "bank", extension, id, available, nextChecks);
+                // A failed earlier bank does not claim its ID. Resolve later duplicates
+                // individually after its result, preserving the existing scan order.
+                PreparedCollection prepared = reservedBankIds.contains(id) ? null : prepare.get();
+                reservedBankIds.add(id);
+                pending.add(new PendingCollection(prepared, prepared == null ? prepare : null, unique, bank -> {
+                    if (developmentBank) for (Extension value : bank.extensions()) {
+                        JsonNode declaration = DevelopmentExtensions.runtimeMetadata(value) == null ? Json.read(Json.safeFile(value.directory(), "manifest.json"), 256 * 1024) : developmentDeclaration(value.directory());
+                        developmentResources.importExtensionAssets(value.directory(), staticAssets(value.directory(), declaration));
+                    }
+                    if (bank.extension() == null) entry.putNull("extension"); else entry.set("extension", extensionReference(bank.extension()));
+                    ArrayNode used = entry.putArray("extensions"); for (Extension value : bank.extensions()) used.add(extensionReference(value));
+                    (developmentBank ? nextDevelopmentBanks : nextBanks).put(id, bank); nextBankPaths.put(id, file); entry.put("questionCount", bank.questions().size());
+                    entry.put("contentRevision", catalogRevision(bank));
+                }, entry, "INVALID_BANK", "Invalid bank JSON, extension reference, or question data"));
             } catch (Exception e) { transientRuleFailure |= transientRules(e); catalogError(entry, e, "INVALID_BANK", "Invalid bank JSON, extension reference, or question data"); }
             bankCatalog.add(entry);
         }
+        transientRuleFailure |= applyPendingCollections(pending, nextChecks);
         // The preview route is keyed by type ID and opens its latest installed version.
         // Keep older packages addressable for bound banks/history, without duplicate preview rows.
         ArrayNode previewsCatalog = Json.MAPPER.createArrayNode();
@@ -527,7 +592,23 @@ final class Library {
         catalog = Json.object(); catalog.set("banks", bankCatalog); catalog.set("extensions", previewsCatalog);
         extensions = Map.copyOf(nextExtensions); banks = Map.copyOf(nextBanks); bankPaths = Map.copyOf(nextBankPaths); previews = Map.copyOf(nextPreviews); previousSignature = transientRuleFailure ? null : signature;
         developmentPackages = Map.copyOf(nextDevelopment); developmentExtensions = Map.copyOf(nextDevelopmentExtensions); developmentOriginals = Map.copyOf(nextDevelopmentOriginals); developmentPreviews = Map.copyOf(nextDevelopmentPreviews); developmentBanks = Map.copyOf(nextDevelopmentBanks); developmentUiBanks = Map.copyOf(nextUiBanks);
-        developmentBankFingerprints = Map.copyOf(nextBankFingerprints); developmentBankFolders = Map.copyOf(nextBankFolders);
+        ruleChecks = Map.copyOf(nextChecks); checksRunnerRevision = runnerRevision;
+    }
+    private boolean applyPendingCollections(List<PendingCollection> pending, Map<String, RuleCheck> nextChecks) {
+        var inputs = new ArrayList<List<Question>>();
+        for (PendingCollection item : pending) inputs.add(item.prepared() == null || item.prepared().checked() != null ? null : item.prepared().questions());
+        Map<Integer, RuntimeException> failures = CatalogRuleValidation.validate(engine, inputs);
+        boolean transientFailure = false;
+        for (int index = 0; index < pending.size(); index++) {
+            PendingCollection item = pending.get(index);
+            try {
+                if (item.before() != null) item.before().run();
+                PreparedCollection prepared = item.prepared() == null ? item.prepare().get() : item.prepared();
+                Collection collection = finishCollection(prepared, nextChecks, item.prepared() != null, failures.get(index));
+                item.applied().accept(collection);
+            } catch (Exception failure) { transientFailure |= transientRules(failure); catalogError(item.entry(), failure, item.code(), item.description()); }
+        }
+        return transientFailure;
     }
     private static boolean transientRules(Exception failure) {
         return failure instanceof ApiException api && (api.code.equals("RULE_TIMEOUT") || api.code.equals("RULE_UNAVAILABLE"));
@@ -630,6 +711,12 @@ final class Library {
         return parseResolvedCollection(raw, kind, extension, id, available);
     }
     private Collection parseResolvedCollection(JsonNode raw, String kind, Extension extension, String id, Map<String, Extension> available) {
+        return parseResolvedCollection(raw, kind, extension, id, available, null);
+    }
+    private Collection parseResolvedCollection(JsonNode raw, String kind, Extension extension, String id, Map<String, Extension> available, Map<String, RuleCheck> nextChecks) {
+        return finishCollection(prepareCollection(raw, kind, extension, id, available, nextChecks), nextChecks, false, null);
+    }
+    private PreparedCollection prepareCollection(JsonNode raw, String kind, Extension extension, String id, Map<String, Extension> available, Map<String, RuleCheck> nextChecks) {
         if (!raw.isObject() || (kind.equals("bank") || kind.equals("development-bank")) && !id.equals(Json.id(raw, "id"))) throw ApiException.bad("Invalid bank ID");
         ExtensionApi.requireBank(raw);
         BankFeatures features = BankFeatures.read(raw);
@@ -651,14 +738,52 @@ final class Library {
             list.add(new Question(qid, Json.text(question, "title", 300), rawData, Json.fingerprint(rawData, owner.fingerprint()), owner,
                     outline == null ? List.of() : outline.items(), outline));
         }
-        boolean development = kind.startsWith("development");
-        try { RuleBatches.validate(engine, list); }
-        catch (ApiException error) { if (!development || !developmentRuleFailure(error)) throw error; }
+        String checkKey = nextChecks == null ? null : Json.fingerprint(raw, kind + ":" + ruleIdentity(list));
+        RuleCheck checked = checkKey == null ? null : ruleChecks.get(checkKey);
         Extension collectionExtension = kind.equals("extension") || kind.equals("development") ? extension : perQuestion || fallback == null ? null : fallback;
+        return new PreparedCollection(id, Json.text(raw, "title", 300), optional(raw, "description", 4000), kind, collectionExtension, list, features, checkKey, checked);
+    }
+    private Collection finishCollection(PreparedCollection prepared, Map<String, RuleCheck> nextChecks, boolean validated, RuntimeException validationFailure) {
+        List<Question> list = prepared.questions(); RuleCheck checked = prepared.checked(); String checkKey = prepared.checkKey();
+        boolean development = prepared.kind().startsWith("development");
         List<Question> outlined;
-        try { outlined = RuleBatches.outline(engine, list); }
-        catch (ApiException error) { if (!development || !developmentRuleFailure(error)) throw error; outlined = list; }
-        return new Collection(id, Json.text(raw, "title", 300), optional(raw, "description", 4000), kind, collectionExtension, outlined, features);
+        if (checked != null) {
+            outlined = new ArrayList<>();
+            for (int i = 0; i < list.size(); i++) {
+                Question question = list.get(i);
+                outlined.add(new Question(question.id(), question.title(), question.data(), question.fingerprint(), question.extension(), checked.outlineItems().get(i), question.outline()));
+            }
+            nextChecks.put(checkKey, checked);
+        } else {
+            boolean valid = true;
+            try { if (validationFailure != null) throw validationFailure; if (!validated) RuleBatches.validate(engine, list); }
+            catch (ApiException error) { if (!development || !developmentRuleFailure(error)) throw error; valid = false; }
+            try { outlined = RuleBatches.outline(engine, list); }
+            catch (ApiException error) { if (!development || !developmentRuleFailure(error)) throw error; outlined = list; valid = false; }
+            if (valid && nextChecks != null) nextChecks.put(checkKey, new RuleCheck(outlined.stream().map(Question::outlineItems).toList()));
+        }
+        return new Collection(prepared.id(), prepared.title(), prepared.description(), prepared.kind(), prepared.extension(), outlined, prepared.features());
+    }
+    private static String ruleIdentity(List<Question> questions) {
+        ArrayNode owners = Json.MAPPER.createArrayNode();
+        for (Question question : questions) {
+            Extension value = question.extension();
+            owners.add(Json.object().put("id", value.id()).put("version", value.version()).put("fingerprint", value.fingerprint())
+                    .put("directory", value.directory().toString()).put("outlineItems", value.outlineItemsDeclared()));
+        }
+        return Json.fingerprint(owners, "quizforge-library-rules-v1");
+    }
+    private static String catalogRevision(Collection collection) {
+        ObjectNode value = Json.object().put("title", collection.title()).put("description", collection.description()).put("stateKey", collection.stateKey());
+        value.set("features", collection.features().json());
+        ArrayNode questions = value.putArray("questions");
+        for (Question question : collection.questions()) {
+            ObjectNode row = questions.addObject().put("id", question.id()).put("title", question.title()).put("fingerprint", question.fingerprint())
+                    .put("extensionId", question.extension().id()).put("extensionVersion", question.extension().version()).put("providerRevision", question.extension().providerRevision());
+            row.set("outline", Json.MAPPER.valueToTree(question.outline()));
+            row.set("outlineItems", Json.MAPPER.valueToTree(question.outlineItems()));
+        }
+        return Json.fingerprint(value, "quizforge-library-content-v1");
     }
     private static boolean developmentRuleFailure(ApiException error) { return List.of("DEVELOPMENT_NOT_IMPLEMENTED", "RULE_REJECTED", "RULE_TIMEOUT", "RULE_UNAVAILABLE", "SCORE_UNAVAILABLE").contains(error.code); }
     private static Extension resolveExtension(JsonNode reference, Map<String, Extension> available) {
@@ -673,14 +798,17 @@ final class Library {
         for (JsonNode question : raw.path("questions")) if (question.path("extension").has("development")) return true;
         return false;
     }
-    private static String developmentFolder(JsonNode raw) {
-        String result = null;
-        if (raw.path("extension").has("development")) result = Json.id(raw.path("extension"), "development");
+    private static List<String> developmentFolders(JsonNode raw) {
+        var folders = new HashSet<String>();
+        if (raw.path("extension").has("development")) folders.add(Json.id(raw.path("extension"), "development"));
         for (JsonNode question : raw.path("questions")) if (question.path("extension").has("development")) {
-            String value = Json.id(question.path("extension"), "development");
-            if (result != null && !result.equals(value)) throw ApiException.bad("A development bank must use one development package");
-            result = value;
+            folders.add(Json.id(question.path("extension"), "development"));
         }
+        return folders.stream().sorted().toList();
+    }
+    private static ObjectNode bankDevelopmentMetadata(List<String> folders) {
+        ObjectNode result = Json.object(); ArrayNode values = result.putArray("folders"); folders.forEach(values::add);
+        if (folders.size() == 1) result.put("folder", folders.getFirst());
         return result;
     }
     private static ObjectNode extensionReference(Extension value) { ObjectNode result = Json.object().put("id", value.id()).put("version", value.version()); ObjectNode development = DevelopmentExtensions.runtimeMetadata(value); if (development != null) result.set("development", development); return result; }
@@ -693,13 +821,7 @@ final class Library {
         } catch (IOException e) { throw new ApiException(503, "LIBRARY_UNAVAILABLE", "Library directory cannot be read"); }
     }
     private static List<Path> bankFiles(Path directory) {
-        var files = new ArrayList<>(children(directory, true, 1000));
-        for (Path folder : children(directory, false, 1000)) {
-            Path bank = folder.resolve("bank.json");
-            if (Files.isRegularFile(bank, LinkOption.NOFOLLOW_LINKS) && !Files.isSymbolicLink(bank)) files.add(bank);
-        }
-        if (files.size() > 1000) throw new ApiException(422, "LIBRARY_LIMIT", "Library has too many banks");
-        files.sort(Comparator.naturalOrder()); return List.copyOf(files);
+        return BankDirectories.scan(directory).banks();
     }
     private String signature(List<Path> folders, List<Path> banks) {
         StringBuilder signature = new StringBuilder().append("development:").append(developmentSettings.enabled());
@@ -735,6 +857,12 @@ final class Library {
         if (Files.isDirectory(assets, LinkOption.NOFOLLOW_LINKS) && !Files.isSymbolicLink(assets)) try (var entries = Files.walk(assets)) {
             for (Path file : entries.limit(1001).sorted().toList()) stamp(signature, file);
         }
+    }
+    private String runnerRevision() {
+        StringBuilder revision = new StringBuilder();
+        try { stamp(revision, Json.safeFile(codeRoot.resolve("server"), "rules-runner.cjs")); }
+        catch (IOException | RuntimeException failure) { revision.append("unavailable"); }
+        return revision.toString();
     }
     private static void stamp(StringBuilder signature, Path path) throws IOException { signature.append(path).append(':').append(Files.size(path)).append(':').append(Files.getLastModifiedTime(path)).append(';'); }
     private static String optional(JsonNode raw, String field, int max) { if (!raw.has(field)) return ""; JsonNode value = raw.get(field); if (!value.isTextual() || value.asText().length() > max) throw ApiException.bad("Invalid " + field); return value.asText(); }

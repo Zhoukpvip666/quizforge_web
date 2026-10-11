@@ -1,0 +1,730 @@
+[
+  {
+    "number": 1,
+    "type": "完形填空",
+    "source": "p.1文章/p.2选项",
+    "parentId": "cloze-01",
+    "partId": "q-01",
+    "maxScoreProposal": 0.5,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "A",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-cloze-2026-dev"
+    }
+  },
+  {
+    "number": 2,
+    "type": "完形填空",
+    "source": "p.1文章/p.2选项",
+    "parentId": "cloze-01",
+    "partId": "q-02",
+    "maxScoreProposal": 0.5,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "D",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-cloze-2026-dev"
+    }
+  },
+  {
+    "number": 3,
+    "type": "完形填空",
+    "source": "p.1文章/p.2选项",
+    "parentId": "cloze-01",
+    "partId": "q-03",
+    "maxScoreProposal": 0.5,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "B",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-cloze-2026-dev"
+    }
+  },
+  {
+    "number": 4,
+    "type": "完形填空",
+    "source": "p.1文章/p.2选项",
+    "parentId": "cloze-01",
+    "partId": "q-04",
+    "maxScoreProposal": 0.5,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "C",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-cloze-2026-dev"
+    }
+  },
+  {
+    "number": 5,
+    "type": "完形填空",
+    "source": "p.1文章/p.2选项",
+    "parentId": "cloze-01",
+    "partId": "q-05",
+    "maxScoreProposal": 0.5,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "B",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-cloze-2026-dev"
+    }
+  },
+  {
+    "number": 6,
+    "type": "完形填空",
+    "source": "p.1文章/p.2选项",
+    "parentId": "cloze-01",
+    "partId": "q-06",
+    "maxScoreProposal": 0.5,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "C",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-cloze-2026-dev"
+    }
+  },
+  {
+    "number": 7,
+    "type": "完形填空",
+    "source": "p.1文章/p.2选项",
+    "parentId": "cloze-01",
+    "partId": "q-07",
+    "maxScoreProposal": 0.5,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "A",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-cloze-2026-dev"
+    }
+  },
+  {
+    "number": 8,
+    "type": "完形填空",
+    "source": "p.1文章/p.2选项",
+    "parentId": "cloze-01",
+    "partId": "q-08",
+    "maxScoreProposal": 0.5,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "D",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-cloze-2026-dev"
+    }
+  },
+  {
+    "number": 9,
+    "type": "完形填空",
+    "source": "p.1文章/p.2选项",
+    "parentId": "cloze-01",
+    "partId": "q-09",
+    "maxScoreProposal": 0.5,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "A",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-cloze-2026-dev"
+    }
+  },
+  {
+    "number": 10,
+    "type": "完形填空",
+    "source": "p.1文章/p.2选项",
+    "parentId": "cloze-01",
+    "partId": "q-10",
+    "maxScoreProposal": 0.5,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "D",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-cloze-2026-dev"
+    }
+  },
+  {
+    "number": 11,
+    "type": "完形填空",
+    "source": "p.1文章/p.2选项",
+    "parentId": "cloze-01",
+    "partId": "q-11",
+    "maxScoreProposal": 0.5,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "D",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-cloze-2026-dev"
+    }
+  },
+  {
+    "number": 12,
+    "type": "完形填空",
+    "source": "p.1文章/p.2选项",
+    "parentId": "cloze-01",
+    "partId": "q-12",
+    "maxScoreProposal": 0.5,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "D",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-cloze-2026-dev"
+    }
+  },
+  {
+    "number": 13,
+    "type": "完形填空",
+    "source": "p.1文章/p.2选项",
+    "parentId": "cloze-01",
+    "partId": "q-13",
+    "maxScoreProposal": 0.5,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "C",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-cloze-2026-dev"
+    }
+  },
+  {
+    "number": 14,
+    "type": "完形填空",
+    "source": "p.1文章/p.2选项",
+    "parentId": "cloze-01",
+    "partId": "q-14",
+    "maxScoreProposal": 0.5,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "A",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-cloze-2026-dev"
+    }
+  },
+  {
+    "number": 15,
+    "type": "完形填空",
+    "source": "p.1文章/p.2选项",
+    "parentId": "cloze-01",
+    "partId": "q-15",
+    "maxScoreProposal": 0.5,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "B",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-cloze-2026-dev"
+    }
+  },
+  {
+    "number": 16,
+    "type": "完形填空",
+    "source": "p.1文章/p.2选项",
+    "parentId": "cloze-01",
+    "partId": "q-16",
+    "maxScoreProposal": 0.5,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "C",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-cloze-2026-dev"
+    }
+  },
+  {
+    "number": 17,
+    "type": "完形填空",
+    "source": "p.1文章/p.2选项",
+    "parentId": "cloze-01",
+    "partId": "q-17",
+    "maxScoreProposal": 0.5,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "C",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-cloze-2026-dev"
+    }
+  },
+  {
+    "number": 18,
+    "type": "完形填空",
+    "source": "p.1文章/p.2选项",
+    "parentId": "cloze-01",
+    "partId": "q-18",
+    "maxScoreProposal": 0.5,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "B",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-cloze-2026-dev"
+    }
+  },
+  {
+    "number": 19,
+    "type": "完形填空",
+    "source": "p.1文章/p.2选项",
+    "parentId": "cloze-01",
+    "partId": "q-19",
+    "maxScoreProposal": 0.5,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "B",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-cloze-2026-dev"
+    }
+  },
+  {
+    "number": 20,
+    "type": "完形填空",
+    "source": "p.1文章/p.2选项",
+    "parentId": "cloze-01",
+    "partId": "q-20",
+    "maxScoreProposal": 0.5,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "A",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-cloze-2026-dev"
+    }
+  },
+  {
+    "number": 21,
+    "type": "阅读理解",
+    "source": "p.3文章/p.4题目",
+    "parentId": "reading-01",
+    "partId": "q-21",
+    "maxScoreProposal": 2,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "C",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-reading-2026-dev"
+    }
+  },
+  {
+    "number": 22,
+    "type": "阅读理解",
+    "source": "p.3文章/p.4题目",
+    "parentId": "reading-01",
+    "partId": "q-22",
+    "maxScoreProposal": 2,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "D",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-reading-2026-dev"
+    }
+  },
+  {
+    "number": 23,
+    "type": "阅读理解",
+    "source": "p.3文章/p.4题目",
+    "parentId": "reading-01",
+    "partId": "q-23",
+    "maxScoreProposal": 2,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "A",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-reading-2026-dev"
+    }
+  },
+  {
+    "number": 24,
+    "type": "阅读理解",
+    "source": "p.3文章/p.4题目",
+    "parentId": "reading-01",
+    "partId": "q-24",
+    "maxScoreProposal": 2,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "B",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-reading-2026-dev"
+    }
+  },
+  {
+    "number": 25,
+    "type": "阅读理解",
+    "source": "p.3文章/p.4题目",
+    "parentId": "reading-01",
+    "partId": "q-25",
+    "maxScoreProposal": 2,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "B",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-reading-2026-dev"
+    }
+  },
+  {
+    "number": 26,
+    "type": "阅读理解",
+    "source": "p.5文章/p.6题目",
+    "parentId": "reading-02",
+    "partId": "q-26",
+    "maxScoreProposal": 2,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "D",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-reading-2026-dev"
+    }
+  },
+  {
+    "number": 27,
+    "type": "阅读理解",
+    "source": "p.5文章/p.6题目",
+    "parentId": "reading-02",
+    "partId": "q-27",
+    "maxScoreProposal": 2,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "A",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-reading-2026-dev"
+    }
+  },
+  {
+    "number": 28,
+    "type": "阅读理解",
+    "source": "p.5文章/p.6题目",
+    "parentId": "reading-02",
+    "partId": "q-28",
+    "maxScoreProposal": 2,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "B",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-reading-2026-dev"
+    }
+  },
+  {
+    "number": 29,
+    "type": "阅读理解",
+    "source": "p.5文章/p.6题目",
+    "parentId": "reading-02",
+    "partId": "q-29",
+    "maxScoreProposal": 2,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "C",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-reading-2026-dev"
+    }
+  },
+  {
+    "number": 30,
+    "type": "阅读理解",
+    "source": "p.5文章/p.6题目",
+    "parentId": "reading-02",
+    "partId": "q-30",
+    "maxScoreProposal": 2,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "A",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-reading-2026-dev"
+    }
+  },
+  {
+    "number": 31,
+    "type": "阅读理解",
+    "source": "p.7文章/p.8题目",
+    "parentId": "reading-03",
+    "partId": "q-31",
+    "maxScoreProposal": 2,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "A",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-reading-2026-dev"
+    }
+  },
+  {
+    "number": 32,
+    "type": "阅读理解",
+    "source": "p.7文章/p.8题目",
+    "parentId": "reading-03",
+    "partId": "q-32",
+    "maxScoreProposal": 2,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "A",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-reading-2026-dev"
+    }
+  },
+  {
+    "number": 33,
+    "type": "阅读理解",
+    "source": "p.7文章/p.8题目",
+    "parentId": "reading-03",
+    "partId": "q-33",
+    "maxScoreProposal": 2,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "C",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-reading-2026-dev"
+    }
+  },
+  {
+    "number": 34,
+    "type": "阅读理解",
+    "source": "p.7文章/p.8题目",
+    "parentId": "reading-03",
+    "partId": "q-34",
+    "maxScoreProposal": 2,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "B",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-reading-2026-dev"
+    }
+  },
+  {
+    "number": 35,
+    "type": "阅读理解",
+    "source": "p.7文章/p.8题目",
+    "parentId": "reading-03",
+    "partId": "q-35",
+    "maxScoreProposal": 2,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "D",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-reading-2026-dev"
+    }
+  },
+  {
+    "number": 36,
+    "type": "阅读理解",
+    "source": "p.9文章/p.10题目",
+    "parentId": "reading-04",
+    "partId": "q-36",
+    "maxScoreProposal": 2,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "D",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-reading-2026-dev"
+    }
+  },
+  {
+    "number": 37,
+    "type": "阅读理解",
+    "source": "p.9文章/p.10题目",
+    "parentId": "reading-04",
+    "partId": "q-37",
+    "maxScoreProposal": 2,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "C",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-reading-2026-dev"
+    }
+  },
+  {
+    "number": 38,
+    "type": "阅读理解",
+    "source": "p.9文章/p.10题目",
+    "parentId": "reading-04",
+    "partId": "q-38",
+    "maxScoreProposal": 2,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "B",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-reading-2026-dev"
+    }
+  },
+  {
+    "number": 39,
+    "type": "阅读理解",
+    "source": "p.9文章/p.10题目",
+    "parentId": "reading-04",
+    "partId": "q-39",
+    "maxScoreProposal": 2,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "D",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-reading-2026-dev"
+    }
+  },
+  {
+    "number": 40,
+    "type": "阅读理解",
+    "source": "p.9文章/p.10题目",
+    "parentId": "reading-04",
+    "partId": "q-40",
+    "maxScoreProposal": 2,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "C",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-reading-2026-dev"
+    }
+  },
+  {
+    "number": 41,
+    "type": "段落排序",
+    "source": "p.11–12",
+    "parentId": "paragraph-order-01",
+    "partId": "q-41",
+    "maxScoreProposal": 2,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "B",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "paragraph-order-2026-dev"
+    }
+  },
+  {
+    "number": 42,
+    "type": "段落排序",
+    "source": "p.11–12",
+    "parentId": "paragraph-order-01",
+    "partId": "q-42",
+    "maxScoreProposal": 2,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "E",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "paragraph-order-2026-dev"
+    }
+  },
+  {
+    "number": 43,
+    "type": "段落排序",
+    "source": "p.11–12",
+    "parentId": "paragraph-order-01",
+    "partId": "q-43",
+    "maxScoreProposal": 2,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "A",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "paragraph-order-2026-dev"
+    }
+  },
+  {
+    "number": 44,
+    "type": "段落排序",
+    "source": "p.11–12",
+    "parentId": "paragraph-order-01",
+    "partId": "q-44",
+    "maxScoreProposal": 2,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "G",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "paragraph-order-2026-dev"
+    }
+  },
+  {
+    "number": 45,
+    "type": "段落排序",
+    "source": "p.11–12",
+    "parentId": "paragraph-order-01",
+    "partId": "q-45",
+    "maxScoreProposal": 2,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "D",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "paragraph-order-2026-dev"
+    }
+  },
+  {
+    "number": 46,
+    "type": "英译汉",
+    "source": "p.13",
+    "parentId": "translation-01",
+    "partId": "q-46",
+    "maxScoreProposal": 2,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "追溯这一术语的历史，我们可以看到科学素养的定义如何随时间推移而演变，这使得在确定科学教育的目标时，情况变得模糊不清。",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "segment-translation-2026-dev"
+    }
+  },
+  {
+    "number": 47,
+    "type": "英译汉",
+    "source": "p.13",
+    "parentId": "translation-01",
+    "partId": "q-47",
+    "maxScoreProposal": 2,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "回归到那个版本的科学素养理念——它更侧重于教授科学的本质与运作方式，而非记忆科学事实——似乎正是当今社会所亟需的。",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "segment-translation-2026-dev"
+    }
+  },
+  {
+    "number": 48,
+    "type": "英译汉",
+    "source": "p.13",
+    "parentId": "translation-01",
+    "partId": "q-48",
+    "maxScoreProposal": 2,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "教育家们提出了让学生在高中阶段完成详细实验训练的主张，他们认为这类训练的主要益处在于能提升逻辑推理和观察能力。",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "segment-translation-2026-dev"
+    }
+  },
+  {
+    "number": 49,
+    "type": "英译汉",
+    "source": "p.13",
+    "parentId": "translation-01",
+    "partId": "q-49",
+    "maxScoreProposal": 2,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "直到20世纪40年代“科学素养”这一说法出现，科学才拥有了一个极具号召力的口号，得以赢得公众关注，并将改善科学教育确立为一项重要的国家目标。",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "segment-translation-2026-dev"
+    }
+  },
+  {
+    "number": 50,
+    "type": "英译汉",
+    "source": "p.13",
+    "parentId": "translation-01",
+    "partId": "q-50",
+    "maxScoreProposal": 2,
+    "answerSource": "PDF p.15",
+    "sourceAnswer": "美国对科学素养的高度关注，最初源于科学技术在二战期间发挥的关键作用，以及当时所意识到的美国士兵的素质不足。",
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "segment-translation-2026-dev"
+    }
+  },
+  {
+    "number": 51,
+    "type": "邮件写作",
+    "source": "p.14",
+    "parentId": "writing-51",
+    "partId": null,
+    "maxScoreProposal": 10,
+    "answerSource": "PDF p.15仅写“见分析”；缺范文",
+    "sourceAnswer": null,
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-writing-2026-dev"
+    }
+  },
+  {
+    "number": 52,
+    "type": "图表作文",
+    "source": "p.14",
+    "parentId": "writing-52",
+    "partId": null,
+    "maxScoreProposal": 20,
+    "answerSource": "PDF p.15仅写“见分析”；缺范文",
+    "sourceAnswer": null,
+    "status": "已制作；按PDF附录核对",
+    "extension": {
+      "development": "english-writing-2026-dev"
+    }
+  }
+]

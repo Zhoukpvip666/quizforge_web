@@ -21,7 +21,7 @@ class AiHttpTest {
                   grade(){return {gradingStatus:'pending',score:null,maxScore:5,correct:null,feedback:null};},
                   review(data,answer,r){if(!Number.isInteger(r.score*2))throw new Error('step');return {gradingStatus:'graded',score:r.score,maxScore:5,correct:r.score===5,feedback:r.feedback??null};},
                   getScore(data,state){return {score:state.submitted?state.result.score:0,maxScore:5,gradingStatus:state.submitted?state.result.gradingStatus:'graded'};},
-                  prepareAiGrading(data,answer){return {protocolVersion:1,question:[{type:'text',text:data.public}],answer:[{type:'text',text:answer.value}],referenceAnswer:[{type:'text',text:data.secret}],rubric:[{type:'text',text:'5 points total'}],maxScore:5,scoreStep:0.5};}
+                  prepareAiGrading(data,answer){return {protocolVersion:1,question:[{type:'text',text:data.public}],answer:[{type:'text',text:answer.value}],referenceAnswer:[{type:'text',text:data.secret},{type:'text',text:'5 points total'}],maxScore:5,scoreStep:0.5};}
                 });
                 """);
         AtomicInteger calls = new AtomicInteger();
@@ -35,7 +35,8 @@ class AiHttpTest {
             var body = Json.object();
             if(status == 503) body.putObject("error").put("code","service_unavailable");
             else {
-                var content = Json.object().put("score", number == 2 ? 4.2 : 3.5).put("feedback","已说明主要概念，缺少缓存失效条件。");
+                var content = Json.object().put("score", 3.5).put("feedback","已说明主要概念，缺少缓存失效条件。");
+                if (number == 2) content.put("score", "4.2");
                 body.put("id","mock-response-"+number).put("model","mock-validation");
                 var choice=body.putArray("choices").addObject().put("finish_reason","stop");choice.putObject("message").put("content",content.toString());
                 body.putObject("usage").put("total_tokens",100);
@@ -49,6 +50,8 @@ class AiHttpTest {
             assertEquals(403,fixture.call("PUT","/api/settings/ai",settings.toString(),null,"http://foreign.example").status());
             var saved=fixture.call("PUT","/api/settings/ai",settings.toString(),null,"http://127.0.0.1:"+fixture.server.port());
             assertEquals(200,saved.status(),saved.body().toString());assertFalse(saved.body().toString().contains("dummy-test-secret"));assertFalse(saved.body().has("apiKey"));
+            assertEquals("dummy-test-secret", fixture.get("/api/settings/ai/credential").body().path("apiKey").asText());
+            assertFalse(fixture.get("/api/settings/ai").body().toString().contains("dummy-test-secret"));
             var submitted=fixture.post(ServerTest.QUESTION+"/actions",fixture.action("ai-submit-0001",0,"submit",fixture.answer("yes")));
             assertEquals(200,submitted.status(),submitted.body().toString());assertTrue(submitted.body().at("/capabilities/canAiGrade").asBoolean());
             var command=Json.object().put("requestId","ai-start-0001").put("contentVersion",submitted.body().at("/stamp/contentVersion").asText());
@@ -57,7 +60,7 @@ class AiHttpTest {
             assertEquals(taskId,fixture.post(ServerTest.QUESTION+"/ai/grade",command).body().path("taskId").asText());
             var task=begun.body();
             long end=System.nanoTime()+java.time.Duration.ofSeconds(20).toNanos();
-            while(java.util.List.of("queued","running").contains(task.path("status").asText())&&System.nanoTime()<end){Thread.sleep(40);task=fixture.get(taskPath).body();}
+            while(java.util.List.of("queued","running","succeeded").contains(task.path("status").asText())&&System.nanoTime()<end){Thread.sleep(40);task=fixture.get(taskPath).body();}
             assertEquals("confirmed",task.path("status").asText(),task.toString());assertEquals(3,calls.get());assertEquals(3.5,task.at("/candidate/score").asDouble());
             var automaticallyGraded=fixture.get(ServerTest.QUESTION).body();assertEquals("graded",automaticallyGraded.at("/state/result/gradingStatus").asText());assertEquals(3.5,automaticallyGraded.at("/state/result/score").asDouble());
             assertEquals(404,fixture.get("/api/collections/bank/bank/questions/q2/ai/tasks/"+taskId).status());

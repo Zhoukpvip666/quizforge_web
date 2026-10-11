@@ -8,7 +8,7 @@ import {spawnSync} from 'node:child_process';
 
 const product=fileURLToPath(new URL('../../',import.meta.url));
 const script=path.join(product,'skills','quizforge-bank-builder','scripts','validate-bank.mjs');
-const singleChoice=path.join(product,'extensions','基础题型','single-choice');
+const singleChoice=fileURLToPath(new URL('./fixtures/legacy-extensions/single-choice-1.0.0/',import.meta.url));
 const copy=value=>JSON.parse(JSON.stringify(value));
 const requirement={major:1,minMinor:0,documentFormat:1,documentProfile:'advanced-v1',capabilities:['images','tables','math']};
 const service={schemaVersion:1,api:{major:1,minor:0,documentFormat:1},defaultProfile:'advanced-v1',profiles:[
@@ -34,6 +34,12 @@ function fixture(t){
   return {root,manifest,write,run};
 }
 const MiB=1024*1024;
+test('camera-capture declaration requires a compatible public rich-text service',t=>{
+  const f=fixture(t),next=copy(service);next.api.minor=1;next.profiles[1].capabilities.push('camera-capture');f.write('core/shared/richtext/service.json',next);
+  f.write('staged/custom/manifest.json',{...f.manifest,requiresRichText:{...requirement,minMinor:1,capabilities:['images','camera-capture']}});
+  let result=f.run();assert.equal(result.code,0,JSON.stringify(result.report));
+  next.api.minor=0;f.write('core/shared/richtext/service.json',next);result=f.run();assert.equal(result.code,1);assert.match(JSON.stringify(result.report),/UNSUPPORTED_RICHTEXT_API/);
+});
 function outlineType(f,body,{declared=true,minor=1}={}){
   const original=readFileSync(path.join(singleChoice,'rules.js'),'utf8');assert.match(original,/QF\.defineType\(\s*\{/);
   f.write('staged/custom/rules.js',original.replace(/QF\.defineType\(\s*\{/,'QF.defineType({getOutlineItems(data){'+body+'},'));
@@ -45,6 +51,12 @@ function explicitExamples(f){
   for(const [index,question]of examples.questions.entries())question.outline={level:'question',label:String(index+1)};
   f.write('staged/custom/examples.json',examples);
 }
+test('exam capability accepts omitted and explicit boolean declarations and rejects malformed values before rules',t=>{
+  const f=fixture(t),bank=readFixture(f,'bank/bank.json');bank.features={exam:true};f.write('bank/bank.json',bank);let result=f.run();assert.equal(result.code,0,JSON.stringify(result.report));
+  bank.features.exam=false;f.write('bank/bank.json',bank);result=f.run();assert.equal(result.code,0,JSON.stringify(result.report));
+  delete bank.features.exam;f.write('bank/bank.json',bank);result=f.run();assert.equal(result.code,0,JSON.stringify(result.report));
+  bank.features.exam='true';f.write('bank/bank.json',bank);result=f.run();assert.equal(result.code,1);assert.equal(result.report.errors[0].code,'INVALID_COLLECTION_FEATURES');
+});
 
 test('bank builder validates a staged public richtext requirement with the normal rule runner and preserves files',t=>{
   const f=fixture(t),manifestBefore=readFileSync(path.join(f.root,'staged/custom/manifest.json')),bankBefore=readFileSync(path.join(f.root,'bank/bank.json'));

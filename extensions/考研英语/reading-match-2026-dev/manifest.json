@@ -1,0 +1,38 @@
+{
+  "id": "quizforge.reading-match",
+  "version": "1.0.0",
+  "name": "阅读匹配",
+  "description": "共享材料与候选项；逐小题自动判分、草稿大纲与考试统一交卷。",
+  "requiresApi": {
+    "major": 1,
+    "minMinor": 2,
+    "capabilities": [
+      "practice",
+      "editor",
+      "editor-drafts",
+      "score",
+      "outline-items",
+      "lifecycle",
+      "richtext",
+      "resources"
+    ]
+  },
+  "entry": "practice.html",
+  "script": "practice.js",
+  "style": "practice.css",
+  "rules": "rules.js",
+  "questionSchema": "question.schema.json",
+  "answerSchema": "answer.schema.json",
+  "examples": "examples/bank.json",
+  "requiresRichText": {
+    "major": 1,
+    "minMinor": 0,
+    "documentFormat": 1,
+    "documentProfile": "advanced-v1",
+    "capabilities": [
+      "basic-formatting",
+      "images",
+      "image-resize"
+    ]
+  }
+}

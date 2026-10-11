@@ -107,3 +107,27 @@ test('an old running backend explains restarting and cannot silently enable publ
   assert.match(f.node('error').textContent,/关闭原服务并重新启动/);
   f.view.destroy();
 });
+
+test('IPv6 candidate fills the public URL without enabling access or saving automatically',async()=>{
+  let saves=0,submitted;
+  const url='http://[2001:db8::1234]:8790/';
+  const state={canManage:true,enabled:true,publicEnabled:false,publicUrl:'',port:8790,passwordConfigured:true,ipv6Supported:true,urls:['http://192.168.1.2:8790/','http://[fd12::1]:8790/'],publicIpv6Urls:[url]};
+  const f=fixture(async(path,options)=>{if(!options)return state;saves++;submitted=JSON.parse(options.body);return {...state,...submitted};});
+  await f.view.open();assert.match(f.node('ipv6-status').textContent,/支持 IPv4 和 IPv6/);
+  assert.equal(f.node('urls').children.length,2);assert.equal(f.node('urls').children[1].textContent,'http://[fd12::1]:8790/');
+  assert.equal(f.node('ipv6-addresses').hidden,false);
+  f.node('ipv6-urls').children[0].emit('click');assert.equal(f.node('public-url').value,url);
+  assert.equal(f.node('public-enabled').checked,false);assert.equal(saves,0);
+  f.node('public-enabled').checked=true;f.node('public-enabled').emit('change');await f.node('form').emit('submit');
+  assert.equal(submitted.publicUrl,url);assert.equal(submitted.publicEnabled,true);assert.equal(saves,1);
+  f.view.destroy();
+});
+
+test('IPv6 unavailable and no global IPv6 address are distinct states',async()=>{
+  const state={canManage:true,enabled:false,publicEnabled:false,publicUrl:'',port:8790,passwordConfigured:true,urls:[],publicIpv6Urls:[]};
+  const v4=fixture(async()=>({...state,ipv6Supported:false}));await v4.view.open();
+  assert.match(v4.node('ipv6-status').textContent,/系统未启用 IPv6/);assert.equal(v4.node('ipv6-addresses').hidden,true);
+  const v6=fixture(async()=>({...state,ipv6Supported:true}));await v6.view.open();
+  assert.match(v6.node('ipv6-status').textContent,/未检测到本机公网 IPv6 地址/);assert.equal(v6.node('ipv6-addresses').hidden,true);
+  v4.view.destroy();v6.view.destroy();
+});

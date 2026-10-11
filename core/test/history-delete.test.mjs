@@ -18,7 +18,7 @@ assert.equal(dialogBindings.length,6,'The production list and confirmation dialo
 // Run the actual list controller against a small DOM and request transport. The
 // fixture supplies no deletion logic: confirmation, locks, recovery and rendering
 // are all exercised through the same click handlers used by the browser.
-function fixture({requestImpl=async()=>({}),returnError=null,records=2,view='practice'}={}){
+function fixture({requestImpl=async()=>({}),returnError=null,records=2,view='practice',exam=false}={}){
   const nodes=new Map(),requests=[],confirmations=[],opened=[],transitions=[],events=[],loads=[],status=[];
   const document={activeElement:null,querySelector:selector=>nodes.get(selector),createElement:tag=>new Element(tag)};
   class Element{
@@ -40,9 +40,10 @@ function fixture({requestImpl=async()=>({}),returnError=null,records=2,view='pra
   nodes.get('#history-dialog').append(nodes.get('#history-close'),nodes.get('#history-list'));
   nodes.get('#history-delete-dialog').append(nodes.get('#history-delete-detail'),nodes.get('#history-delete-cancel'),nodes.get('#history-delete-confirm'));
   const pane={kind:'bank',id:'bank',view,questionId:'q1',collection:{title:'测试题库'},historyRecords:Array.from({length:records},(_,index)=>({id:`round-${index+1}`,collectionTitle:'测试题库',createdAt:`2026-10-07T0${index+1}:00:00Z`,updatedAt:`2026-10-07T0${index+1}:01:00Z`,status:'completed',submittedCount:2,questionCount:2,score:2,maxScore:2})),frameHost:new Element('div'),whiteboard:{load:value=>loads.push(value)}};
-  if(view==='history'){pane.historyEntry={id:'round-1'};pane.historyView={frozen:true};pane.historyQuestion={frozen:true};pane.historyQuestionId='q1';pane.plugin={destroy(){pane.pluginDestroyed=true;}};}
+  if(exam)Object.assign(pane.historyRecords[0],{id:'exam-attempt',mode:'exam',examId:'attempt'});
+  if(view==='history'){pane.historyEntry={id:pane.historyRecords[0].id};pane.historyView={frozen:true};pane.historyQuestion={frozen:true};pane.historyQuestionId='q1';pane.plugin={destroy(){pane.pluginDestroyed=true;}};}
   const sandbox={document,Date,Promise,encodeURIComponent,historyProgress,collectionFeature,
-    $:selector=>document.querySelector(selector),collectionPath:()=>'/api/collections/bank/bank',
+    $:selector=>document.querySelector(selector),collectionPath:(kind,id)=>`/api/collections/${kind}/${id}`,
     request:async(path,options)=>{requests.push({path,options});return requestImpl(path,options);},
     transitionTo:fn=>{const operation=Promise.resolve().then(fn);transitions.push(operation);operation.catch(()=>{});return operation;},
     showHistory:async(_pane,id)=>opened.push(id),flushPane:async()=>{},
@@ -66,6 +67,21 @@ const tick=()=>new Promise(resolve=>setImmediate(resolve));
 test('canceling delete leaves the record intact and does not open it',async()=>{
   const f=fixture();f.delete(0,false);await f.settled();
   assert.equal(f.confirmations.length,1);assert.equal(f.requests.length,0);assert.equal(f.pane.historyRecords.length,2);assert.equal(f.opened.length,0);assert.equal(f.nodes.get('#history-list').children.length,2);
+});
+
+test('exam records are labeled and share the normal history viewing and deletion controls',async()=>{
+  const f=fixture({exam:true});assert.equal(f.row(0).querySelector('.history-exam-badge').textContent,'考试');assert.equal(f.row(1).querySelector('.history-exam-badge'),null);
+  f.row(0).click();await f.settled();assert.deepEqual(f.opened,['exam-attempt']);
+  const deleted=fixture({exam:true,view:'history'});assert.match(deleted.remove(0).attributes['aria-label'],/考试历史记录/);
+  deleted.delete(0);await deleted.settled();assert.match(deleted.confirmations[0],/^考试 · /);
+  assert.equal(deleted.requests[0].path,'/api/collections/bank/bank/history/exam-attempt');assert.equal(deleted.requests[0].options.method,'DELETE');
+  assert.equal(deleted.pane.view,'practice');assert.deepEqual(deleted.pane.historyRecords.map(row=>row.id),['round-2']);
+});
+
+test('history opened from a completed exam also uses its original bank history endpoint',async()=>{
+  const f=fixture({exam:true,requestImpl:async()=>({records:[]})});
+  Object.assign(f.pane,{kind:'exam',id:'attempt',exam:{bankKind:'bank',bankId:'original-bank',status:'completed'}});
+  await f.reopen();assert.equal(f.requests[0].path,'/api/collections/bank/original-bank/history');
 });
 
 test('confirmation locks the list before awaiting a decision and ignores duplicate clicks',async()=>{

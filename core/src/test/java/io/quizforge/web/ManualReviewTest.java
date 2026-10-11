@@ -98,13 +98,15 @@ class ManualReviewTest {
         store = new StateStore(root, engine); assertEquals(frozen, store.history("bank", bank.id(), roundId)); assertJsonEquals(completed, store.finish(bank, finishRequest));
     }
 
-    @Test void reviewRequiresSubmissionFromCurrentActiveRoundAndValidRange() throws Exception {
+    @Test void reviewRequiresCurrentSubmissionAndLeavesRangeToTheExtension() throws Exception {
         assertEquals("REVIEW_UNAVAILABLE", assertThrows(ApiException.class, () -> save("q1", act("review-empty", "q1", 0, "review", review(1)))).code);
         save("q1", act("first-answer", "q1", 0, "submit", answer("First")));
-        assertEquals("INVALID_REQUEST", assertThrows(ApiException.class, () -> save("q1", act("out-of-range", "q1", 1, "review", review(5.5)))).code);
-        save("q1", act("first-review", "q1", 1, "review", review(5))); store.finish(bank, finish("first-finish"));
+        ObjectNode bonus = save("q1", act("out-of-range", "q1", 1, "review", review(5.5)));
+        assertEquals(5.5, bonus.at("/state/result/score").asDouble()); assertEquals(5.5, store.summary(bank).path("score").asDouble());
+        assertEquals("INVALID_REQUEST", assertThrows(ApiException.class, () -> save("q1", act("invalid-number", "q1", 2, "review", review(Double.NaN)))).code);
+        save("q1", act("first-review", "q1", 2, "review", review(5))); store.finish(bank, finish("first-finish"));
         save("q2", act("second-answer", "q2", 0, "submit", answer("Second")));
-        assertEquals("REVIEW_UNAVAILABLE", assertThrows(ApiException.class, () -> save("q1", act("old-answer", "q1", 2, "review", review(4)))).code);
+        assertEquals("REVIEW_UNAVAILABLE", assertThrows(ApiException.class, () -> save("q1", act("old-answer", "q1", 3, "review", review(4)))).code);
         String id = store.summary(bank).path("roundId").asText(); store.deleteHistory("bank", bank.id(), id);
         assertEquals("REVIEW_UNAVAILABLE", assertThrows(ApiException.class, () -> save("q2", act("deleted-round", "q2", 1, "review", review(2)))).code);
     }

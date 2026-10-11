@@ -21,13 +21,13 @@ extensions/
     manifest.json
 ```
 
-最多四层分组、叶深度五，1000 个目录节点／200 个叶。发现 `manifest.json` 或 `development.json` 即为叶并停止下探；分组不放标记、规则、混合样例或共同版本，普通 README／说明图片不参与发现。文件声明相对本叶，不能用 `../` 访问其他叶。
+题库和拓展只支持一层分组，禁止分组嵌套；拓展叶深度最多二，1000 个目录节点／200 个叶。发现 `manifest.json` 或 `development.json` 即为叶并停止下探；分组不放标记、规则、混合样例或共同版本，普通 README／说明图片不参与发现。文件声明相对本叶，不能用 `../` 访问其他叶。
 
-正式绑定为精确 `{id,version}`，开发测试绑定 `{development:"全局唯一叶名"}`；不写组路径或 `extensionGroup`。移动完整叶而保持正式身份／开发叶名不变，不改变绑定。普通题库可混用同组或跨组叶，分组仅管理目录和列表，不决定题型或大纲分类。
+正式绑定为精确 `{id,version}`，开发测试绑定 `{development:"全局唯一叶名"}`；不写组路径或 `extensionGroup`。移动完整叶而保持正式身份／开发叶名不变，不改变绑定。普通题库可混用同组或跨组叶，分组仅管理目录和列表，不决定题型或大纲分类。相关新拓展可放入与题库分组同名的组，复用现有叶不要求搬组；整组交付规则见 [题库分组与交付](bank-format.md#题库分组与交付)。
 
 ## 从 UI 到真实功能
 
-完成 SKILL.md 的设计许可和 [UI 访谈概要确认](ui-design.md) 后才复制模板／写显示骨架；始终在同一个获准的 `extensions/<开发叶>/` 内迭代。开发版共用正式 QF 管线，多开发标签、热刷新和测试隔离，不新增 ui/runtime 模式或 `QF_PREVIEW`。用户通过本机开发者设置开启显示，正常启动；Agent 不改设置。
+完成 SKILL.md 的设计许可和 [UI 访谈概要确认](ui-design.md) 后才复制模板／写显示骨架；始终在同一个获准的 `extensions/<开发叶>/` 内迭代。开发版共用正式 QF 管线，列表切换、热刷新和测试隔离，不新增 ui/runtime 模式或 `QF_PREVIEW`。用户通过本机开发者设置开启显示，正常启动；Agent 不改设置。
 
 新叶写 `development.json:{}`，从普通 manifest、`QF.page.register`、公开 `project`、`getScore` 返回的真实 `maxScore` 及少量代表题开始。manifest 计划 ID／版本和文件声明见 [API](extension-api.md#清单与公共服务声明)。未完成规则／Schema可做显示预览，但真实提交、评分、保存、编辑必须显式报 `DEVELOPMENT_NOT_IMPLEMENTED`，不能伪造成功；本地演示按 UI 文档标注。UI 获准后补齐同叶规则、Schema、编辑器及公共接口，处理 flush/dispose 和失败。
 
@@ -37,7 +37,7 @@ extensions/
 
 `manifest.examples` 指向普通题库格式的 UTF-8 JSON，ID 为 `examples`；可含多道同题型变体，所有有效绑定必须精确自引用本叶计划正式 ID／版本。不能引用同组其他叶、用开发绑定替代样例自绑定或建组级混合样例；开发绑定留给普通测试库。图片在相邻 assets，用内容哈希引用，格式见 [题库](bank-format.md)。
 
-新正式／开发样例一律省略 features 或三项 true，免问；已有显式 false 可读，validator 仅警告 `EXAMPLE_FEATURES_SHOULD_BE_ENABLED`。样例和普通题库共用切题、编辑、大纲、白板及历史流程，状态独立。编辑开启时宿主可受控修改样例数据及专属图片，不修改版本代码；功能开关的持久化语义只见题库文档。
+新正式／开发样例一律省略 features 或四项 true，免问；已有显式 false 可读，validator 仅警告 `EXAMPLE_FEATURES_SHOULD_BE_ENABLED`。样例和普通题库共用切题、编辑、大纲、白板及历史流程，状态独立。编辑开启时宿主可受控修改样例数据及专属图片，不修改版本代码；功能开关的持久化语义只见题库文档。
 
 ## 更新与发布
 

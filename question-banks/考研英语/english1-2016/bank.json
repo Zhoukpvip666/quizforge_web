@@ -1,0 +1,2280 @@
+{
+  "formatVersion": 1,
+  "id": "kaoyan-english1-2016",
+  "title": "2016年考研英语（一）真题",
+  "description": "依据原卷及附录参考答案制作；作文范文与评分细则留空。",
+  "features": {
+    "editing": true,
+    "whiteboard": true,
+    "history": true,
+    "exam": true
+  },
+  "questions": [
+    {
+      "id": "cloze-01",
+      "title": "完形填空（1–20）",
+      "extension": {
+        "development": "english-cloze-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Choose the best word(s) for each numbered blank and mark A, B, C or D on the ANSWER SHEET. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "In Cambodia, the choice of a spouse is a complex one for the young male. It may involve not only his parents and his friends, [[1]] those of the young woman, but also a matchmaker. A young man can [[2]] ."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "a likely spouse on his own and then ask his parents to [[3]] the marriage negotiations, or the young man’s parents may make the choice of a spouse, giving the child little to say in the selection. [[4]] , a girl may veto the spouse her parents have chosen. [[5]] a spouse has been selected, each family investigates the other to make sure its child is marrying [[6]] a good family."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The traditional wedding is a long and colorful affair. Formerly it lasted three days, [[7]] by the 1980s it more commonly lasted a day and a half. Buddhist priests offer a short sermon and [[8]] prayers of blessing. Parts of the ceremony involve ritual hair cutting, [[9]] cotton threads soaked in holy water around the bride’s and groom’s wrists, and [[10]] a candle around a circle of happily married and respected couples to bless the [[11]] . Newlyweds traditionally move in with the wife’s parents and may [[12]] with them up to a year, [[13]] they can build a new house nearby."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Divorce is legal and easy to [[14]] , but not common. Divorced persons are [[15]] with some disapproval. Each spouse retains [[16]] property he or she [[17]] into the marriage, and jointly-acquired property is [[18]] equally. Divorced persons may remarry, but a gender prejudice [[19]] up: The divorced male doesn’t have a waiting period before he can remarry [[20]] the woman must wait ten months."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-1",
+            "number": "1",
+            "options": [
+              {
+                "id": "A",
+                "text": "as well as"
+              },
+              {
+                "id": "B",
+                "text": "by way of"
+              },
+              {
+                "id": "C",
+                "text": "on behalf of"
+              },
+              {
+                "id": "D",
+                "text": "with regard to"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-2",
+            "number": "2",
+            "options": [
+              {
+                "id": "A",
+                "text": "adapt to"
+              },
+              {
+                "id": "B",
+                "text": "provide for"
+              },
+              {
+                "id": "C",
+                "text": "compete with"
+              },
+              {
+                "id": "D",
+                "text": "decide on"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-3",
+            "number": "3",
+            "options": [
+              {
+                "id": "A",
+                "text": "renew"
+              },
+              {
+                "id": "B",
+                "text": "close"
+              },
+              {
+                "id": "C",
+                "text": "arrange"
+              },
+              {
+                "id": "D",
+                "text": "postpone"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-4",
+            "number": "4",
+            "options": [
+              {
+                "id": "A",
+                "text": "In theory"
+              },
+              {
+                "id": "B",
+                "text": "In time"
+              },
+              {
+                "id": "C",
+                "text": "Above all"
+              },
+              {
+                "id": "D",
+                "text": "For example"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-5",
+            "number": "5",
+            "options": [
+              {
+                "id": "A",
+                "text": "Although"
+              },
+              {
+                "id": "B",
+                "text": "Lest"
+              },
+              {
+                "id": "C",
+                "text": "After"
+              },
+              {
+                "id": "D",
+                "text": "Unless"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-6",
+            "number": "6",
+            "options": [
+              {
+                "id": "A",
+                "text": "within"
+              },
+              {
+                "id": "B",
+                "text": "into"
+              },
+              {
+                "id": "C",
+                "text": "from"
+              },
+              {
+                "id": "D",
+                "text": "through"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-7",
+            "number": "7",
+            "options": [
+              {
+                "id": "A",
+                "text": "since"
+              },
+              {
+                "id": "B",
+                "text": "or"
+              },
+              {
+                "id": "C",
+                "text": "so"
+              },
+              {
+                "id": "D",
+                "text": "but"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-8",
+            "number": "8",
+            "options": [
+              {
+                "id": "A",
+                "text": "test"
+              },
+              {
+                "id": "B",
+                "text": "recite"
+              },
+              {
+                "id": "C",
+                "text": "copy"
+              },
+              {
+                "id": "D",
+                "text": "create"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-9",
+            "number": "9",
+            "options": [
+              {
+                "id": "A",
+                "text": "folding"
+              },
+              {
+                "id": "B",
+                "text": "piling"
+              },
+              {
+                "id": "C",
+                "text": "wrapping"
+              },
+              {
+                "id": "D",
+                "text": "tying"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-10",
+            "number": "10",
+            "options": [
+              {
+                "id": "A",
+                "text": "passing"
+              },
+              {
+                "id": "B",
+                "text": "lighting"
+              },
+              {
+                "id": "C",
+                "text": "hiding"
+              },
+              {
+                "id": "D",
+                "text": "serving"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-11",
+            "number": "11",
+            "options": [
+              {
+                "id": "A",
+                "text": "association"
+              },
+              {
+                "id": "B",
+                "text": "meeting"
+              },
+              {
+                "id": "C",
+                "text": "collection"
+              },
+              {
+                "id": "D",
+                "text": "union"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-12",
+            "number": "12",
+            "options": [
+              {
+                "id": "A",
+                "text": "grow"
+              },
+              {
+                "id": "B",
+                "text": "part"
+              },
+              {
+                "id": "C",
+                "text": "live"
+              },
+              {
+                "id": "D",
+                "text": "deal"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-13",
+            "number": "13",
+            "options": [
+              {
+                "id": "A",
+                "text": "whereas"
+              },
+              {
+                "id": "B",
+                "text": "until"
+              },
+              {
+                "id": "C",
+                "text": "for"
+              },
+              {
+                "id": "D",
+                "text": "if"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-14",
+            "number": "14",
+            "options": [
+              {
+                "id": "A",
+                "text": "follow"
+              },
+              {
+                "id": "B",
+                "text": "obtain"
+              },
+              {
+                "id": "C",
+                "text": "challenge"
+              },
+              {
+                "id": "D",
+                "text": "avoid"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-15",
+            "number": "15",
+            "options": [
+              {
+                "id": "A",
+                "text": "isolated"
+              },
+              {
+                "id": "B",
+                "text": "persuaded"
+              },
+              {
+                "id": "C",
+                "text": "viewed"
+              },
+              {
+                "id": "D",
+                "text": "exposed"
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-16",
+            "number": "16",
+            "options": [
+              {
+                "id": "A",
+                "text": "whatever"
+              },
+              {
+                "id": "B",
+                "text": "however"
+              },
+              {
+                "id": "C",
+                "text": "whenever"
+              },
+              {
+                "id": "D",
+                "text": "wherever"
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-17",
+            "number": "17",
+            "options": [
+              {
+                "id": "A",
+                "text": "changed"
+              },
+              {
+                "id": "B",
+                "text": "brought"
+              },
+              {
+                "id": "C",
+                "text": "shaped"
+              },
+              {
+                "id": "D",
+                "text": "pushed"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-18",
+            "number": "18",
+            "options": [
+              {
+                "id": "A",
+                "text": "withdrawn"
+              },
+              {
+                "id": "B",
+                "text": "invested"
+              },
+              {
+                "id": "C",
+                "text": "donated"
+              },
+              {
+                "id": "D",
+                "text": "divided"
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-19",
+            "number": "19",
+            "options": [
+              {
+                "id": "A",
+                "text": "clears"
+              },
+              {
+                "id": "B",
+                "text": "shows"
+              },
+              {
+                "id": "C",
+                "text": "warms"
+              },
+              {
+                "id": "D",
+                "text": "breaks"
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-20",
+            "number": "20",
+            "options": [
+              {
+                "id": "A",
+                "text": "while"
+              },
+              {
+                "id": "B",
+                "text": "once"
+              },
+              {
+                "id": "C",
+                "text": "so that"
+              },
+              {
+                "id": "D",
+                "text": "in that"
+              }
+            ],
+            "correctOptionId": "A"
+          }
+        ],
+        "pointsPerItem": 0.5,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-1",
+            "label": "1"
+          },
+          {
+            "id": "q-2",
+            "label": "2"
+          },
+          {
+            "id": "q-3",
+            "label": "3"
+          },
+          {
+            "id": "q-4",
+            "label": "4"
+          },
+          {
+            "id": "q-5",
+            "label": "5"
+          },
+          {
+            "id": "q-6",
+            "label": "6"
+          },
+          {
+            "id": "q-7",
+            "label": "7"
+          },
+          {
+            "id": "q-8",
+            "label": "8"
+          },
+          {
+            "id": "q-9",
+            "label": "9"
+          },
+          {
+            "id": "q-10",
+            "label": "10"
+          },
+          {
+            "id": "q-11",
+            "label": "11"
+          },
+          {
+            "id": "q-12",
+            "label": "12"
+          },
+          {
+            "id": "q-13",
+            "label": "13"
+          },
+          {
+            "id": "q-14",
+            "label": "14"
+          },
+          {
+            "id": "q-15",
+            "label": "15"
+          },
+          {
+            "id": "q-16",
+            "label": "16"
+          },
+          {
+            "id": "q-17",
+            "label": "17"
+          },
+          {
+            "id": "q-18",
+            "label": "18"
+          },
+          {
+            "id": "q-19",
+            "label": "19"
+          },
+          {
+            "id": "q-20",
+            "label": "20"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-01",
+      "title": "阅读理解 Text 1（21–25）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "France, which prides itself as the global innovator of fashion, has decided its fashion industry has lost an absolute right to define physical beauty for women. Its lawmakers gave preliminary approval last week to a law that would make it a crime to employ ultra-thin models on runways. The parliament also agreed to ban websites that “incite excessive thinness” by promoting extreme dieting."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Such measures have a couple of uplifting motives. They suggest beauty should not be defined by looks that end up impinging on health. That’s a start. And the ban on ultra-thin models seems to go beyond protecting models from starving themselves to death—as some have done. It tells the fashion industry that it must take responsibility for the signal it sends women, especially teenage girls, about the social tape-measure they must use to determine their individual worth."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The bans, if fully enforced, would suggest to women (and many men) that they should not let others be arbiters of their beauty. And perhaps faintly, they hint that people should look to intangible qualities like character and intellect rather than dieting their way to size zero or wasp-waist physiques."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The French measures, however, rely too much on severe punishment to change a culture that still regards beauty as skin-deep—and bone-showing. Under the law, using a fashion model that does not meet a government-defined index of body mass could result in a $85,000 fine and six months in prison."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The fashion industry knows it has an inherent problem in focusing on material adornment and idealized body types. In Denmark, the United States, and a few other countries, it is trying to set voluntary standards for models and fashion images that rely more on peer pressure for enforcement."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "In contrast to France’s actions, Denmark’s fashion industry agreed last month on rules and sanctions regarding the age, health, and other characteristics of models. The newly revised Danish Fashion Ethical Charter clearly states: “We are aware of and take responsibility for the impact the fashion industry has on body ideals, especially on young people.” The charter’s main tool of enforcement is to deny access for designers and modeling agencies to Copenhagen Fashion Week (CFW), which is run by the Danish Fashion Institute. But in general it relies on a name-and-shame method of compliance."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Relying on ethical persuasion rather than law to address the misuse of body ideals may be the best step. Even better would be to help elevate notions of beauty beyond the material standards of a particular industry."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-21",
+            "number": "21",
+            "stem": "According to the first paragraph, what would happen in France?",
+            "options": [
+              {
+                "id": "A",
+                "text": "Physical beauty would be redefined."
+              },
+              {
+                "id": "B",
+                "text": "New runways would be constructed."
+              },
+              {
+                "id": "C",
+                "text": "Websites about dieting would thrive."
+              },
+              {
+                "id": "D",
+                "text": "The fashion industry would decline."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-22",
+            "number": "22",
+            "stem": "The phrase “impinging on” (Line 2, Para. 2) is closest in meaning to",
+            "options": [
+              {
+                "id": "A",
+                "text": "indicating the state of."
+              },
+              {
+                "id": "B",
+                "text": "heightening the value of."
+              },
+              {
+                "id": "C",
+                "text": "losing faith in."
+              },
+              {
+                "id": "D",
+                "text": "doing harm to."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-23",
+            "number": "23",
+            "stem": "Which of the following is true of the fashion industry?",
+            "options": [
+              {
+                "id": "A",
+                "text": "The French measures have already failed."
+              },
+              {
+                "id": "B",
+                "text": "Its inherent problems are getting worse."
+              },
+              {
+                "id": "C",
+                "text": "Models are no longer under peer pressure."
+              },
+              {
+                "id": "D",
+                "text": "New standards are being set in Denmark."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-24",
+            "number": "24",
+            "stem": "A designer is most likely to be rejected by CFW for",
+            "options": [
+              {
+                "id": "A",
+                "text": "pursuing perfect physical conditions."
+              },
+              {
+                "id": "B",
+                "text": "caring too much about models’ character."
+              },
+              {
+                "id": "C",
+                "text": "showing little concern for health factors."
+              },
+              {
+                "id": "D",
+                "text": "setting a high age threshold for models."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-25",
+            "number": "25",
+            "stem": "Which of the following may be the best title of the text?",
+            "options": [
+              {
+                "id": "A",
+                "text": "The Great Threats to the Fashion Industry"
+              },
+              {
+                "id": "B",
+                "text": "Just Another Round of Struggle for Beauty"
+              },
+              {
+                "id": "C",
+                "text": "A Dilemma for the Starving Models in France"
+              },
+              {
+                "id": "D",
+                "text": "A Challenge to the Fashion Industry’s Body Ideals"
+              }
+            ],
+            "correctOptionId": "D"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-21",
+            "label": "21"
+          },
+          {
+            "id": "q-22",
+            "label": "22"
+          },
+          {
+            "id": "q-23",
+            "label": "23"
+          },
+          {
+            "id": "q-24",
+            "label": "24"
+          },
+          {
+            "id": "q-25",
+            "label": "25"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-02",
+      "title": "阅读理解 Text 2（26–30）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "For the first time in history more people live in towns than in the country. In Britain this has had a curious result. While polls show Britons rate “the countryside” alongside the royal family, Shakespeare and the National Health Service (NHS) as what makes them proudest of their country, this has limited political support."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "A century ago Octavia Hill launched the National Trust not to rescue stylish houses but to save “the beauty of natural places for everyone forever.” It was specifically to provide city dwellers with spaces for leisure where they could experience “a refreshing air.” Hill’s pressure later led to the creation of national parks and green belts. They don’t make countryside any more, and every year concrete consumes more of it. It needs constant guardianship."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "At the next election none of the big parties seem likely to endorse this sentiment. The Conservatives’ planning reform explicitly gives rural development priority over conservation, even authorising “off-plan” building where local people might object. The concept of sustainable development has been defined as profitable. Labour likewise wants to discontinue local planning where councils oppose development. The Liberal Democrats are silent. Only Ukip, sensing its chance, has sided with those pleading for a more considered approach to using green land. Its Campaign to Protect Rural England struck terror into many local Conservative parties."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The sensible place to build new houses, factories and offices is where people are, in cities and towns where infrastructure is in place. The London agents Stirling Ackroyd recently identified enough sites for half a million houses in the London area alone, with no intrusion on green belt. What is true of London is even truer of the provinces."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The idea that “housing crisis” equals “concreted meadows” is pure lobby talk. The issue is not the need for more houses but, as always, where to put them. Under lobby pressure, George Osborne favours rural new-build against urban renovation and renewal. He favours out-of-town shopping sites against high streets. This is not a free market but a biased one. Rural towns and villages have grown and will always grow. They do so best where building sticks to their edges and respects their character. We do not ruin urban conservation areas. Why ruin rural ones?"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Development should be planned, not let rip. After the Netherlands, Britain is Europe’s most crowded country. Half a century of town and country planning has enabled it to retain an enviable rural coherence, while still permitting low-density urban living. There is no doubt of the alternative—the corrupted landscapes of southern Portugal, Spain or Ireland. Avoiding this rather than promoting it should unite the left and right of the political spectrum."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-26",
+            "number": "26",
+            "stem": "Britain’s public sentiment about the countryside",
+            "options": [
+              {
+                "id": "A",
+                "text": "is not well reflected in politics."
+              },
+              {
+                "id": "B",
+                "text": "is fully backed by the royal family."
+              },
+              {
+                "id": "C",
+                "text": "didn’t start till the Shakespearean age."
+              },
+              {
+                "id": "D",
+                "text": "has brought much benefit to the NHS."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-27",
+            "number": "27",
+            "stem": "According to Paragraph 2, the achievements of the National Trust are now being",
+            "options": [
+              {
+                "id": "A",
+                "text": "largely overshadowed."
+              },
+              {
+                "id": "B",
+                "text": "properly protected."
+              },
+              {
+                "id": "C",
+                "text": "effectively reinforced."
+              },
+              {
+                "id": "D",
+                "text": "gradually destroyed."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-28",
+            "number": "28",
+            "stem": "Which of the following can be inferred from Paragraph 3?",
+            "options": [
+              {
+                "id": "A",
+                "text": "Labour is under attack for opposing development."
+              },
+              {
+                "id": "B",
+                "text": "The Conservatives may abandon “off-plan” building."
+              },
+              {
+                "id": "C",
+                "text": "Ukip may gain from its support for rural conservation."
+              },
+              {
+                "id": "D",
+                "text": "The Liberal Democrats are losing political influence."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-29",
+            "number": "29",
+            "stem": "The author holds that George Osborne’s preference",
+            "options": [
+              {
+                "id": "A",
+                "text": "shows his disregard for the character of rural areas."
+              },
+              {
+                "id": "B",
+                "text": "stresses the necessity of easing the housing crisis."
+              },
+              {
+                "id": "C",
+                "text": "highlights his firm stand against lobby pressure."
+              },
+              {
+                "id": "D",
+                "text": "reveals a strong prejudice against urban areas."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-30",
+            "number": "30",
+            "stem": "In the last paragraph, the author shows his appreciation of",
+            "options": [
+              {
+                "id": "A",
+                "text": "the size of population in Britain."
+              },
+              {
+                "id": "B",
+                "text": "the enviable urban lifestyle in Britain."
+              },
+              {
+                "id": "C",
+                "text": "the town-and-country planning in Britain."
+              },
+              {
+                "id": "D",
+                "text": "the political life in today’s Britain."
+              }
+            ],
+            "correctOptionId": "C"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-26",
+            "label": "26"
+          },
+          {
+            "id": "q-27",
+            "label": "27"
+          },
+          {
+            "id": "q-28",
+            "label": "28"
+          },
+          {
+            "id": "q-29",
+            "label": "29"
+          },
+          {
+            "id": "q-30",
+            "label": "30"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-03",
+      "title": "阅读理解 Text 3（31–35）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "“There is one and only one social responsibility of business,” wrote Milton Friedman, a Nobel prize-winning economist. “That is, to use its resources and engage in activities designed to increase its profits.” But even if you accept Friedman’s premise and regard corporate social responsibility (CSR) policies as a waste of shareholders’ money, things may not be absolutely clear-cut. New research suggests that CSR may create monetary value for companies—at least when they are prosecuted for corruption."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The largest firms in America and Britain together spend more than $15 billion a year on CSR, according to an estimate last year by EPG, a consulting firm. This could add value to their businesses in three ways. First, consumers may take CSR spending as a “signal” that a company’s products are of high quality. Second, customers may be willing to buy a company’s products as an indirect way to donate to the good causes it helps. And third, through a more diffuse “halo effect”, whereby its good deeds earn it greater consideration from consumers and others."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Previous studies on CSR have had trouble differentiating these effects because consumers can be affected by all three. A recent paper attempts to separate them by looking at bribery prosecutions under America’s Foreign Corrupt Practices Act (FCPA). It argues that since prosecutors do not consume a company’s products as part of their investigations, they could be influenced only by the halo effect."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The study found that, among prosecuted firms, those with the most comprehensive CSR programmes tended to get more lenient penalties. Their analysis ruled out the possibility that it was firms’ political influence, rather than their CSR stand, that accounted for the leniency: Companies that contributed more to political campaigns did not receive lower fines."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "In all, the study concludes that whereas prosecutors should only evaluate a case based on its merits, they do seem to be influenced by a company’s record in CSR. “We estimate that either eliminating a substantial labour-rights concern, such as child labour, or increasing corporate giving by about 20% results in fines that generally are 40% lower than the typical punishment for bribing foreign officials,” says one researcher."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Researchers admit that their study does not answer the question of how much businesses ought to spend on CSR. Nor does it reveal how much companies are banking on the halo effect, rather than the other possible benefits, when they decide their do-gooding policies. But at least they have demonstrated that when companies get into trouble with the law, evidence of good character can win them a less costly punishment."
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-31",
+            "number": "31",
+            "stem": "The author views Milton Friedman’s statement about CSR with",
+            "options": [
+              {
+                "id": "A",
+                "text": "tolerance."
+              },
+              {
+                "id": "B",
+                "text": "skepticism."
+              },
+              {
+                "id": "C",
+                "text": "approval."
+              },
+              {
+                "id": "D",
+                "text": "uncertainty."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-32",
+            "number": "32",
+            "stem": "According to Paragraph 2, CSR helps a company by",
+            "options": [
+              {
+                "id": "A",
+                "text": "guarding it against malpractices."
+              },
+              {
+                "id": "B",
+                "text": "protecting it from being defamed."
+              },
+              {
+                "id": "C",
+                "text": "winning trust from consumers."
+              },
+              {
+                "id": "D",
+                "text": "raising the quality of its products."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-33",
+            "number": "33",
+            "stem": "The expression “more lenient” (Para. 4) is closest in meaning to",
+            "options": [
+              {
+                "id": "A",
+                "text": "less controversial."
+              },
+              {
+                "id": "B",
+                "text": "more effective."
+              },
+              {
+                "id": "C",
+                "text": "more lasting."
+              },
+              {
+                "id": "D",
+                "text": "less severe."
+              }
+            ],
+            "correctOptionId": "D"
+          },
+          {
+            "id": "q-34",
+            "number": "34",
+            "stem": "When prosecutors evaluate a case, a company’s CSR record",
+            "options": [
+              {
+                "id": "A",
+                "text": "has an impact on their decision."
+              },
+              {
+                "id": "B",
+                "text": "comes across as reliable evidence."
+              },
+              {
+                "id": "C",
+                "text": "increases the chance of being penalized."
+              },
+              {
+                "id": "D",
+                "text": "constitutes part of the investigation."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-35",
+            "number": "35",
+            "stem": "Which of the following is true of CSR, according to the last paragraph?",
+            "options": [
+              {
+                "id": "A",
+                "text": "Its negative effects on businesses are often overlooked."
+              },
+              {
+                "id": "B",
+                "text": "The necessary amount of companies’ spending on it is unknown."
+              },
+              {
+                "id": "C",
+                "text": "Companies’ financial capacity for it has been overestimated."
+              },
+              {
+                "id": "D",
+                "text": "It has brought much benefit to the banking industry."
+              }
+            ],
+            "correctOptionId": "B"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-31",
+            "label": "31"
+          },
+          {
+            "id": "q-32",
+            "label": "32"
+          },
+          {
+            "id": "q-33",
+            "label": "33"
+          },
+          {
+            "id": "q-34",
+            "label": "34"
+          },
+          {
+            "id": "q-35",
+            "label": "35"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-04",
+      "title": "阅读理解 Text 4（36–40）",
+      "extension": {
+        "development": "english-reading-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text. Answer the questions after the text by choosing A, B, C or D. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "There will eventually come a day when The New York Times ceases to publish stories on newsprint. Exactly when that day will be is a matter of debate. “Sometime in the future,” the paper’s publisher said back in 2010."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Nostalgia for ink on paper and the rustle of pages aside, there’s plenty of incentive to ditch print. The infrastructure required to make a physical newspaper— printing presses, delivery trucks—isn’t just expensive; it’s excessive at a time when online-only competitors don’t have the same set of financial constraints. Readers are migrating away from print anyway. And though print ad sales still dwarf their online and mobile counterparts, revenue from print is still declining."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Overhead may be high and circulation lower, but rushing to eliminate its print edition would be a mistake, says BuzzFeed CEO Jonah Peretti."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Peretti says the Times shouldn’t waste time getting out of the print business, but only if they go about doing it the right way. “Figuring out a way to accelerate that transition would make sense for them,” he said, “but if you discontinue it, you’re going to have your most loyal customers really upset with you.”"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Sometimes that’s worth making a change anyway. Peretti gives the example of Netflix discontinuing its DVD-mailing service to focus on streaming. “It was seen as a blunder,” he said. The move turned out to be foresighted. And if Peretti were in charge at the Times? “I wouldn’t pick a year to end print,” he said. “I would raise prices and make it into more of a legacy product.”"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The most loyal customers would still get the product they favor, the idea goes, and they’d feel like they were helping sustain the quality of something they believe in. “So if you’re overpaying for print, you could feel like you were helping,” Peretti said. “Then increase it at a higher rate each year and essentially try to generate additional revenue.” In other words, if you’re going to make a print product, make it for the people who are already obsessed with it. Which may be what the Times is doing already. Getting the print edition seven days a week costs nearly $500 a year—more than twice as much as a digital-only subscription."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "“It’s a really hard thing to do and it’s a tremendous luxury that BuzzFeed doesn’t have a legacy business,” Peretti remarked. “But we’re going to have questions like that where we have things we’re doing that don’t make sense when the market changes and the world changes. In those situations, it’s better to be more aggressive than less aggressive.”"
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-36",
+            "number": "36",
+            "stem": "The New York Times is considering ending its print edition partly due to",
+            "options": [
+              {
+                "id": "A",
+                "text": "the high cost of operation."
+              },
+              {
+                "id": "B",
+                "text": "the increasing online ad sales."
+              },
+              {
+                "id": "C",
+                "text": "the pressure from its investors."
+              },
+              {
+                "id": "D",
+                "text": "the complaints from its readers."
+              }
+            ],
+            "correctOptionId": "A"
+          },
+          {
+            "id": "q-37",
+            "number": "37",
+            "stem": "Peretti suggests that, in face of the present situation, the Times should",
+            "options": [
+              {
+                "id": "A",
+                "text": "end the print edition for good."
+              },
+              {
+                "id": "B",
+                "text": "make strategic adjustments."
+              },
+              {
+                "id": "C",
+                "text": "seek new sources of readership."
+              },
+              {
+                "id": "D",
+                "text": "aim for efficient management."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-38",
+            "number": "38",
+            "stem": "It can be inferred from Paragraphs 5 and 6 that a “legacy product”",
+            "options": [
+              {
+                "id": "A",
+                "text": "helps restore the glory of former times."
+              },
+              {
+                "id": "B",
+                "text": "is meant for the most loyal customers."
+              },
+              {
+                "id": "C",
+                "text": "will have the cost of printing reduced."
+              },
+              {
+                "id": "D",
+                "text": "expands the popularity of the paper."
+              }
+            ],
+            "correctOptionId": "B"
+          },
+          {
+            "id": "q-39",
+            "number": "39",
+            "stem": "Peretti believes that, in a changing world,",
+            "options": [
+              {
+                "id": "A",
+                "text": "traditional luxuries can stay unaffected."
+              },
+              {
+                "id": "B",
+                "text": "cautiousness facilitates problem-solving."
+              },
+              {
+                "id": "C",
+                "text": "aggressiveness better meets challenges."
+              },
+              {
+                "id": "D",
+                "text": "legacy businesses are becoming outdated."
+              }
+            ],
+            "correctOptionId": "C"
+          },
+          {
+            "id": "q-40",
+            "number": "40",
+            "stem": "Which of the following would be the best title of the text?",
+            "options": [
+              {
+                "id": "A",
+                "text": "Shift to Online Newspapers All at Once"
+              },
+              {
+                "id": "B",
+                "text": "Make Your Print Newspaper a Luxury Good"
+              },
+              {
+                "id": "C",
+                "text": "Keep Your Newspapers Forever in Fashion"
+              },
+              {
+                "id": "D",
+                "text": "Cherish the Newspaper Still in Your Hand"
+              }
+            ],
+            "correctOptionId": "B"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-36",
+            "label": "36"
+          },
+          {
+            "id": "q-37",
+            "label": "37"
+          },
+          {
+            "id": "q-38",
+            "label": "38"
+          },
+          {
+            "id": "q-39",
+            "label": "39"
+          },
+          {
+            "id": "q-40",
+            "label": "40"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reading-b-01",
+      "title": "阅读匹配（41–45）",
+      "extension": {
+        "development": "reading-match-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text and answer the questions by choosing the most suitable subheading from the list A-G for each of the numbered paragraphs (41-45). There are two extra subheadings. Mark your answers on the ANSWER SHEET. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[A] Create a new image of yourself"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[B] Have confidence in yourself"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[C] Decide if the time is right"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[D] Understand the context"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[E] Work with professionals"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[F] Know your goals"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "[G] Make it efficient"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "No matter how formal or informal the work environment, the way you present yourself has an impact. This is especially true in first impressions. According to research from Princeton University, people assess your competence, trustworthiness, and likeability in just a tenth of a second, solely based on the way you look."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The difference between today’s workplace and the “dress for success” era is that the range of options is so much broader. Norms have evolved and fragmented. In some settings, red sneakers or dress T-shirts can convey status; in others not so much. Plus, whatever image we present is magnified by social- media services like LinkedIn. Chances are, your headshots are seen much more often now than a decade or two ago. Millennials, it seems, face the paradox of being the least formal generation yet the most conscious of style and personal branding. It can be confusing."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "So how do we navigate this? How do we know when to invest in an upgrade? And what’s the best way to pull off one that enhances our goals? Here are some tips:"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "41."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "As an executive coach, I’ve seen image upgrades be particularly helpful during transitions—when looking for a new job, stepping into a new or more public role, or changing work environments. If you’re in a period of change or just feeling stuck and in a rut, now may be a good time. If you’re not sure, ask for honest feedback from trusted friends, colleagues and professionals. Look for cues about how others perceive you. Maybe there’s no need for an upgrade and that’s OK."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "42."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Get clear on what impact you’re hoping to have. Are you looking to refresh your image or pivot it? For one person, the goal may be to be taken more seriously and enhance their professional image. For another, it may be to be perceived as more approachable, or more modern and stylish. For someone moving from finance to advertising, maybe they want to look more “SoHo.” (It’s OK to use characterizations like that.)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "43."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Look at your work environment like an anthropologist. What are the norms of your environment? What conveys status? Who are your most important audiences? How do the people you respect and look up to present themselves? The better you understand the cultural context, the more control you can have over your impact."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "44."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Enlist the support of professionals and share with them your goals and context. Hire a personal stylist, or use the free styling service of a store like J. Crew. Try a hair stylist instead of a barber. Work with a professional photographer instead of your spouse or friend. It’s not as expensive as you might think."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "45."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The point of a style upgrade isn’t to become more vain or to spend more time fussing over what to wear. Instead, use it as an opportunity to reduce decision fatigue. Pick a standard work uniform or a few go-to options. Buy all your clothes at once with a stylist instead of shopping alone, one article of clothing at a time."
+                }
+              ]
+            }
+          ]
+        },
+        "paragraphIds": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E",
+          "F",
+          "G"
+        ],
+        "slots": [
+          {
+            "id": "slot-41",
+            "locked": false,
+            "correctParagraphId": "C"
+          },
+          {
+            "id": "slot-42",
+            "locked": false,
+            "correctParagraphId": "F"
+          },
+          {
+            "id": "slot-43",
+            "locked": false,
+            "correctParagraphId": "D"
+          },
+          {
+            "id": "slot-44",
+            "locked": false,
+            "correctParagraphId": "E"
+          },
+          {
+            "id": "slot-45",
+            "locked": false,
+            "correctParagraphId": "G"
+          }
+        ],
+        "parts": [
+          {
+            "id": "q-41",
+            "number": "41",
+            "slotId": "slot-41"
+          },
+          {
+            "id": "q-42",
+            "number": "42",
+            "slotId": "slot-42"
+          },
+          {
+            "id": "q-43",
+            "number": "43",
+            "slotId": "slot-43"
+          },
+          {
+            "id": "q-44",
+            "number": "44",
+            "slotId": "slot-44"
+          },
+          {
+            "id": "q-45",
+            "number": "45",
+            "slotId": "slot-45"
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "explanation": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-41",
+            "label": "41"
+          },
+          {
+            "id": "q-42",
+            "label": "42"
+          },
+          {
+            "id": "q-43",
+            "label": "43"
+          },
+          {
+            "id": "q-44",
+            "label": "44"
+          },
+          {
+            "id": "q-45",
+            "label": "45"
+          }
+        ]
+      }
+    },
+    {
+      "id": "translation-01",
+      "title": "分句翻译（46–50）",
+      "extension": {
+        "development": "segment-translation-2026-dev"
+      },
+      "data": {
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read the following text carefully and then translate the underlined segments into Chinese. Your translation should be written neatly on the ANSWER SHEET. (10 points)"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Mental health is our birthright. (46) "
+                },
+                {
+                  "type": "text",
+                  "text": "We don’t have to learn how to be mentally healthy; it is built into us in the same way that our bodies know how to heal a cut or mend a broken bone.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " Mental health can’t be learned, only reawakened. It is like the immune system of the body, which under stress or through lack of nutrition or exercise can be weakened, but which never leaves us. When we don’t understand the value of mental health and we don’t know how to gain access to it, mental health will remain hidden from us. (47) "
+                },
+                {
+                  "type": "text",
+                  "text": "Our mental health doesn’t really go anywhere; like the sun behind a cloud, it can be temporarily hidden from view, but it is fully capable of being restored in an instant.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Mental health is the seed that contains self-esteem—confidence in ourselves and an ability to trust in our common sense. It allows us to have perspective on our lives—the ability to not take ourselves too seriously, to laugh at ourselves, to see the bigger picture, and to see that things will work out. It’s a form of innate or unlearned optimism. (48) "
+                },
+                {
+                  "type": "text",
+                  "text": "Mental health allows us to view others with sympathy if they are having troubles, with kindness if they are in pain, and with unconditional love no matter who they are.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " Mental health is the source of creativity for solving problems, resolving conflict, making our surroundings more beautiful, managing our home life, or coming up with a creative business idea or invention to make our lives easier. It gives us patience for ourselves and toward others as well as patience while driving, catching a fish, working on our car, or raising a child. It allows us to see the beauty that surrounds us each moment in nature, in culture, in the flow of our daily lives."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "(49) "
+                },
+                {
+                  "type": "text",
+                  "text": "Although mental health is the cure-all for living our lives, it is perfectly ordinary as you will see that it has been there to direct you through all your difficult decisions.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " It has been available even in the most mundane of life situations to show you right from wrong, good from bad, friend from foe. Mental health has commonly been called conscience, instinct, wisdom, common sense, or the inner voice. We think of it simply as a healthy and helpful flow of intelligent thought. (50) "
+                },
+                {
+                  "type": "text",
+                  "text": "As you will come to see, knowing that mental health is always available and knowing to trust it allow us to slow down to the moment and live life happily.",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "parts": [
+          {
+            "id": "q-46",
+            "number": "46",
+            "segment": "We don’t have to learn how to be mentally healthy; it is built into us in the same way that our bodies know how to heal a cut or mend a broken bone."
+          },
+          {
+            "id": "q-47",
+            "number": "47",
+            "segment": "Our mental health doesn’t really go anywhere; like the sun behind a cloud, it can be temporarily hidden from view, but it is fully capable of being restored in an instant."
+          },
+          {
+            "id": "q-48",
+            "number": "48",
+            "segment": "Mental health allows us to view others with sympathy if they are having troubles, with kindness if they are in pain, and with unconditional love no matter who they are."
+          },
+          {
+            "id": "q-49",
+            "number": "49",
+            "segment": "Although mental health is the cure-all for living our lives, it is perfectly ordinary as you will see that it has been there to direct you through all your difficult decisions."
+          },
+          {
+            "id": "q-50",
+            "number": "50",
+            "segment": "As you will come to see, knowing that mental health is always available and knowing to trust it allow us to slow down to the moment and live life happily."
+          }
+        ],
+        "pointsPerItem": 2,
+        "maxScore": 10,
+        "assessment": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "46. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "我们的心理健康不是学来的；它是我们生来就有的，正如同我们的身 体知道如何治愈伤口或修复断骨一样。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "47. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "心理健康并没有真的离开；宛如云朵后面的太阳，它虽然可能暂离我 们的视线，但完全能在转瞬之间重现。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "48. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "健康的心理让我们在他人遇到困难时心怀同情，遭受苦痛时心怀善意， 不论他们是谁（我们）都会心怀无条件的爱。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "49. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "尽管心理健康是我们生活的万能良药，但它又再寻常不过，因为你会 发现，它一直在那里引领你完成所有艰难的抉择。"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "50. 参考译文："
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "你终会明白，懂得心理健康无时不在并懂得信赖它，这能让我们慢下 来活在每一刻，快乐地生活着。"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "outline": {
+        "level": "parts",
+        "items": [
+          {
+            "id": "q-46",
+            "label": "46"
+          },
+          {
+            "id": "q-47",
+            "label": "47"
+          },
+          {
+            "id": "q-48",
+            "label": "48"
+          },
+          {
+            "id": "q-49",
+            "label": "49"
+          },
+          {
+            "id": "q-50",
+            "label": "50"
+          }
+        ]
+      }
+    },
+    {
+      "id": "writing-51",
+      "title": "2016英语（一）应用文写作",
+      "extension": {
+        "development": "english-writing-2026-dev"
+      },
+      "data": {
+        "formatVersion": 1,
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "51. Suppose you are a librarian in your university. Write a notice of about 100 words, providing the newly-enrolled international student with relevant information about the library."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "You should write neatly on the ANSWER SHEET."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Do not sign your own name at the end of the notice. Use “Li Ming” instead."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Do not write the address. (10 points)"
+                }
+              ]
+            }
+          ]
+        },
+        "referenceAnswer": null,
+        "rubric": null,
+        "wordCount": {
+          "target": 100
+        },
+        "maxScore": 10
+      },
+      "outline": {
+        "level": "question",
+        "label": "51"
+      }
+    },
+    {
+      "id": "writing-52",
+      "title": "2016英语（一）图画／图表作文",
+      "extension": {
+        "development": "english-writing-2026-dev"
+      },
+      "data": {
+        "formatVersion": 1,
+        "stem": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "52. Write an essay of 160-200 words based on the following pictures. In your essay, you should"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "1) describe the pictures briefly,"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "2) interpret the meaning, and"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "3) give your comments."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "You should write neatly on the ANSWER SHEET. (20 points)"
+                }
+              ]
+            },
+            {
+              "type": "image",
+              "attrs": {
+                "assetId": "8c9928d7f21f34fd444c7845095a0704c786d3ae11401b7a4cf25b3887636a18",
+                "alt": "2016年作文原题图表"
+              }
+            }
+          ]
+        },
+        "referenceAnswer": null,
+        "rubric": null,
+        "wordCount": {
+          "min": 160,
+          "max": 200
+        },
+        "maxScore": 20
+      },
+      "outline": {
+        "level": "question",
+        "label": "52"
+      }
+    }
+  ]
+}

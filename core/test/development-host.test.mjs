@@ -1,3 +1,4 @@
+import {renderLibraryView} from '../web/views/library-view.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -76,7 +77,7 @@ test('missing developer endpoint explains restarting the old service and recover
 });
 test('formal and development packages remain in one extension list with distinct routing and badges',async t=>{
   const dom=new JSDOM(html);t.after(()=>dom.window.close());const document=dom.window.document,opened=[];
-  const sandbox={document,$:selector=>document.querySelector(selector),listMode:'extension',activeKey:null,extensionGroups,collapsedExtensionGroups:new Set(),catalog:{developmentEnabled:true,banks:[],extensions:[{id:'choice',title:'单选',questionCount:2},{id:'choice-dev',title:'单选开发',kind:'development',development:{mode:'ui'}}]},notice(){},transitionTo:fn=>fn(),openCollection:(...args)=>opened.push(args),el:(tag,classes,text)=>{const node=document.createElement(tag);node.className=classes||'';if(text!=null)node.textContent=text;return node;}};
+  const sandbox={renderLibraryView,document,$:selector=>document.querySelector(selector),listMode:'extension',activeKey:null,extensionGroups,collapsedExtensionGroups:new Set(),catalog:{developmentEnabled:true,banks:[],extensions:[{id:'choice',title:'单选',questionCount:2},{id:'choice-dev',title:'单选开发',kind:'development',development:{mode:'ui'}}]},notice(){},transitionTo:fn=>fn(),openCollection:(...args)=>opened.push(args),el:(tag,classes,text)=>{const node=document.createElement(tag);node.className=classes||'';if(text!=null)node.textContent=text;return node;}};
   vm.runInNewContext(part('function renderLibrary(', '\nfunction renderOutline(')+'\nrenderLibrary();',sandbox);
   const items=[...document.querySelectorAll('.library-item')];assert.equal(items.length,2);assert.equal(document.querySelectorAll('#library-list .development-badge').length,1);assert.doesNotMatch(items[1].textContent,/UI 预览|功能调试/);items[0].click();items[1].click();assert.deepEqual(opened,[['extension','choice'],['development','choice-dev']]);
   assert.equal(document.querySelectorAll('.library-switch button').length,2,'No separate developer list group.');
@@ -117,6 +118,19 @@ test('development CSS hot refresh uses normal collection and mounts without chan
   sandbox.watch(pane,{revision:'old'});await options.reload('new',()=>true);assert.equal(shown.preserveFrame,true);assert.equal(shown.payload.state.answer.text,'saved');assert.equal(pane.questionId,'q');assert.equal(pane.viewport.scrollTop,37);assert.equal(catalog.extensions[0].mode,undefined);
   shown=null;pane.view='edit';await options.reload('again',()=>true);assert.equal(shown,null);assert.equal(pane.needsRefresh,true);
   pane.view='practice';pane.plugin={hasUnsavedInput:true};sandbox.flushPane=async()=>false;await options.reload('again',()=>true);assert.equal(shown,null,'Untracked form input must not be overwritten by hot refresh.');
+});
+
+test('mixed development bank refresh follows the bank route and replaces its full set of bindings',async()=>{
+  let options;const paths=[];
+  const pane={id:'mixed',kind:'development-bank',key:'development-bank:mixed',view:'practice',questionId:'second',viewport:{scrollTop:23},collection:{questions:[{id:'first'},{id:'second'}]},development:{folder:'old-dev'}};
+  const descriptor={title:'混合开发题库',revision:'new',development:{folders:['first-dev','second-dev']}},collection={title:descriptor.title,questions:[{id:'first'},{id:'second'}],states:{second:{status:'submitted',answer:{value:'saved'}}}};
+  const catalog={banks:[{id:'mixed',kind:'development-bank'}],extensions:[]};
+  const sandbox={catalog,request:async path=>{paths.push(path);return path.includes('/collections/')?collection:descriptor;},collectionPath:()=>'/api/collections/development-bank/mixed',createDevelopmentWatcher:value=>{options=value;return {setActive(){}};},active:()=>pane,transitionTo:fn=>fn(),flushPane:async()=>true,saveStatus(){},questionsCache:{deleteCollection(){}},loadQuestion:async(_pane,id)=>({question:{id},state:collection.states[id]}),showQuestion:async(target,id,value)=>{assert.equal(id,'second');assert.equal(value.payload.state.answer.value,'saved');target.collection=value.collection;},updateChrome(){},renderLibrary(){}};
+  vm.runInNewContext(part('const developmentPath=', '\nasync function openCollection(')+'\nglobalThis.watch=watchDevelopment;',sandbox);
+  sandbox.watch(pane,{revision:'old'});await options.check();await options.reload('new',()=>true);
+  assert.equal(paths[0],'/api/development/banks/mixed/revision');assert.ok(paths.includes('/api/development/banks/mixed'));
+  assert.deepEqual(pane.development,{folders:['first-dev','second-dev']});assert.equal(pane.development.folder,undefined);
+  assert.equal(pane.questionId,'second');assert.equal(pane.viewport.scrollTop,23);assert.deepEqual(catalog.banks[0].development,pane.development);
 });
 
 test('unsaved development question frames pause, restore exact inputs and reject a fifth retention without losing input',t=>{

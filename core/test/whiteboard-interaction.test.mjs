@@ -27,7 +27,7 @@ class Element {
   set className(value) { this.attributes.class = value; }
   set innerHTML(html) {
     this.children = [];
-    const stack = [this], voidTags = new Set(['input', 'br', 'hr']);
+    const stack = [this], voidTags = new Set(['input', 'br', 'hr','img']);
     for (const match of html.matchAll(/<\/?([a-z][\w-]*)([^>]*)>/gi)) {
       const closing = match[0].startsWith('</'), tag = match[1].toLowerCase();
       if (closing) { stack.pop(); continue; }
@@ -74,6 +74,7 @@ class Element {
       transform: [1, 0, 0, 1, 0, 0],
       setTransform(...values) { this.transform = values; },
       clearRect() {}, beginPath() {}, fill() {}, moveTo() {}, quadraticCurveTo() {}, stroke() {},
+      fillRect() {}, strokeRect() {}, setLineDash() {}, drawImage() {},
       arc(x, y, radius) {
         this.lastArc = { x, y, radius, screenX: this.transform[0] * x + this.transform[4], screenY: this.transform[3] * y + this.transform[5] };
       },
@@ -109,6 +110,37 @@ function fixture({ externalToolbar = false, onFullscreen = () => {} } = {}) {
   const click = selector => (root.querySelector(selector) || toolbarContainer?.querySelector(selector)).dispatch('click');
   return { board, root, canvas, container, toolbarContainer, changes, interactions, pointer, click, window, paint };
 }
+
+test('box selection with mouse, touch and pen ignores pen-only mode and supports move, copy, delete and undo',()=>{
+  for(const type of ['mouse','touch','pen']) {
+    const f=fixture();f.board.setMode('draft');f.pointer('pointerdown',100,100);f.pointer('pointerup',120,120);
+    f.click('[data-tool="select-ink"]');f.pointer('pointerdown',140,140,type);f.pointer('pointerup',80,80,type);f.paint();
+    assert.equal(f.root.querySelector('.qf-whiteboard-selection-actions').hidden,false);
+    f.pointer('pointerdown',110,110,type);f.pointer('pointerup',160,140,type);
+    assert.equal(f.board.getDraft().strokes[0].points[0].x,150);assert.equal(f.board.getDraft().strokes[0].points[0].y,130);
+    f.click('[data-action="copy-selection"]');assert.equal(f.board.getDraft().strokes.length,2);
+    f.click('[data-action="delete-selection"]');assert.equal(f.board.getDraft().strokes.length,1);
+    f.click('[data-action="undo"]');assert.equal(f.board.getDraft().strokes.length,2);f.board.destroy();
+  }
+});
+test('canceling a selected move restores its geometry and new question clears selection',()=>{
+  const f=fixture();f.board.setMode('draft');f.pointer('pointerdown',100,100);f.pointer('pointerup',120,120);
+  f.click('[data-tool="select-ink"]');f.pointer('pointerdown',80,80);f.pointer('pointerup',140,140);const before=f.board.getDraft();
+  f.pointer('pointerdown',110,110);f.pointer('pointermove',200,200);f.pointer('pointercancel',200,200);assert.deepEqual(f.board.getDraft(),before);
+  f.board.load(before);f.paint();assert.equal(f.root.querySelector('.qf-whiteboard-selection-actions').hidden,true);f.board.destroy();
+});
+test('selection uses world coordinates after zoom and scroll, while readonly rejects mutation tools',()=>{
+  const f=fixture();f.board.setMode('draft');f.board.setViewport({x:10,y:-20,zoom:2},{emit:false});f.container.scrollTop=300;
+  f.pointer('pointerdown',40,60);f.pointer('pointerup',60,80);f.click('[data-tool="select-ink"]');f.pointer('pointerdown',20,40,'touch');f.pointer('pointerup',80,100,'touch');f.paint();
+  assert.equal(f.root.querySelector('.qf-whiteboard-selection-actions').hidden,false);
+  f.pointer('pointerdown',50,70,'touch');f.pointer('pointerup',90,90,'touch');assert.equal(f.board.getDraft().strokes[0].points[0].x,30);assert.equal(f.board.getDraft().strokes[0].points[0].y,210);
+  const before=f.board.getDraft();f.board.setReadOnly(true);f.click('[data-tool="select-ink"]');f.click('[data-action="copy-selection"]');f.click('[data-action="delete-selection"]');assert.deepEqual(f.board.getDraft(),before);f.board.destroy();
+});
+test('common colors update the selected palette and paper persists without the native color picker',()=>{
+  const f=fixture();f.board.setMode('draft');f.click('[data-action="ink-palette"]');f.click('[data-ink="#d04444"]');f.pointer('pointerdown',10,10);f.pointer('pointerup',20,20);
+  assert.equal(f.board.getDraft().strokes[0].color,'#d04444');assert.equal(f.root.querySelector('.qf-whiteboard-palette').hidden,true);
+  f.click('[data-action="settings"]');f.click('[data-paper="#fff8e7"]');assert.equal(f.board.getDraft().paper.color,'#fff8e7');assert.equal(f.root.querySelector('[data-control="ink-color"]').attributes.type,'hidden');f.board.destroy();
+});
 
 test('readonly history restores paper and camera, allows pan and zoom, and never alters the frozen draft', () => {
   const { board, root, canvas, container, toolbarContainer, changes, pointer, click, paint } = fixture({ externalToolbar: true });

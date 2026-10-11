@@ -44,8 +44,12 @@ class BankFeaturesTest {
     }
     @Test void rootsHaveStrictBooleanFeaturesAndLegacyDefaultsAcrossBanksAndSamples() throws Exception {
         assertEquals(BankFeatures.DEFAULT, BankFeatures.read(Json.object()));
+        assertTrue(BankFeatures.DEFAULT.exam());
+        assertEquals(BankFeatures.DEFAULT, BankFeatures.read(Json.object().set("features", Json.object())));
+        assertFalse(BankFeatures.read(Json.object().set("features", Json.object().put("exam", false))).exam());
+        assertTrue(BankFeatures.read(Json.object().set("features", Json.object().put("editing", false))).exam());
         assertEquals(new BankFeatures(true, false, true), BankFeatures.read(Json.object().set("features", Json.object().put("whiteboard", false))));
-        for (JsonNode invalid : java.util.List.of(Json.MAPPER.nullNode(), Json.MAPPER.createArrayNode(), Json.object().put("editing", "false"), Json.object().put("unknown", true))) assertThrows(ApiException.class, () -> BankFeatures.read(Json.object().set("features", invalid)));
+        for (JsonNode invalid : java.util.List.of(Json.MAPPER.nullNode(), Json.MAPPER.createArrayNode(), Json.object().put("editing", "false"), Json.object().put("exam", "false"), Json.object().putNull("exam"), Json.object().put("unknown", true))) assertThrows(ApiException.class, () -> BankFeatures.read(Json.object().set("features", invalid)));
         fixture.start(null); assertEquals(BankFeatures.DEFAULT.json(), get(BANK, null).path("features")); assertEquals(BankFeatures.DEFAULT.json(), get(SAMPLE, null).path("features"));
         ObjectNode raw = (ObjectNode) Json.read(root.resolve("question-banks/bank.json"), 1024 * 1024); ((ObjectNode) raw.at("/questions/0")).set("features", Json.object().put("history", false)); fixture.write("question-banks/bank.json", raw.toString());
         assertEquals(404, fixture.get(BANK).status()); assertTrue(fixture.get("/api/catalog").body().at("/banks/0").has("error"));

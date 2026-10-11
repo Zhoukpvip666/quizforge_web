@@ -7,7 +7,8 @@ import java.util.Set;
 
 /** Optional, extension-owned display states. They never contribute to score totals. */
 final class OutlineStates {
-    private static final Set<String> STATUSES = Set.of("unanswered", "correct", "incorrect");
+    private static final Set<String> STATUSES = Set.of("unanswered", "draft", "correct", "incorrect");
+    private static final Set<String> UNSUBMITTED = Set.of("unanswered", "draft");
     private OutlineStates() { }
 
     static void validate(JsonNode items, boolean submitted) {
@@ -18,7 +19,8 @@ final class OutlineStates {
             if (!item.isObject() || item.size() != 2 || !item.path("id").isTextual() || !item.path("status").isTextual()
                     || id.isEmpty() || id.length() > 128 || !id.equals(id.strip()) || id.chars().anyMatch(c -> c <= 31 || c >= 127 && c <= 159 || c == '<' || c == '>')
                     || !ids.add(id) || !STATUSES.contains(item.path("status").asText())
-                    || !submitted && !item.path("status").asText().equals("unanswered")) throw invalid();
+                    || !submitted && !UNSUBMITTED.contains(item.path("status").asText())
+                    || submitted && item.path("status").asText().equals("draft")) throw invalid();
         }
     }
 
@@ -31,6 +33,6 @@ final class OutlineStates {
     }
 
     private static ApiException invalid() {
-        return new ApiException(422, "INVALID_OUTLINE_STATES", "题型拓展的 outlineStates 无效，请通过 getScore 返回唯一小题 id 与 unanswered/correct/incorrect，未提交时仅允许 unanswered。");
+        return new ApiException(422, "INVALID_OUTLINE_STATES", "题型拓展的 outlineStates 无效，请通过 getScore 返回唯一小题 id 与 unanswered/draft/correct/incorrect；未提交时仅允许 unanswered/draft，提交后不能返回 draft。");
     }
 }

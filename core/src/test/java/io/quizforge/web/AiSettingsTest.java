@@ -33,6 +33,15 @@ class AiSettingsTest {
         assertFalse(new AiSettings(root).profile().autoGrade());
     }
 
+    @Test void credentialIsSeparateFromPublicStatusAndDefaultsAreLarger() throws Exception {
+        AiSettings settings = new AiSettings(root); assertEquals(8192, settings.profile().maxOutputTokens()); assertEquals(90, settings.profile().timeoutSeconds());
+        settings.update(Json.object().put("apiKey", "fake-editable-key"));
+        assertEquals("fake-editable-key", settings.credential().path("apiKey").asText());
+        assertFalse(settings.status().has("apiKey")); assertFalse(settings.status().toString().contains("fake-editable-key"));
+        assertThrows(ApiException.class, () -> settings.update(Json.object().set("testReport", Json.object().put("status", "passed"))));
+        settings.update(Json.object().put("clearApiKey", true)); assertEquals("", settings.credential().path("apiKey").asText());
+    }
+
     @Test void invalidAutomaticGradingValuesRejectWithoutChangingSavedSettings() throws Exception {
         AiSettings settings = new AiSettings(root); settings.update(Json.object().put("autoGrade", true));
         Path file = root.resolve(".state/ai/profile.json"); byte[] saved = Files.readAllBytes(file);

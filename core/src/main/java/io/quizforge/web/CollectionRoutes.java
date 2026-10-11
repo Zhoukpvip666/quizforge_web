@@ -23,7 +23,7 @@ final class CollectionRoutes {
     JsonNode route(HttpExchange exchange, String method, String[] parts) throws IOException {
             states.recover();
             String kind = parts[2]; String id = routeId(parts[3]);
-            if (!List.of("bank", "extension", "development", "development-bank").contains(kind)) throw ApiException.bad("Invalid collection kind");
+            if (!List.of("bank", "extension", "development", "development-bank", "exam").contains(kind)) throw ApiException.bad("Invalid collection kind");
             if (parts.length >= 5 && parts[4].equals("history")) {
                 try { library.collection(kind, id).features().requireHistory(); }
                 catch (ApiException error) { if (!error.code.equals("COLLECTION_NOT_FOUND")) throw error; }
@@ -33,10 +33,11 @@ final class CollectionRoutes {
             if (parts.length == 5 && parts[4].equals("finish") && method.equals("POST")) {
                 JsonNode request = writes.read(exchange); Library.Collection collection = library.collection(kind, id);
                 for (Library.Question question : collection.questions()) {
-                    if (states.currentAiTaskId(collection, question) == null) continue;
-                    var task = aiGrading.current(collection, question);
-                    if (task != null && List.of("queued", "running", "succeeded").contains(task.path("status").asText()))
-                        throw new ApiException(409, "AI_GRADING_PENDING", "AI 正在评分，请等待评分完成后再完成练习。");
+                    for (String taskId : states.currentAiTaskIds(collection, question)) {
+                        var task = aiGrading.get(collection, question, taskId);
+                        if (List.of("queued", "running", "succeeded").contains(task.path("status").asText()))
+                            throw new ApiException(409, "AI_GRADING_PENDING", "AI 正在评分，请等待评分完成后再完成练习。");
+                    }
                 }
                 return states.finish(collection, request);
             }
@@ -65,7 +66,7 @@ final class CollectionRoutes {
                             && response.at("/capabilities/canAiGrade").asBoolean() && automaticAi.getAsBoolean()) {
                         var command = Json.object().put("requestId", "auto-submit-" + Json.fingerprint(request, "quizforge-auto-submit-v1"))
                                 .put("contentVersion", response.at("/stamp/contentVersion").asText());
-                        try { aiGrading.start(collection, question, command); }
+                        try { aiGrading.startAutomatic(collection, question, command); }
                         catch (ApiException error) {
                             // The answer is already durable. A scheduling error cannot turn it into a failed submission.
                             System.err.println("Automatic AI grading could not start (" + error.code + "); use the question's AI grading button to retry.");
@@ -75,7 +76,7 @@ final class CollectionRoutes {
                 }
                 if (parts.length >= 8 && parts[6].equals("ai")) {
                     Library.Collection collection = library.collection(kind, id); Library.Question question = collection.question(qid);
-                    if (parts.length == 8 && parts[7].equals("current") && method.equals("GET")) { var response = Json.object(); var task = aiGrading.current(collection, question); if (task == null) response.putNull("task"); else response.set("task", task); return response; }
+                    if (parts.length == 8 && parts[7].equals("current") && method.equals("GET")) { var response = Json.object(); var task = aiGrading.current(collection, question, targetId(exchange)); if (task == null) response.putNull("task"); else response.set("task", task); return response; }
                     if (parts.length == 8 && parts[7].equals("grade") && method.equals("POST")) return aiGrading.start(collection, question, writes.read(exchange));
                     if (parts.length >= 9 && parts[7].equals("tasks")) {
                         String taskId = routeId(parts[8]);
@@ -90,4 +91,15 @@ final class CollectionRoutes {
         throw new ApiException(404, "NOT_FOUND", "Endpoint not found");
     }
     private static String routeId(String value) { if (!value.matches("[A-Za-z0-9][A-Za-z0-9._-]{0,119}")) throw ApiException.bad("Invalid resource ID"); return value; }
+    private static String targetId(HttpExchange exchange) {
+        String query = exchange.getRequestURI().getRawQuery(); if (query == null) return null;
+        String target = null;
+        try { for (String parameter : query.split("&")) {
+            String[] pair = parameter.split("=", 2);
+            if (!java.net.URLDecoder.decode(pair[0], java.nio.charset.StandardCharsets.UTF_8).equals("targetId")) continue;
+            if (target != null || pair.length != 2) throw ApiException.bad("Invalid AI targetId query");
+            target = java.net.URLDecoder.decode(pair[1], java.nio.charset.StandardCharsets.UTF_8);
+        } } catch (IllegalArgumentException error) { throw ApiException.bad("Invalid AI targetId query"); }
+        return target == null ? null : AiGradingProtocol.targetId(Json.object().put("targetId", target));
+    }
 }

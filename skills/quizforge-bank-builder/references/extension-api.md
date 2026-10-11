@@ -1,6 +1,6 @@
 # 外部题型拓展 API 参考
 
-适用当前 QuizForge Web：公共富文本服务 API v1.0、文档格式 v1。宿主通过 `core/shared/richtext/service.json` 选择兼容实现；Tiptap 是当前编辑实现，不是拓展依赖。完整现行示例 `extensions/基础题型/short-answer-1.3.0/` 使用公共富文本声明；旧简答包仅在 `core/test/fixtures/legacy-extensions/` 供兼容测试，不是当前安装清单。以下接口已从实际宿主、规则执行器及 SDK 源码核对；不要根据名称推测额外接口。
+适用当前 QuizForge Web：公共富文本服务 API v1.1（兼容 v1.0）、文档格式 v1。宿主通过 `core/shared/richtext/service.json` 选择兼容实现；Tiptap 是当前编辑实现，不是拓展依赖。完整现行示例 `extensions/基础题型/short-answer-1.3.0/` 使用公共富文本声明；旧简答包仅在 `core/test/fixtures/legacy-extensions/` 供兼容测试，不是当前安装清单。以下接口已从实际宿主、规则执行器及 SDK 源码核对；不要根据名称推测额外接口。
 
 ## 清单与公共服务声明
 
@@ -24,7 +24,7 @@
 }
 ```
 
-不用富文本时省略 `requiresRichText` 和 `dependencies`。新拓展使用 `requiresRichText`，不绑定 Tiptap/npm 包或具体 SDK 版本，也不得同时声明 `dependencies`（即使空数组）。必填字段是正整数 `major`、非负整数 `minMinor`、正整数 `documentFormat` 和非空 `documentProfile`；可选 `capabilities` 为不重复的非空字符串数组。当前支持 `major:1,minMinor:0,documentFormat:1`。配置 `basic-v1` 提供 `basic-formatting`、`images`；`advanced-v1` 另提供 `advanced-formatting`、`tables`、`math`、`image-resize`。声明实际需要的能力，宿主选择满足该配置的实现。配置决定可保存的文档范围，不能把 `basic-v1` 的旧格式当作可保存表格/公式的高级格式。
+不用富文本时省略 `requiresRichText` 和 `dependencies`。新拓展使用 `requiresRichText`，不绑定 Tiptap/npm 包或具体 SDK 版本，也不得同时声明 `dependencies`（即使空数组）。必填字段是正整数 `major`、非负整数 `minMinor`、正整数 `documentFormat` 和非空 `documentProfile`；可选 `capabilities` 为不重复的非空字符串数组。当前支持 `major:1,minMinor:0–1,documentFormat:1`。配置 `basic-v1` 提供 `basic-formatting`、`images`；`advanced-v1` 另提供 `advanced-formatting`、`tables`、`math`、`image-resize`、`camera-capture`。调用拍照接口须声明 `minMinor:1` 及 `camera-capture`。声明实际需要的能力，宿主选择满足该配置的实现。配置决定可保存的文档范围，不能把 `basic-v1` 的旧格式当作可保存表格/公式的高级格式。
 
 旧拓展的 `dependencies:[{id:"quizforge.richtext",version:"精确版本"}]` 继续支持；已知旧版本由宿主兼容表匹配，未知版本沿用精确加载。不要修改已发布 manifest 来补新声明。历史使用保存时冻结的精确实现，不应用当前兼容表重新选择。题目编辑器由拓展目录下可选的 `editor.json` 声明：
 
@@ -46,7 +46,7 @@ HTML 是 body 片段；CSS 和 JS 由宿主注入。页面及规则脚本按普�
 
 ```js
 {
-  mode: "practice", // 另有 "example"、"history"
+  mode: "practice", // 另有 "example"、"history"、"exam"
   question: {id, title, data},
   answer, result,
   status: "unanswered", // 或 "draft"、"submitted"
@@ -62,12 +62,15 @@ HTML 是 body 片段；CSS 和 JS 由宿主注入。页面及规则脚本按普�
 | UI | 应实现的行为 |
 | --- | --- |
 | 练习作答 | 恢复`answer`；按 `canSave/canSubmit` 开放输入、草稿保存和提交；提交前不展示私有标准答案。 |
+| 考试 | `mode:"exam"`；考试中 `canSave:true/canSubmit:false`，保持输入和自动保存，隐藏单题提交；交卷后 `canSave:false`，锁定答案，允许按能力补评分。计时和整卷交卷由宿主负责。 |
 | 提交后结果/评分 | 展示服务器`result` 和提交后投影；锁定作答输入；仅按 `canRetry/canReview/canAiGrade` 显示重做、人工评分和 AI 操作。待评分 `score:null` 不可显示为 0 分。 |
 | 题目编辑 | 使用独立 editor 页面与`QF.editor.register`；编辑私有原题、标准答案、解析等；由宿主读取文档并落盘。 |
 
 `mode:"example"` 是拓展示例练习，使用独立示例状态；不要把示例写入题库。`mode:"history"` 复用练习页面展示冻结快照：所有上述 capabilities 为 `false`，`aiTask:null`，必须纯只读；不保存、不上传、不启动 AI 或轮询、不尝试由当前题库补全旧内容。历史只能读取图片及已声明 SDK；`QF.requestAction` 也会被拒绝，历史切题由宿主负责。
 
 宿主解释 [题库 features](bank-format.md#整库功能开关)，拓展只按 context.capabilities 操作，不猜存储方式或直接写状态。编辑上下文与练习投影不同，不能用公开数据覆盖私有原题。
+
+`canSave` 与 `canSubmit` 独立：不能因禁止提交而禁止保存或锁住输入。单题提交按钮标记 `data-qf-action="submit"`，重做按钮标记 `data-qf-action="retry"`；宿主考试 iframe 统一隐藏这些按钮，拓展仍须按能力控制请求。未提交答案通过 `purpose:"draft"` 自动保存，`onFlush` 必须等待 debounce、上传和保存完成；宿主只能对已保存的答案统一评分。结果与解析仅根据服务器返回的 `status/result` 和投影显示，不自行提交后揭示。交卷后按 `canReview/canAiGrade` 提供人工评分、AI 重试；AI 失败不改答案或伪造成功。考试上下文另含 `exam:{id,status,deadline}`，不由拓展决定时长或交卷。
 
 编辑上下文只有 `{mode:"edit",question:{id,title,data},capabilities:{canEdit:true}}`；此时 `question.data` 是完整原题数据，不能套用练习投影的字段缺失逻辑。编辑页面不能调用 `QF.save` 保存题目。
 
@@ -139,19 +142,38 @@ AI 仅在当前已提交题目且 `canAiGrade===true` 时开放；人工改分�
 
 | 调用 | 说明 |
 | --- | --- |
-| `QF.ai.grade({force:false})` | 发起/复用当前题评分任务；`force:true` 重新评分。 |
+| `QF.ai.grade({force:false,targetId?})` | 发起/复用当前题评分任务；省略 targetId 为整题，传入稳定小题 ID 为该小题；`force:true` 只重评同一目标。 |
 | `QF.ai.getTask({})` | 返回 envelope，其`data` 为 `{task: 任务或null}`。 |
 | `QF.ai.getTask({taskId})` | 返回 envelope，其`data` 为该任务。 |
+| `QF.ai.getTask({targetId})` | 返回该小题当前的 `{task:任务或null}`，可在重新打开页面后恢复进度；省略 targetId 查询整题。 |
 | `QF.ai.retry({taskId})` | 重试任务，返回任务。 |
 | `QF.ai.confirm({taskId,candidateVersion,score})` | 保留的兼容/幂等接口；已确认任务可重读正式结果。传候选 `version` 防止使用过期结果；score 可省略。新页面无需提供确认按钮。 |
 
 任务状态包括 `queued/running/succeeded/failed/superseded/confirmed`；校验结果在 `task.candidate`，包含 `version/score/feedback`。通过校验且仍对应当前答案的 AI 结果，由宿主自动调用拓展 review 并原子保存正式分数与反馈，任务进入 confirmed，无需用户再次确认。返回均需检查 `ok`。宿主绑定当前题目、答案和版本并提供请求 ID；页面不得提交自己的评分输入、provider 配置或凭据。评分进度与失败可重试提示保留，失败/过期结果不能改动已有分数。轮询必须在离开题目和 `onDispose` 时停止。
 
+小题评分的 `targetId` 在当前大题内唯一、稳定，推荐复用小题大纲 ID，不用显示题号或数组下标；为 1–128 字符的无首尾空白纯文本，不含控制字符或 `< >`。它由宿主随任务保存并返回，不放入 AI 材料对象、不要求模型输出。不同目标独立绑定、重试和过期；可以同时发起，宿主通过有界队列依次调用模型。同一目标的 force/人工改分只影响该目标；整题任务和小题任务互相替换，整题改分或重新提交使全部小题任务失效。retry/confirm 只传 taskId，目标从已保存任务恢复。
+
 新版简答 1.3.0 提交时保存默认 0 分，人工滑条以拓展规定步长（简答为 0.5）调用既有 `QF.save({purpose:"review",...})`，调整后自动保存，不另设“确认评分”步骤；已发布旧包保留原 UI。连续调整应合并或串行保存，处理返回错误并在 onFlush 等待最后一次保存；不得把尚未成功保存的本地分数当作已确认结果。人工/AI 的正式反馈使用实际最终得分，人工改分应保留原 AI 理由。
 
 需要新版简答交互时核实实际安装的 1.3.0 并精确绑定，不自动替换用户旧题库／旧包。
 
-是否在提交后自动发起 AI 评分由应用设置的 autoGrade 控制（默认关闭），题卡也保留手动发起按钮。拓展不读写 AI 配置，不自行重复启动提交后的自动任务；按既有任务接口读取当前进度、显示结果与失败重试。
+是否在提交后自动发起 AI 评分由应用设置的 autoGrade 控制（默认关闭），题卡也保留手动发起按钮。宿主在新的成功提交后调用既有 `prepareAiGrading(data,answer,{automatic:true,state})`。整题返回原有六字段材料；小题返回 `{targets:[{targetId,input}]}`，每个 input 都是下述完整 AI 材料，只列出本次已作答、需要 AI 评分的小题。清单允许空数组（跳过），最多 256 项，targetId 必须有效且不重复；清单与每项材料全部校验通过后才创建任务。不能混合整题与小题材料，宿主不从大纲或题号推断目标。旧整题规则忽略 automatic 即可继续使用；仅支持手动 targetId 的组合题须补上 automatic 分支。
+
+拓展不读写 AI 配置、不在页面重复启动自动任务。页面在提交后及重新加载时用 `QF.ai.getTask({targetId})` 查询各小题当前任务，按既有接口显示进度、保存后的结果和失败重试。各任务仍携带 targetId，宿主逐项评分并调用 review 汇总；空答题的筛选与最终计分属于拓展。一次提交的清单共用一个有界队列位置，模型请求串行执行；单项失败不阻止其他项，重新作答／整题改分仍使旧任务失效。设置关闭、提交失败或提交回执重放均不启动自动评分。
+
+规则中的最小分支示例（`makeInput` 是拓展自己的材料构造函数，返回下述六字段对象；`answer.parts` 按本拓展 Schema 读取）：
+
+```js
+prepareAiGrading(data, answer, context) {
+  if (context.automatic === true) {
+    return { targets: data.parts
+      .filter(part => answer.parts[part.id]?.trim())
+      .map(part => ({ targetId: part.id, input: makeInput(data, answer, part.id) })) };
+  }
+  // makeInput 也须校验目标属于当前题目；支持整题时可接受 undefined。
+  return makeInput(data, answer, context.targetId);
+}
+```
 
 ## 同步规则 API 与评分归属
 
@@ -163,9 +185,11 @@ AI 仅在当前已提交题目且 `canAiGrade===true` 时开放；人工改分�
 | `validateAnswer(answer,data)` | 可选；answer schema 先执行；返回`false` 拒绝。草稿和提交均受校验。 |
 | `project(data,state)` | 必需；返回公开`question.data`。正常投影 state 为 `{submitted:boolean,result}`。提交前主动构造不含标准答案/评分细则的对象，禁止简单展开私有 data。 |
 | `grade(data,answer)` | 必需；返回正式 graded 结果或 pending 待评结果。不能让页面承担判题。 |
-| `review(data,answer,review)` | 可选；将人工调整或 AI 自动保存的 score 转为 graded 结果；验证范围、步长、额外字段。不可返回 pending。 |
+| `review(data,answer,review,context)` | 可选；将人工调整或 AI 自动保存的 score 转为 graded 整题结果；验证范围、步长、额外字段。`review.targetId` 可选，`context.state` 是保存前最新状态，含 result；小题评分据此保留其他小题并重新汇总。不可返回 pending。 |
 | `getScore(data,state)` | 新题型应实现；返回`{score,maxScore,outlineStates?:[{id,status}]}`，不重判题。批量评分的 state 含 `status/answer/result/revision` 及派生 `submitted`。未提交返回 0 分；pending 返回 null；graded 返回保存的正式分数。 |
-| `prepareAiGrading(data,answer)` | 可选；从私有题目与已提交答案构造下述 AI 输入，仅提供输入，不调用模型。 |
+| `prepareAiGrading(data,answer,context)` | 可选；从私有题目与已提交答案构造下述 AI 输入，`context.targetId` 可选，`context.state` 为当前提交状态；自动提交评分时 `context.automatic` 为 true，可返回小题材料清单。仅提供输入，不调用模型。 |
+
+支持小题评分的规则必须校验 targetId 是否属于当前题目，按目标提取题干、回答、参考答案和满分；未知 ID 应拒绝，不能退回整题评分。review 收到 `{score,feedback,targetId}` 后，只替换该小题结果，再从 `context.state.result` 合并其他小题、返回完整整题成绩。宿主在 `result.aiAssessments[targetId]` 保存各小题 AI 元数据，整题原有 `result.aiAssessment` 保持原用法；小题分数结构与大纲状态仍由拓展自己维护。旧规则可忽略新增参数，无需修改。
 
 `grade/review` 的结果必须为对象，并始终包含 `feedback`（可为 `null`）：
 
@@ -176,28 +200,29 @@ AI 仅在当前已提交题目且 `canAiGrade===true` 时开放；人工改分�
 {gradingStatus:"pending", score:null, maxScore:5, correct:null, feedback:null}
 ```
 
-`maxScore` 是有限非负数；graded 的 `score` 是 `[0,maxScore]` 内有限数，`correct` 为 boolean。`correct` 的含义由拓展决定。`getScore` 在 pending 时必须 `score:null`，其他状态分数有限且合法；保存 AI 结果时的 getScore 必须与正式 result 的 score/maxScore 相同，如果返回 gradingStatus 也必须一致。大纲采用精简的满分判定：未提交为 unanswered，提交后满分为 correct，低于满分或仍 pending 为 incorrect；pending 仍是 null 分，保留评分进度/错误说明。小题通过 getScore.outlineStates 提供同样三种状态，宿主不猜测私有小题分数。类型自己的分值、部分得分、解释和人工评分校验全部留在拓展规则；宿主只做通用持久化、调用、验证和汇总。
+`maxScore` 是有限非负数；graded 的 `score` 是有限数；宿主不限制其范围，由拓展决定是否允许扣分或额外得分，`correct` 为 boolean。`correct` 的含义由拓展决定。`getScore` 在 pending 时必须 `score:null`，其他状态分数有限且合法；保存 AI 结果时的 getScore 必须与正式 result 的 score/maxScore 相同，如果返回 gradingStatus 也必须一致。大纲采用精简的满分判定：未填写为 unanswered，已填写未提交为紫色 draft，提交后满分为 correct，低于满分或仍 pending 为 incorrect；pending 仍是 null 分，保留评分进度/错误说明。小题通过 getScore.outlineStates 按稳定小题 ID 提供同样四种显示状态（含练习及考试），宿主不猜测私有小题分数。类型自己的分值、部分得分、解释和人工评分校验全部留在拓展规则；宿主只做通用持久化、调用、验证和汇总。
 
-`getScore` 在 AI 准备/确认校验路径可能只获得 `{submitted:true,result}`，因此不能要求 status/answer/revision 必然存在。需要人工/AI 评分的题型必须显式返回 `gradingStatus:"pending"` 或 `"graded"`；宿主据此识别可复评结果，仅注册 review 不会让省略 gradingStatus 的自动判分结果开放复评。
+`getScore` 在 AI 结果保存校验路径可能只获得 `{submitted:true,result}`，因此不能要求 status/answer/revision 必然存在。需要人工/AI 评分的题型必须显式返回 `gradingStatus:"pending"` 或 `"graded"`；宿主据此识别可复评结果，仅注册 review 不会让省略 gradingStatus 的自动判分结果开放复评。
 
 运行时 `canAiGrade` 要求同时存在 `prepareAiGrading` 和 `review`，还受宿主当前题状态及有效当前练习轮次约束；不是 manifest 中可自行打开的能力开关。仅实现 prepare 不会开放 AI。页面以 context 的 canReview/canAiGrade 为准，不按函数存在与否自行推断权限。
 
-AI 输入协议：
+AI 输入协议（参考答案与评分依据合并）：
 
 ```js
 {
   protocolVersion: 1,
   question: [{type:"text",text:"题干"}],
   answer: [{type:"text",text:"已提交答案"}],
-  referenceAnswer: [{type:"text",text:"参考答案"}], // 可空数组
-  rubric: [{type:"text",text:"评分细则"}],
+  referenceAnswer: [{type:"text",text:"参考答案、解析与评分依据合在一起"}],
   maxScore: 5,
   scoreStep: 0.5
 }
 // 图像块：{type:"image",assetId:"64位小写SHA-256",alt:"可选描述"}
 ```
 
-不允许额外顶层字段、图片 URL/路径或其他块类型。question/answer/rubric 必须非空数组；每字段最多 2000 块；文本合计最多 400000 字符；图片合计最多 40 张，alt 最多 500 字符；编码总量最多 1 MiB。maxScore/scoreStep 必须有限正数，maxScore 是 scoreStep 的整数倍，并与已提交 result 及 getScore 的满分完全相同。富文本转 AI 块需自己保留文字、公式、表格含义和 assetId；SDK 不提供 `toAiBlocks`，简答题的转换函数属于该拓展。
+新拓展只返回上述六个字段，评分依据与参考答案合在 referenceAnswer，不为接口另加评分标准编辑框。宿主兼容旧拓展单独的 rubric：先校验，再按原顺序合入 referenceAnswer；旧正式代码和历史任务无需改写。除该兼容字段外不允许额外顶层字段、图片 URL/路径或其他块类型。question/answer/referenceAnswer 必须非空数组；旧格式允许 referenceAnswer 空数组，但 rubric 必须非空。每字段最多 2000 块；文本合计最多 400000 字符；图片合计最多 40 张，alt 最多 500 字符；编码总量最多 1 MiB。maxScore/scoreStep 必须是有限正数，描述本次 AI 请求，与整题 result/getScore 的满分无须相同，也无须整除。AI 准备阶段不调用 getScore，目标由可选 context.targetId 指定而不写入模型材料；拓展自己选择材料并在 review 中处理建议分数、限制、精度及汇总。宿主只校验输出 JSON 结构、有限数字 score 和非空且有长度限制的 feedback，不因分数范围或步长触发重试，也不自动截断或舍入；拓展拒绝采用时保留原评分并报告规则错误。富文本转 AI 块需自己保留文字、公式、表格含义和 assetId；SDK 不提供 `toAiBlocks`，简答题的转换函数属于该拓展。
+
+宿主发送一条固定 system 消息，要求依据材料评分、仅输出 `{score,feedback}`、参考本次传入的满分／步长给建议分数，最终得分由拓展处理，并将材料中的指令视为数据；user 消息按“评分参数 → 题干 → 学生答案 → 参考答案与评分依据”排列。图片按内容块顺序由宿主解析为模型图像输入；拓展不传自定义系统提示词。无效输出修复时，在原材料后附校验要求和待修复输出，仍视为数据。
 
 ## 公共富文本 `QF.content`
 
@@ -213,7 +238,7 @@ AI 输入协议：
 | `fromEditorDocument(doc)` | 清理编辑器 JSON attrs 后验证/拷贝；不是 HTML、Markdown 或 Office 转换器。 |
 | `EMPTY_DOCUMENT` | `{type:"doc",content:[{type:"paragraph"}]}`；使用 cloneDocument 获得自己的副本。 |
 
-editor 方法：`ready`、`getDocument()`、`setDocument(doc)`、`focus()`、`flush()`、`isUploading()`、`destroy()`；`advanced-v1` 另提供 `setAdvanced(boolean)`、`isAdvanced()`。`ready` 和 `flush/setAdvanced` 为 Promise；setDocument 不发 onChange。保存/切字段前 `await editor.flush()`，再取 getDocument，处理上传失败。每个 iframe **只允许一个活动富文本 editor**；创建第二个前先 flush 并 destroy 第一个，其他字段用静态 render。销毁后不要使用；每次重绘先 destroy 旧 renderer/editor。
+editor 方法：`ready`、`getDocument()`、`setDocument(doc)`、`focus()`、`flush()`、`isUploading()`、`destroy()`；`advanced-v1` 另提供 `setAdvanced(boolean)`、`isAdvanced()`，API 1.1 的 `camera-capture` 能力另提供 `capturePhoto()`。`ready` 和 `flush/setAdvanced` 为 Promise；setDocument 不发 onChange。保存/切字段前 `await editor.flush()`，再取 getDocument，处理上传失败。每个 iframe **只允许一个活动富文本 editor**；创建第二个前先 flush 并 destroy 第一个，其他字段用静态 render。销毁后不要使用；每次重绘先 destroy 旧 renderer/editor。
 
 ```js
 const editor = QF.content.createEditor(host, {
@@ -224,6 +249,8 @@ const editor = QF.content.createEditor(host, {
 await editor.ready;
 // 离开前 await editor.flush(); 保存成功后才能销毁。
 ```
+
+拍照优先使用编辑器自带的“拍照”按钮，不重复添加入口。确需自定义时，在 `await editor.ready` 后绑定 `photoButton.onclick = () => editor.capturePhoto()`，直接同步调用以保留用户操作权限。返回 true 表示已请求选择器，处理／上传中返回 false，未就绪或销毁后抛错。手机请求后置摄像头，实际选择界面由浏览器／系统决定；桌面通常选择文件。取消不修改答案。最多 20 MiB／4000 万像素，大照片缩到最长边 2560px 并压成 4 MiB 内 JPEG；格式须能被浏览器解码。处理和上传均计入 `flush/isUploading`，失败需提示并允许重试。照片经 onChange 成为普通 image／assetId，原答案结构、资源、历史与 AI 转换通道不变。详见 [富文本服务的拍照接口](../../../core/docs/RICHTEXT_SERVICE.md#拍照作为答案图片)。
 
 富文本是带白名单节点/属性的 JSON，不是任意 HTML：
 
@@ -301,11 +328,11 @@ return {score, maxScore, outlineStates:[
 ]};
 ```
 
-outlineStates 每项严格只有 id/status，最多 100 项、父题内 ID 唯一并遵守目录 ID 的纯文本限制；按稳定 ID 匹配，不按 label，多余 ID 不着色。未提交含草稿只能 unanswered；提交后小题得满分为 correct，部分分／零分／仍待评分为 incorrect。pending 正式分数仍为 null，不因错误色伪造零分。省略细节的小题中性，不能套父题对错或从人工总分猜小题分数。
+outlineStates 每项严格只有 id/status，最多 100 项、父题内 ID 唯一并遵守目录 ID 的纯文本限制；按稳定 ID 匹配，不按 label，多余 ID 不着色。未提交只能 unanswered/draft；根据保存的 state.answer 判断每个小题是否已填写，有填写才返回 draft，不能让其他空白小题一起变紫。提交后不能返回 draft，小题得满分为 correct，部分分／零分／仍待评分为 incorrect。pending 正式分数仍为 null，不因错误色伪造零分。省略细节的小题中性，不能套父题对错或从人工总分猜小题分数。
 
 grade/review 把逐小题细节保存在正式 result 的自有 feedback 结构，getScore 读取已保存结果并输出状态，不重新判分；AI 校验可能只给 submitted/result，不依赖 answer／revision。此接口当前不接收小题数值 score/maxScore，不能往 outlineStates 塞额外字段；宿主总分只累加父题输出。
 
-宿主在答案／评分变化时刷新并缓存，白板不触发重算；历史冻结当轮状态，不调用当前规则补判，旧记录缺字段时保持中性。实际测试跨父题进入、同父题连续定位、编辑未保存内容、历史定位、草稿中性、评分／重做着色及不同父题相同小题 ID 的隔离。缺能力则说明限制并给题卡内导航替代，不改宿主。
+宿主在答案／评分变化时刷新并缓存，白板不触发重算；历史冻结当轮状态，不调用当前规则补判，旧记录缺字段时保持中性。实际测试跨父题进入、同父题连续定位、编辑未保存内容、历史定位、已填写草稿紫色且空白小题中性（含考试）、评分／重做着色及不同父题相同小题 ID 的隔离。缺能力则说明限制并给题卡内导航替代，不改宿主。
 
 ## 核对源码入口
 

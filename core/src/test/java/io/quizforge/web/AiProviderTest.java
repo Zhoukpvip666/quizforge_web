@@ -43,7 +43,7 @@ class AiProviderTest {
     ObjectNode config() { return Json.object().put("enabled", true).put("baseUrl", "http://127.0.0.1:" + mock.getAddress().getPort() + "/v1").put("model", "test-model").put("apiKey", KEY).put("vision", true).put("outputMode", "schema"); }
     ObjectNode input() {
         ObjectNode input = Json.object().put("protocolVersion", 1).put("maxScore", 5).put("scoreStep", 0.5);
-        for (String field : new String[]{"question", "answer", "referenceAnswer", "rubric"}) input.putArray(field).add(Json.object().put("type", "text").put("text", field + " 内容")); return input;
+        for (String field : new String[]{"question", "answer", "referenceAnswer"}) input.putArray(field).add(Json.object().put("type", "text").put("text", field + " 内容")); return input;
     }
     void reply(String output) { ObjectNode result = Json.object().put("id", "response-test"); ObjectNode choice = Json.object().put("finish_reason", "stop"); choice.set("message", Json.object().put("content", output)); result.putArray("choices").add(choice); result.set("usage", Json.object().put("total_tokens", 10).put("unsafe_provider_metadata", KEY)); body.set(result.toString()); }
     AiGateway.Response generate(ObjectNode input) { return gateway.generate(new AiGateway.Request(input, false, null)); }
@@ -74,6 +74,22 @@ class AiProviderTest {
         assertFalse(response.output().contains(KEY)); assertEquals("openai-compatible", response.provider()); assertEquals(10, response.usage().path("total_tokens").asInt()); assertFalse(response.usage().has("unsafe_provider_metadata"));
         generate(input); assertEquals(2, calls.get(), "Provider performs one call per invocation");
     }
+    @Test void promptHasThreeSectionsForCombinedAndLegacyMaterials() {
+        ObjectNode input = input(); generate(input);
+        assertEquals(2, captured.get().path("messages").size());
+        assertEquals("system", captured.get().at("/messages/0/role").asText());
+        assertEquals("user", captured.get().at("/messages/1/role").asText());
+        assertTrue(captured.get().at("/messages/0/content").asText().contains("最终得分由题型拓展处理"));
+        String prompt = captured.get().at("/messages/1/content").toString();
+        assertTrue(prompt.contains("maxScore=5")); assertTrue(prompt.contains("scoreStep=0.5"));
+        for (String label : new String[]{"--- 题干", "--- 学生答案", "--- 参考答案与评分依据"}) assertTrue(prompt.contains(label));
+        assertFalse(prompt.contains("--- rubric"));
+        input.putArray("rubric").add(Json.object().put("type", "text").put("text", "legacy grading criterion"));
+        String before = input.toString(); generate(input);
+        prompt = captured.get().at("/messages/1/content").toString();
+        assertTrue(prompt.contains("referenceAnswer 内容")); assertTrue(prompt.contains("legacy grading criterion"));
+        assertFalse(prompt.contains("--- rubric")); assertEquals(before, input.toString());
+    }
     @Test void invalidImageReferencesVisionAndInputBudgetsFailBeforeCallingModel() throws Exception {
         ObjectNode withImage = input(); ((ArrayNode) withImage.path("question")).add(Json.object().put("type", "image").put("assetId", "a".repeat(64)));
         settings.update(Json.object().put("vision", false)); assertEquals("AI_VISION_UNSUPPORTED", assertThrows(AiProviderException.class, () -> generate(withImage)).code);
@@ -94,8 +110,8 @@ class AiProviderTest {
     @Test void boundedCompleteResponsesAndExplicitConnectionTestReturnOnlySafeMetadata() throws Exception {
         body.set("x".repeat(OpenAiCompatibleProvider.MAX_RESPONSE_BYTES + 1)); assertEquals("AI_RESPONSE_LIMIT", assertThrows(AiProviderException.class, () -> generate(input())).code);
         for (String invalid : new String[]{"{", "", "null", "[]"}) { body.set(invalid); assertEquals("AI_RESPONSE_INVALID", assertThrows(AiProviderException.class, () -> generate(input())).code); }
-        reply("{\"score\":0,\"feedback\":\"连接正常\"}"); settings.update(Json.object().put("enabled", false).put("outputMode", "json")); int before = calls.get();
-        ObjectNode tested = gateway.testConnection(); assertEquals(before + 1, calls.get()); assertTrue(tested.path("ok").asBoolean()); assertFalse(tested.toString().contains(KEY)); assertFalse(tested.has("output")); assertEquals("json_object", captured.get().at("/response_format/type").asText()); assertFalse(captured.get().toString().contains("answer 内容"));
+        reply("{\"score\":2.5,\"feedback\":\"连接正常\"}"); settings.update(Json.object().put("enabled", false).put("outputMode", "json")); int before = calls.get();
+        ObjectNode tested = gateway.testConnection(); assertEquals(before + 2, calls.get()); assertTrue(tested.path("ok").asBoolean()); assertEquals("partial", tested.path("status").asText()); assertFalse(tested.toString().contains(KEY)); assertFalse(tested.has("output")); assertEquals("json_object", captured.get().at("/response_format/type").asText()); assertFalse(captured.get().toString().contains("answer 内容")); assertTrue(captured.get().at("/messages/0/content").asText().contains("模型能力测试助手")); assertFalse(captured.get().at("/messages/0/content").asText().contains("中文字符串"));
         assertEquals("AI_NOT_CONFIGURED", assertThrows(AiProviderException.class, () -> generate(input())).code);
     }
     @Test void repairIsOneSeparateCallAndUsesInvalidOutputAsData() {

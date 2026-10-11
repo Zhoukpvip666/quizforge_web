@@ -10,6 +10,8 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -44,6 +46,7 @@ final class RuleEngine {
         }
         command.add(runner.toString());
         Process process = null;
+        ExecutorService processIo = null;
         try {
             byte[] input = Json.MAPPER.writeValueAsBytes(request);
             if (input.length > 8 * 1024 * 1024) throw new ApiException(413, "RULE_INPUT_TOO_LARGE", "Rule input exceeds the size limit");
@@ -51,11 +54,14 @@ final class RuleEngine {
             // Explicit allowlist: no inherited tokens, provider keys, NODE_OPTIONS, or user secrets.
             sanitizeEnvironment(builder);
             process = builder.start();
+            // Native pipe reads can pin virtual carriers on supported Java 21.
+            // Reserve one independent worker for each pipe so stdin can always progress.
+            processIo = Executors.newFixedThreadPool(3, Thread.ofPlatform().daemon().name("quizforge-rule-io-", 0).factory());
             final Process child = process;
             AtomicBoolean overflow = new AtomicBoolean();
-            CompletableFuture<byte[]> output = CompletableFuture.supplyAsync(() -> readBounded(child.getInputStream(), 2 * 1024 * 1024, child, overflow));
-            CompletableFuture<byte[]> error = CompletableFuture.supplyAsync(() -> readBounded(child.getErrorStream(), 64 * 1024, child, overflow));
-            CompletableFuture<Void> write = CompletableFuture.runAsync(() -> { try (var stream = child.getOutputStream()) { stream.write(input); } catch (IOException ignored) { } });
+            CompletableFuture<byte[]> output = CompletableFuture.supplyAsync(() -> readBounded(child.getInputStream(), 2 * 1024 * 1024, child, overflow), processIo);
+            CompletableFuture<byte[]> error = CompletableFuture.supplyAsync(() -> readBounded(child.getErrorStream(), 64 * 1024, child, overflow), processIo);
+            CompletableFuture<Void> write = CompletableFuture.runAsync(() -> { try (var stream = child.getOutputStream()) { stream.write(input); } catch (IOException ignored) { } }, processIo);
             if (!process.waitFor(deadline.toMillis(), TimeUnit.MILLISECONDS)) { process.destroyForcibly(); throw new ApiException(422, "RULE_TIMEOUT", "Extension rules exceeded their execution deadline"); }
             byte[] bytes = output.get(2, TimeUnit.SECONDS); error.get(2, TimeUnit.SECONDS); write.get(2, TimeUnit.SECONDS);
             if (overflow.get()) throw new ApiException(422, "RULE_OUTPUT_LIMIT", "Extension rules exceeded their output limit");
@@ -69,7 +75,14 @@ final class RuleEngine {
         } catch (ApiException e) { throw e; }
         catch (InterruptedException e) { Thread.currentThread().interrupt(); throw new ApiException(503, "RULE_UNAVAILABLE", "Rule execution interrupted"); }
         catch (Exception e) { throw new ApiException(503, "RULE_UNAVAILABLE", "Rule engine unavailable; verify Node and installed dependencies"); }
-        finally { if (process != null && process.isAlive()) process.destroyForcibly(); }
+        finally {
+            if (process != null && process.isAlive()) process.destroyForcibly();
+            if (processIo != null) {
+                processIo.shutdownNow();
+                try { processIo.awaitTermination(2, TimeUnit.SECONDS); }
+                catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+            }
+        }
     }
     private static ObjectNode developmentProjection(ObjectNode request) {
         ObjectNode value = Json.object(); String operation = request.path("op").asText();
