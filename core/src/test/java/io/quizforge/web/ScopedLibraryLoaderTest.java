@@ -49,4 +49,12 @@ class ScopedLibraryLoaderTest {
     @Test void invalidKindIsRejectedAsInvalidRequest() {
         assertEquals(400, assertThrows(ApiException.class, () -> library.collection("unknown-kind", "unknown-id")).status);
     }
+    @Test void cachedOpenRestoresMissingImageAndRejectsCorruptStoredImage() throws Exception {
+        byte[] image = new LibraryResourceImportsTest().image(1);
+        Path source = root.resolve("extensions/generic/assets/image.png"); Files.createDirectories(source.getParent()); Files.write(source,image);
+        library.collection("bank","bank"); int calls=trace.validations.get();
+        Path target=root.resolve(".state/resources/"+ResourceStore.hash(image)+".png"); assertTrue(Files.exists(target)); Files.delete(target);
+        library.collection("bank","bank"); assertArrayEquals(image,Files.readAllBytes(target)); assertEquals(calls,trace.validations.get());
+        Files.writeString(target,"corrupt stored image"); assertThrows(ApiException.class,()->library.collection("bank","bank"));
+    }
 }

@@ -483,14 +483,15 @@ async function saveEditor(pane){
   try{
     const saved=await session.saveAll(async({id,entry,document})=>{
       const edit=entry.value;
-      if(!edit.request||edit.request.title!==document.title||JSON.stringify(edit.request.data)!==JSON.stringify(document.data))edit.request={requestId:makeRequestId(),revision:edit.revision,contentVersion:edit.contentVersion,title:document.title,data:document.data};
+      if(!edit.request||edit.request.sourceVersion!==edit.sourceVersion||edit.request.title!==document.title||JSON.stringify(edit.request.data)!==JSON.stringify(document.data))edit.request={requestId:makeRequestId(),revision:edit.revision,contentVersion:edit.contentVersion,sourceVersion:edit.sourceVersion,title:document.title,data:document.data};
       const body=JSON.stringify(edit.request),send=()=>request(`${questionPath(pane.kind,pane.id,id)}/edit`,{method:'POST',body});let value;
       try{value=await send();}catch(error){if(!(error instanceof TypeError))throw error;value=await send();}
       return value;
     },async({id,entry,document},value)=>{
       confirmed++;
+      session.confirmSourceVersion(value.previousSourceVersion,value.sourceVersion);
       questionsCache.deleteCollection(`${pane.key}:`);questionsCache.set(questionCacheKey(pane,id),value.payload);
-      pane.collection=value.collection;entry.value={...entry.value,question:{id,title:document.title,data:document.data},revision:value.payload.state.revision,contentVersion:value.payload.stamp.contentVersion};
+      pane.collection=value.collection;entry.value={...entry.value,question:{id,title:document.title,data:document.data},revision:value.payload.state.revision,contentVersion:value.payload.stamp.contentVersion,sourceVersion:value.sourceVersion};
       delete entry.value.request;
       clearTimeout(pane.editorTimer);await pane.editorDraftWrites;
       if(collectionFeature(pane,'history'))await request(editorDraftPath(pane,id),{method:'DELETE'});entry.draft=null;entry.changed=false;

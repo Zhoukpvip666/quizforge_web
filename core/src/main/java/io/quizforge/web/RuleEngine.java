@@ -20,7 +20,8 @@ final class RuleEngine {
     private final String node;
     private final Duration deadline;
     private final boolean permissions;
-    private final String nodeIdentity;
+    private final Path nodeExecutable;
+    private final String nodeMetadata;
     RuleEngine(Path codeRoot, String node, Duration deadline) throws IOException {
         this.codeRoot = codeRoot; this.node = node; this.deadline = deadline;
         ProcessBuilder probeBuilder = new ProcessBuilder(node, "--permission", "-e", "process.stdout.write('ok')"); sanitizeEnvironment(probeBuilder);
@@ -28,23 +29,25 @@ final class RuleEngine {
         try { permissions = probe.waitFor(3, TimeUnit.SECONDS) && probe.exitValue() == 0; }
         catch (InterruptedException e) { Thread.currentThread().interrupt(); throw new IOException("Node check interrupted", e); }
         finally { if (probe.isAlive()) probe.destroyForcibly(); }
-        nodeIdentity = probeIdentity();
+        JsonNode identity=probeIdentity(); nodeExecutable=Path.of(identity.path("path").asText()); nodeMetadata=Json.fingerprint(identity,"quizforge-node-runtime-v1");
         if (!permissions) System.err.println("Node filesystem permissions unavailable; install Node 24 for the supported restriction mode.");
     }
-    private String probeIdentity() throws IOException {
+    private JsonNode probeIdentity() throws IOException {
         ProcessBuilder builder = new ProcessBuilder(node, "-e", "process.stdout.write(JSON.stringify({path:process.execPath,version:process.version,modules:process.versions.modules}))"); sanitizeEnvironment(builder);
         Process child = builder.start();
         try {
             if (!child.waitFor(3, TimeUnit.SECONDS) || child.exitValue() != 0) throw new IOException("Node identity unavailable");
             JsonNode identity = Json.MAPPER.readTree(child.getInputStream().readNBytes(8192));
-            Path executable = Path.of(identity.path("path").asText());
-            return Json.fingerprint(identity, ResourceStore.hash(java.nio.file.Files.readAllBytes(executable)));
+            if(!identity.path("path").isTextual())throw new IOException("Node executable identity unavailable");
+            return identity;
         } catch (InterruptedException failure) { Thread.currentThread().interrupt(); throw new IOException("Node check interrupted", failure); }
         finally { if (child.isAlive()) child.destroyForcibly(); }
     }
     String validationEnvironment() {
         try {
-            var files = Json.MAPPER.createArrayNode(); files.add(nodeIdentity);
+            var files = Json.MAPPER.createArrayNode(); files.add(nodeMetadata); files.add(hashExecutable(nodeExecutable));
+            Path configured=Path.of(node).toAbsolutePath().normalize();
+            if(!configured.equals(nodeExecutable.toAbsolutePath().normalize())&&java.nio.file.Files.isRegularFile(configured))files.add(hashExecutable(configured));
             Path runner = Json.safeFile(codeRoot.resolve("server"), "rules-runner.cjs"); files.add(ResourceStore.hash(java.nio.file.Files.readAllBytes(runner)));
             for (String dependency : List.of("ajv", "fast-uri", "fast-deep-equal", "json-schema-traverse", "require-from-string")) {
                 Path directory = codeRoot.resolve("node_modules").resolve(dependency);
@@ -61,6 +64,13 @@ final class RuleEngine {
             }
             return Json.fingerprint(files, "quizforge-validation-environment-v1");
         } catch (IOException | RuntimeException failure) { return "unavailable"; }
+    }
+    private static String hashExecutable(Path executable)throws IOException {
+        try {
+            var digest=java.security.MessageDigest.getInstance("SHA-256");
+            try(var input=java.nio.file.Files.newInputStream(executable)){byte[] buffer=new byte[64*1024];for(int size;(size=input.read(buffer))!=-1;)digest.update(buffer,0,size);}
+            return java.util.HexFormat.of().formatHex(digest.digest());
+        }catch(java.security.NoSuchAlgorithmException failure){throw new IOException("Executable digest unavailable",failure);}
     }
     JsonNode run(Library.Extension extension, ObjectNode request) {
         boolean development = DevelopmentExtensions.runtimeMetadata(extension) != null;

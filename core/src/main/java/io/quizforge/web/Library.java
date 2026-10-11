@@ -99,7 +99,9 @@ final class Library {
     private volatile ObjectNode catalog = Json.object();
     private String previousSignature = null;
     private record PreparedCollection(String id, String title, String description, String kind, Extension extension,
-                                      List<Question> questions, BankFeatures features, String checkKey, CollectionValidation.Check checked) { }
+                                      List<Question> questions, BankFeatures features, String checkKey, CollectionValidation.Check checked, List<Path> folders, String sources) { }
+    private record CacheWrite(CollectionValidation.Check check,String environment,List<Path> folders,String sources) { }
+    private final Map<String,CacheWrite> pendingCacheWrites=new HashMap<>();
     @FunctionalInterface private interface CollectionApplied { void accept(Collection collection) throws IOException; }
     private record PendingCollection(PreparedCollection prepared, java.util.function.Supplier<PreparedCollection> prepare,
                                      Runnable before, CollectionApplied applied, ObjectNode entry, String code, String description) { }
@@ -113,9 +115,10 @@ final class Library {
 
     private volatile boolean indexUsed, closed;
     private volatile Thread backgroundThread;
-    private volatile String backgroundRevision = "";
+    private volatile boolean backgroundEnabled;
     private final LibraryLoadCoordinator coordinator = new LibraryLoadCoordinator();
     private final java.util.concurrent.atomic.AtomicBoolean backgroundRunning = new java.util.concurrent.atomic.AtomicBoolean();
+    private final java.util.concurrent.atomic.AtomicBoolean backgroundRequested = new java.util.concurrent.atomic.AtomicBoolean();
     private final Map<String,IndexState> indexStates = new java.util.concurrent.ConcurrentHashMap<>();
     private record IndexState(String revision, ScopedLibraryLoader.Scope scope, String stamp, ObjectNode row) { }
     ObjectNode index() {
@@ -130,6 +133,7 @@ final class Library {
             (List.of("bank", "development-bank").contains(candidate.kind()) ? banks : packages).add(row);
         }
         result.set("banks", banks); result.set("extensions", LibraryIndex.latest(packages));
+        if(backgroundEnabled&&snapshot.candidates().stream().filter(candidate->!candidate.metadata().has("error")).anyMatch(candidate->{IndexState state=indexStates.get(candidate.kind()+":"+candidate.metadata().path("path").asText());return state==null||!state.revision().equals(snapshot.revision())||!state.stamp().equals(scopeStamp(state.scope(),stamps));}))requestBackgroundValidation();
         return new LibraryManagement(root).catalog(result);
     }
     private String scopeStamp(ScopedLibraryLoader.Scope scope, Map<Path,String> stamps) {
@@ -157,7 +161,15 @@ final class Library {
                 ObjectNode checking = candidate.metadata().put("validationStatus", "checking");
                 indexStates.put(kind + ":" + checking.path("path").asText(), new IndexState(snapshot.revision(), scope, beforeStamp, checking));
             }
-            var loaded = loader().load(snapshot, kind, id);
+            ScopedLibraryLoader.Loaded loaded;
+            try { loaded=loader().load(snapshot,kind,id); }
+            catch(ApiException failure){
+                if(!closed&&failure.status!=409&&indexSnapshot().revision().equals(snapshot.revision())&&beforeStamp.equals(scopeStamp(scope,new HashMap<>())))for(var candidate:snapshot.candidates())if(candidate.kind().equals(kind)&&candidate.id().equals(id)){
+                    ObjectNode error=candidate.metadata().put("validationStatus","error").put("error",failure.getMessage()).put("errorCode",failure.code).put("errorStatus",failure.status);error.remove("contentRevision");
+                    indexStates.put(kind+":"+error.path("path").asText(),new IndexState(snapshot.revision(),scope,beforeStamp,error));
+                }
+                throw failure;
+            }
             if (closed || !indexSnapshot().revision().equals(snapshot.revision()) || !beforeStamp.equals(scopeStamp(scope, new HashMap<>()))) throw new ApiException(409, "LIBRARY_CHANGED", "Library changed while loading; refresh and retry");
             synchronized (scopedStateLock) {
                 if (closed) throw new ApiException(409, "LIBRARY_CHANGED", "Library closed while loading");
@@ -176,19 +188,31 @@ final class Library {
         }, foreground);
     }
     void startBackgroundValidation() {
-        String revision = indexSnapshot().revision();
-        if (closed || backgroundRevision.equals(revision) || !backgroundRunning.compareAndSet(false, true)) return;
-        backgroundRevision = revision;
+        backgroundEnabled=true;
+        LibraryIndex.Snapshot snapshot=indexSnapshot();Map<Path,String> stamps=new HashMap<>();
+        if(snapshot.candidates().stream().filter(candidate->!candidate.metadata().has("error")).anyMatch(candidate->{IndexState state=indexStates.get(candidate.kind()+":"+candidate.metadata().path("path").asText());return state==null||!state.revision().equals(snapshot.revision())||!state.stamp().equals(scopeStamp(state.scope(),stamps));}))requestBackgroundValidation();
+    }
+    private void requestBackgroundValidation() {
+        if(closed)return;backgroundRequested.set(true);
+        if(!backgroundRunning.compareAndSet(false,true))return;
+        backgroundRequested.set(false);
         Thread thread = new Thread(() -> {
+            LibraryIndex.Snapshot snapshot=null;boolean stale=false;
             try {
-                LibraryIndex.Snapshot snapshot = indexSnapshot(); var seen = new HashSet<String>();
+                snapshot = indexSnapshot(); var seen = new HashSet<String>();Map<Path,String> stamps=new HashMap<>();
                 for (var candidate : snapshot.candidates()) {
                     if (closed || Thread.currentThread().isInterrupted()) break;
+                    if(!indexSnapshot().revision().equals(snapshot.revision())){stale=true;break;}
                     if (candidate.metadata().has("error") || !seen.add(candidate.kind() + ":" + candidate.id())) continue;
+                    IndexState state=indexStates.get(candidate.kind()+":"+candidate.metadata().path("path").asText());
+                    if(state!=null&&state.revision().equals(snapshot.revision())&&List.of("ready","error").contains(state.row().path("validationStatus").asText())&&state.stamp().equals(scopeStamp(state.scope(),stamps)))continue;
                     try { submitScoped(snapshot, candidate.kind(), candidate.id(), false).join(); }
-                    catch (RuntimeException ignored) { /* Individual errors remain isolated in their catalog rows. */ }
+                    catch (RuntimeException failure) { Throwable cause=failure instanceof java.util.concurrent.CompletionException?failure.getCause():failure;if(cause instanceof ApiException error&&error.status==409)stale=true; }
                 }
-            } finally { backgroundRunning.set(false); }
+            } finally {
+                backgroundRunning.set(false);
+                if(!closed&&(stale||backgroundRequested.get()||snapshot!=null&&!indexSnapshot().revision().equals(snapshot.revision())))requestBackgroundValidation();
+            }
         }, "quizforge-library-dispatch");
         backgroundThread = thread; thread.setDaemon(true); thread.start();
     }
@@ -498,7 +522,7 @@ final class Library {
     }
     synchronized EditPlan prepareEdit(Collection current, String questionId, String title, JsonNode data) {
         current.features().requireEditing();
-        Collection latest = collection(current.kind(), current.id());
+        Collection latest = readCollection(current.kind(), current.id());
         if (!latest.equals(current)) throw new ApiException(409, "CONTENT_CONFLICT", "Bank changed while preparing the edit");
         Path path = current.kind().equals("bank") || current.kind().equals("development-bank") ? bankPaths.get(current.id()) : current.extension().examples();
         if (path == null) throw new ApiException(422, "DEVELOPMENT_NOT_IMPLEMENTED", "请先创建样例题库文件，再保存题目编辑；当前输入已保留。");
@@ -591,9 +615,11 @@ final class Library {
         List<Path> extensionFolders = scopedFolders == null ? ExtensionDirectories.scan(root.resolve("extensions")) : scopedFolders;
         List<Path> bankFiles = scopedFiles == null ? bankFiles(root.resolve("question-banks")) : scopedFiles;
         String signature = signature(extensionFolders, bankFiles);
+        // A staging view is published only after the loader rechecks its complete byte identity.
+        if(scopedFolders!=null&&signature.equals(previousSignature))return;
         String environment = engine.validationEnvironment();
-        if (signature.equals(previousSignature) && environment.equals(validationEnvironment)) return;
-        if (!environment.equals(validationEnvironment)) ruleChecks = Map.of();
+        if (!environment.equals("unavailable") && signature.equals(previousSignature) && environment.equals(validationEnvironment)) return;
+        if (environment.equals("unavailable") || !environment.equals(validationEnvironment)) ruleChecks = Map.of();
         validationEnvironment = environment;
         String runnerRevision = runnerRevision();
         if (!runnerRevision.equals(checksRunnerRevision)) ruleChecks = Map.of();
@@ -710,7 +736,7 @@ final class Library {
         developmentPackages = Map.copyOf(nextDevelopment); developmentExtensions = Map.copyOf(nextDevelopmentExtensions); developmentOriginals = Map.copyOf(nextDevelopmentOriginals); developmentPreviews = Map.copyOf(nextDevelopmentPreviews); developmentBanks = Map.copyOf(nextDevelopmentBanks); developmentUiBanks = Map.copyOf(nextUiBanks);
         ruleChecks = Map.copyOf(nextChecks); checksRunnerRevision = runnerRevision;
         }
-        if (scopedFolders == null) rememberCatalogFailures();
+        if (scopedFolders == null) { persistSuccessfulChecks(); rememberCatalogFailures(); }
     }
     private boolean applyPendingCollections(List<PendingCollection> pending, Map<String, CollectionValidation.Check> nextChecks) {
         var inputs = new ArrayList<List<Question>>();
@@ -836,17 +862,18 @@ final class Library {
     }
     private PreparedCollection prepareCollection(JsonNode raw, String kind, Extension extension, String id, Map<String, Extension> available, Map<String, CollectionValidation.Check> nextChecks) {
         var prepared = new CollectionValidation(engine).prepare(raw, kind, extension, id, available);
-        String key = nextChecks == null ? null : Json.fingerprint(Json.object().put("collection", prepared.checkKey()).put("environment", validationEnvironment).put("sources", scopedContentIdentity(prepared.questions().stream().map(q -> q.extension().directory()).distinct().toList(), List.of())), "quizforge-validation-v1");
+        List<Path> folders=prepared.questions().stream().map(q->q.extension().directory()).distinct().toList();String sources=nextChecks==null?"":scopedContentIdentity(folders,List.of());
+        String key = nextChecks == null || validationEnvironment.equals("unavailable") ? null : Json.fingerprint(Json.object().put("collection", prepared.checkKey()).put("environment", validationEnvironment).put("sources", sources), "quizforge-validation-v1");
         CollectionValidation.Check cached = key == null ? null : ruleChecks.get(key);
         if (cached == null && key != null && !validationEnvironment.equals("unavailable")) cached = validationCache.read(key, prepared.questions().size()).orElse(null);
-        return new PreparedCollection(prepared.id(), prepared.title(), prepared.description(), prepared.kind(), prepared.extension(), prepared.questions(), prepared.features(), key, cached);
+        return new PreparedCollection(prepared.id(), prepared.title(), prepared.description(), prepared.kind(), prepared.extension(), prepared.questions(), prepared.features(), key, cached,folders,sources);
     }
     private Collection finishCollection(PreparedCollection prepared, Map<String, CollectionValidation.Check> nextChecks, boolean validated, RuntimeException validationFailure) {
         var input = new CollectionValidation.Prepared(prepared.id(), prepared.title(), prepared.description(), prepared.kind(), prepared.extension(), prepared.questions(), prepared.features(), prepared.checkKey());
         var result = new CollectionValidation(engine).finish(input, prepared.checked(), validated, validationFailure);
-        if (nextChecks != null && result.successfulCheck() != null) {
+        if (nextChecks != null && prepared.checkKey()!=null && result.successfulCheck() != null) {
             nextChecks.put(prepared.checkKey(), result.successfulCheck());
-            if (prepared.checked() == null && !validationEnvironment.equals("unavailable")) validationCache.write(prepared.checkKey(), result.successfulCheck());
+            if (prepared.checked() == null && !validationEnvironment.equals("unavailable"))pendingCacheWrites.put(prepared.checkKey(),new CacheWrite(result.successfulCheck(),validationEnvironment,prepared.folders(),prepared.sources()));
         }
         return result.collection();
     }
@@ -967,12 +994,31 @@ final class Library {
     boolean scopedModeMatches(LibraryIndex.Snapshot snapshot) { return developmentSettings.enabled() == snapshot.catalog().path("developmentEnabled").asBoolean(); }
     String scopedRunnerRevision() { return engine.validationEnvironment(); }
     Map<String, CollectionValidation.Check> scopedChecks() { return ruleChecks; }
-    Library scopedView(List<Path> folders, List<Path> files, Map<String,CollectionValidation.Check> sharedChecks) {
+    void persistSuccessfulChecks() {
+        synchronized(scanLock){
+            if(pendingCacheWrites.isEmpty())return;
+            String environment=engine.validationEnvironment();Map<List<Path>,String> sources=new HashMap<>();var retained=new HashMap<>(ruleChecks);
+            for(var entry:pendingCacheWrites.entrySet()){
+                CacheWrite write=entry.getValue();
+                if(write.environment().equals(environment)&&write.sources().equals(sources.computeIfAbsent(write.folders(),folders->scopedContentIdentity(folders,List.of()))))validationCache.write(entry.getKey(),write.check());
+                else{retained.remove(entry.getKey());previousSignature=null;}
+            }
+            ruleChecks=Map.copyOf(retained);pendingCacheWrites.clear();
+        }
+    }
+    void ensureLoadedResources() {
+        try {
+            for(Extension extension:extensions.values())resourceImports.ensure(resources,extension.directory(),staticAssets(extension.directory(),Json.read(Json.safeFile(extension.directory(),"manifest.json"),256*1024)),true);
+            for(Extension extension:developmentExtensions.values())resourceImports.ensure(developmentResources,extension.directory(),staticAssets(extension.directory(),developmentDeclaration(extension.directory())),true);
+            for(var entry:bankPaths.entrySet())if(entry.getValue().getFileName().toString().equals("bank.json")&&!entry.getValue().getParent().equals(root.resolve("question-banks")))resourceImports.ensure(developmentBanks.containsKey(entry.getKey())?developmentResources:resources,entry.getValue().getParent(),Json.MAPPER.createArrayNode(),false);
+        } catch(IOException failure){throw new ApiException(422,"INVALID_LIBRARY_RESOURCES","Collection image resources could not be verified or restored");}
+    }
+    Library scopedView(List<Path> folders, List<Path> files, Map<String,CollectionValidation.Check> sharedChecks,String environment) {
         Library view = new Library(root, codeRoot, engine, developmentSettings);
         view.resources = resources; view.developmentResources = developmentResources; view.resourceImports = resourceImports;
         view.scopedFolders = folders; view.scopedFiles = files;
         var checks = new HashMap<>(ruleChecks); checks.putAll(sharedChecks);
-        view.ruleChecks = Map.copyOf(checks); view.checksRunnerRevision = runnerRevision(); return view;
+        view.ruleChecks = Map.copyOf(checks); view.validationEnvironment=environment;view.checksRunnerRevision = runnerRevision(); return view;
     }
     ScopedLibraryLoader.Loaded scopedResult(String kind, String id, String identity) {
         refresh(); Collection value = null; ObjectNode descriptor = Json.object(), row = Json.object();
@@ -1002,7 +1048,10 @@ final class Library {
         }
     }
     String scopedIdentity(List<Path> folders, List<Path> files) {
-        return Json.fingerprint(Json.object().put("content", scopedContentIdentity(folders, files)).put("runner", engine.validationEnvironment()), "quizforge-scoped-load-v1");
+        return scopedIdentity(folders,files,engine.validationEnvironment());
+    }
+    String scopedIdentity(List<Path> folders,List<Path> files,String environment) {
+        return Json.fingerprint(Json.object().put("content", scopedContentIdentity(folders, files)).put("runner", environment), "quizforge-scoped-load-v1");
     }
     String scopedContentIdentity(List<Path> folders, List<Path> files) {
         ArrayNode values = Json.MAPPER.createArrayNode(); values.add(developmentSettings.enabled());

@@ -39,7 +39,7 @@ class BankFeaturesTest {
     ObjectNode ink() throws Exception { return Json.object().set("draft", Json.MAPPER.readTree("{\"schemaVersion\":1,\"viewport\":{\"x\":0,\"y\":0,\"zoom\":1},\"strokes\":[],\"paper\":{\"color\":\"#ffffff\",\"pattern\":\"plain\"}}")); }
     Map<String, String> stateFiles() throws Exception {
         var values = new LinkedHashMap<String, String>();
-        for (String directory : java.util.List.of(".state", ".development/.state")) if (Files.exists(root.resolve(directory))) try (var files = Files.walk(root.resolve(directory))) { for (Path file : files.filter(Files::isRegularFile).toList()) values.put(root.relativize(file).toString(), ResourceStore.hash(Files.readAllBytes(file))); }
+        for (String directory : java.util.List.of(".state", ".development/.state")) if (Files.exists(root.resolve(directory))) try (var files = Files.walk(root.resolve(directory))) { for (Path file : files.filter(Files::isRegularFile).filter(file -> !file.startsWith(root.resolve(".state/validation-cache/v1"))).toList()) values.put(root.relativize(file).toString(), ResourceStore.hash(Files.readAllBytes(file))); }
         return values;
     }
     @Test void rootsHaveStrictBooleanFeaturesAndLegacyDefaultsAcrossBanksAndSamples() throws Exception {

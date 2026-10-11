@@ -70,4 +70,35 @@ class ValidationCacheTest {
             if(Files.exists(directory()))try(var files=Files.list(directory())){assertEquals(0,files.count());}
         } finally {trace.close();}
     }
+    @Test void executableBytesAreRecheckedWithinOneEngineEvenWithSameSizeAndMtime() throws Exception {
+        CatalogRuleValidationTest trace=new CatalogRuleValidationTest();trace.root=root;trace.prepare();
+        try {
+            Process process=new ProcessBuilder("node","-p","process.execPath").start(); String path=new String(process.getInputStream().readAllBytes(),java.nio.charset.StandardCharsets.UTF_8).trim(); assertEquals(0,process.waitFor());
+            Path executable=root.resolve(System.getProperty("os.name").startsWith("Windows")?"owned-node.exe":"owned-node"); Files.copy(Path.of(path),executable); executable.toFile().setExecutable(true);
+            RuleEngine engine=new RuleEngine(root,executable.toString(),Duration.ofSeconds(8)); String before=engine.validationEnvironment(); var time=Files.getLastModifiedTime(executable);
+            try(var file=new java.io.RandomAccessFile(executable.toFile(),"rw")){long last=file.length()-1;file.seek(last);int value=file.read();file.seek(last);file.write(value^1);} Files.setLastModifiedTime(executable,time);
+            assertNotEquals(before,engine.validationEnvironment());
+        } finally {trace.close();}
+    }
+    @Test void unknownEnvironmentCannotReuseLoadedOrRuleSuccessInMemory() throws Exception {
+        CatalogRuleValidationTest trace=new CatalogRuleValidationTest();trace.root=root;trace.prepare();
+        Library library=null;
+        try {
+            Files.write(root.resolve("node_modules/ajv/unused-over-limit.bin"),new byte[8*1024*1024+1]);
+            RuleEngine engine=new RuleEngine(root,"node",Duration.ofSeconds(30));assertEquals("unavailable",engine.validationEnvironment());
+            library=new Library(root,engine);library.collection("bank","bank");assertEquals(2,trace.validations.get());
+            library.collection("bank","bank");assertEquals(4,trace.validations.get(),"An unknown environment cannot establish reusable success");
+        } finally {if(library!=null)library.close();trace.close();}
+    }
+    @Test void sourceChangedDuringRulesCannotPersistTheSupersededSuccess() throws Exception {
+        CatalogRuleValidationTest trace=new CatalogRuleValidationTest();trace.root=root;trace.prepare();
+        var started=new java.util.concurrent.CountDownLatch(1);var release=new java.util.concurrent.CountDownLatch(1);var once=new java.util.concurrent.atomic.AtomicBoolean();
+        trace.trace.removeContext("/");trace.trace.createContext("/",exchange->{if(exchange.getRequestURI().getPath().equals("/validateBank")&&once.compareAndSet(false,true)){started.countDown();try{release.await(20,java.util.concurrent.TimeUnit.SECONDS);}catch(InterruptedException failure){Thread.currentThread().interrupt();}}exchange.sendResponseHeaders(204,-1);exchange.close();});
+        Library library=new Library(root,new RuleEngine(root,"node",Duration.ofSeconds(30)));
+        var opening=java.util.concurrent.CompletableFuture.supplyAsync(()->library.collection("bank","bank"));
+        try {
+            assertTrue(started.await(20,java.util.concurrent.TimeUnit.SECONDS));Path rules=root.resolve("extensions/generic/rules.js");Files.writeString(rules,Files.readString(rules)+"\n// changed during rule execution\n");release.countDown();assertEquals(2,opening.get(40,java.util.concurrent.TimeUnit.SECONDS).questions().size());
+            try(var files=Files.list(directory())){assertEquals(2,files.filter(file->file.toString().endsWith(".json")).count(),"Only the stable retry may persist its example and bank successes");}
+        } finally {release.countDown();library.close();trace.close();}
+    }
 }

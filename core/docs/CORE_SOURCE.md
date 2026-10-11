@@ -9,6 +9,10 @@ AI 评分支持可选 `targetId`：省略时沿用整题流程，指定时按小
 | 启动、HTTP、局域网鉴权 | `Main.java`、`QuizForgeServer.java` | 监听器、Host/Origin、密码、请求体与响应限制 |
 | 题库和题目路由 | `CollectionRoutes.java` | 将请求交给对应业务服务，不绕过统一写入检查 |
 | 题库和拓展包 | `Library.java` | 扫描、版本绑定、校验、页面资源和编辑计划 |
+| 轻量目录 | `LibraryIndex.java` | 仅读元数据，输出不可变候选及 pending/error 状态，不启动规则或导入图片 |
+| 集合加载与校验 | `ScopedLibraryLoader.java`、`CollectionValidation.java` | 按集合筛选依赖，完整目录与按需加载共用同一校验实现，复核实际源身份后发布 |
+| 校验调度 | `LibraryLoadCoordinator.java` | 前台、后台各一个执行通道，相同身份共享任务，过期结果和关闭时的任务不能发布 |
+| 资源与成功缓存 | `LibraryResourceImports.java`、`ValidationCache.java` | 分命名空间核实图片导入；只持久化成功校验，严格限制缓存大小、数量和环境身份 |
 | 更新兼容契约 | `ExtensionApi.java` | API v1.0／v1.1／v1.2、Manifest 需求和题库格式校验；缺省旧声明，页面/历史按各自运行版本加载 |
 | 混合题型批处理 | `RuleBatches.java` | 按拓展 ID／版本／签名分组，顺序有界分块，结果恢复原题序 |
 | 目录规则校验 | `CatalogRuleValidation.java` | 将同一拓展的多个题库合批校验，失败时按原集合回退；大纲仍按集合生成 |

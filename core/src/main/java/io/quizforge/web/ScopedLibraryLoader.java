@@ -20,24 +20,28 @@ final class ScopedLibraryLoader {
     Loaded load(LibraryIndex.Snapshot snapshot, String kind, String id) {
         for (int attempt = 0; attempt < 2; attempt++) {
             Scope scope = scope(snapshot, kind, id);
-            String identity = library.scopedIdentity(scope.folders(), scope.files());
+            String environment=library.scopedRunnerRevision();String identity = library.scopedIdentity(scope.folders(), scope.files(),environment);
             String key = kind + ":" + id;
             synchronized (loaded) {
                 Loaded cached = loaded.get(key);
-                if (cached != null && cached.sourceIdentity().equals(identity) && !transientFailure(cached.catalogRow())) { return cached; }
-                String currentRunner = library.scopedRunnerRevision();
-                if (!runner.equals(currentRunner)) { checks.clear(); runner = currentRunner; }
+                if (!environment.equals("unavailable") && cached != null && cached.sourceIdentity().equals(identity) && !transientFailure(cached.catalogRow())) {
+                    if(cached.view()!=null&&!cached.catalogRow().has("error"))cached.view().ensureLoadedResources();
+                    if(identity.equals(library.scopedIdentity(scope.folders(),scope.files()))&&library.scopedModeMatches(snapshot))return cached;
+                    snapshot=library.indexSnapshot();continue;
+                }
+                String currentRunner = environment;
+                if (currentRunner.equals("unavailable") || !runner.equals(currentRunner)) { checks.clear(); runner = currentRunner; }
             }
-            Library view = library.scopedView(scope.folders(), scope.files(), checks);
+            Library view = library.scopedView(scope.folders(), scope.files(), checks,environment);
             Loaded result = view.scopedResult(kind, id, identity);
             String after = library.scopedIdentity(scope.folders(), scope.files());
             if (!identity.equals(after) || !library.scopedModeMatches(snapshot)) {
                 snapshot = library.indexSnapshot(); continue;
             }
-            checks.putAll(view.scopedChecks());
+            view.persistSuccessfulChecks();checks.putAll(view.scopedChecks());
             if (checks.size() > 2048) checks.clear();
 
-            synchronized (loaded) { loaded.put(key, result); while (loaded.size() > 64) loaded.remove(loaded.keySet().iterator().next()); }
+            synchronized (loaded) { if(environment.equals("unavailable"))loaded.remove(key);else loaded.put(key, result); while (loaded.size() > 64) loaded.remove(loaded.keySet().iterator().next()); }
             return result;
         }
         throw new ApiException(409, "LIBRARY_CHANGED", "Library files changed while loading; refresh and retry");
@@ -47,7 +51,8 @@ final class ScopedLibraryLoader {
         synchronized (loaded) { cached = loaded.get(kind + ":" + id); }
         if (cached == null || cached.collection() == null) return null;
         Scope scope = scope(snapshot, kind, id);
-        return cached.contentIdentity().equals(library.scopedContentIdentity(scope.folders(), scope.files())) ? cached.collection() : null;
+        if(!cached.contentIdentity().equals(library.scopedContentIdentity(scope.folders(), scope.files())))return null;
+        if(cached.view()!=null)cached.view().ensureLoadedResources(); return cached.collection();
     }
     static boolean transientFailure(JsonNode row) { return List.of("RULE_TIMEOUT", "RULE_UNAVAILABLE").contains(row.path("errorCode").asText()); }
     void rememberFailure(String kind, String id, String identity, ObjectNode row) {

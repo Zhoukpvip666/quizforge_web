@@ -370,8 +370,8 @@ public final class QuizForgeServer implements AutoCloseable {
                 JsonNode history = (development ? developmentRoutes : collectionRoutes).route(exchange, method, parts);
                 return bank && parts.length == 5 && method.equals("GET") ? exams.appendHistory(parts[2], routeId(parts[3]), (ObjectNode) history) : history;
             }
-            boolean readQuestion = method.equals("GET") && parts.length >= 6 && parts[4].equals("questions") && (parts.length == 6 || parts.length == 7 && parts[6].equals("stamp"));
-            Library.Collection collection = readQuestion ? library.readCollection(parts[2], routeId(parts[3])) : library.collection(parts[2], routeId(parts[3]));
+            // This lookup selects the state namespace. The route performs its own full load for opening or writes.
+            Library.Collection collection = library.readCollection(parts[2], routeId(parts[3]));
             if (collection.features().history()) return (development ? developmentRoutes : collectionRoutes).route(exchange, method, parts);
             try (PracticeSessions.Lease lease = practiceSession(exchange, true, !method.equals("GET"))) {
                 synchronized (lease.session) { return (development ? lease.session.developmentRoutes : lease.session.routes).route(exchange, method, parts); }

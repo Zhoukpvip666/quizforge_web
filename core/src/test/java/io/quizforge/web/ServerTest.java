@@ -293,7 +293,7 @@ class ServerTest {
         Files.write(state, stateBytes); assertEquals(saved.body, get(QUESTION).body); assertEquals(saved.body, post(QUESTION + "/actions", savedRequest).body); assertArrayEquals(stateBytes, Files.readAllBytes(state));
     }
     ObjectNode editRequest(String requestId, JsonNode editor, String title, JsonNode data) {
-        ObjectNode request = Json.object().put("requestId", requestId).put("revision", editor.path("revision").asLong()).put("contentVersion", editor.path("contentVersion").asText()).put("title", title); request.set("data", data.deepCopy()); return request;
+        ObjectNode request = Json.object().put("requestId", requestId).put("revision", editor.path("revision").asLong()).put("contentVersion", editor.path("contentVersion").asText()).put("title", title); if(editor.has("sourceVersion"))request.set("sourceVersion",editor.get("sourceVersion")); request.set("data", data.deepCopy()); return request;
     }
     @Test void historyGroupsCollectionSubmissionsWithoutDuplicateReplayAndSurvivesRemoval() throws Exception {
         start(null); assertEquals(0, get("/api/collections/bank/bank/history").body.path("records").size());
@@ -394,6 +394,28 @@ class ServerTest {
         String changed = Files.readString(bank).replace("\"other\"", "\"newer\""); Files.writeString(bank, changed); Files.setLastModifiedTime(bank, modifiedAt); byte[] bankBefore = Files.readAllBytes(bank);
         Reply rejected = post(QUESTION + "/edit", editRequest("metadata-edit", editor, "Attempted edit", editor.at("/question/data"))); assertEquals(409, rejected.status); assertEquals("CONTENT_CONFLICT", rejected.body.at("/error/code").asText());
         assertArrayEquals(bankBefore, Files.readAllBytes(bank)); assertArrayEquals(stateBefore, Files.readAllBytes(state)); assertFalse(Files.exists(root.resolve(".state/.edit-journal.json")));
+    }
+    @Test void newerEditorCannotRebaseAnOlderSnapshotAfterExternalWholeBankChange() throws Exception {
+        start(null); JsonNode older=get(QUESTION+"/editor").body;
+        Path bank=root.resolve("question-banks/bank.json"); Files.writeString(bank,Files.readString(bank).replace("\"other\"","\"newer\""));
+        JsonNode newer=get(QUESTION+"/editor").body;
+        assertEquals(older.path("contentVersion"),newer.path("contentVersion"));
+        Reply rejected=post(QUESTION+"/edit",editRequest("old-snapshot",older,"Old snapshot edit",older.at("/question/data")));
+        assertEquals(409,rejected.status,rejected.body.toString());
+    }
+    @Test void editorsOpenedTogetherCanSaveSequentiallyAndRetryAnUnsavedQuestion() throws Exception {
+        start(null); get("/api/library/index"); String second="/api/collections/bank/bank/questions/q2";
+        JsonNode firstEditor=get(QUESTION+"/editor").body, secondEditor=get(second+"/editor").body;
+        ObjectNode bad=editRequest("multi-invalid",secondEditor,"Second edited",Json.object().put("public",""));
+        assertEquals(422,post(second+"/edit",bad).status);
+        Reply first=post(QUESTION+"/edit",editRequest("multi-first",firstEditor,"First edited",firstEditor.at("/question/data"))); assertEquals(200,first.status,first.body.toString());
+        assertEquals(secondEditor.path("sourceVersion"),first.body.path("previousSourceVersion"));
+        assertEquals(409,post(second+"/edit",editRequest("multi-stale",secondEditor,"Second edited",secondEditor.at("/question/data"))).status);
+        ((ObjectNode)secondEditor).set("sourceVersion",first.body.path("sourceVersion"));
+        Reply other=post(second+"/edit",editRequest("multi-second",secondEditor,"Second edited",secondEditor.at("/question/data"))); assertEquals(200,other.status,other.body.toString());
+        JsonNode fresh=get(second+"/editor").body;
+        assertEquals(other.body.at("/payload/stamp/contentVersion"),fresh.path("contentVersion"));
+        assertEquals(other.body.path("sourceVersion"),fresh.path("sourceVersion"));
     }
     @Test void unfinishedRoundCanReplaceOneSubmissionAndReplayDoesNotUpdateItsTimestamp() throws Exception {
         start(null); String other = "/api/collections/bank/bank/questions/q2";
