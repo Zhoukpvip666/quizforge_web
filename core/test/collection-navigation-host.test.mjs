@@ -1,3 +1,4 @@
+import {createLibraryIndexClient} from '../web/library-index-client.js';
 import {renderLibraryView} from '../web/views/library-view.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -24,7 +25,7 @@ function fixture(t,{drawer=false,developmentEnabled=false}={}){
   const dom=new JSDOM(html,{url:'http://localhost/'});t.after(()=>dom.window.close());
   const document=dom.window.document,collections=new Map(),errors=[],saved=[];
   const descriptors=new Map();
-  const sandbox={renderLibraryView,document,$:selector=>document.querySelector(selector),collections,activeKey:null,listMode:'bank',transition:Promise.resolve(),
+  const sandbox={createLibraryIndexClient,renderLibraryView,document,$:selector=>document.querySelector(selector),collections,activeKey:null,listMode:'bank',transition:Promise.resolve(),
     catalog:{banks:[],extensions:[],developmentEnabled},collapsedExtensionGroups:new Set(),extensionGroups,createDraftBuffer,collectionFeature,practiceSaveLabel,
     sidebarPreferences:{library:true,outline:true},libraryDrawer:{matches:drawer},outlineDrawer:{matches:drawer},localStorage:dom.window.localStorage,
     active:()=>collections.get(sandbox.activeKey),notice(){},failure:error=>errors.push(error),renderOutline(){},renderRecovery(){},saveStatus(){},
@@ -41,7 +42,7 @@ function fixture(t,{drawer=false,developmentEnabled=false}={}){
       pane.plugin={flush:async()=>{},setActive(){},destroy(){this.destroyed=true;}};
     },
   };
-  vm.runInNewContext(`${hostSource}\nglobalThis.host={openCollection,suspendPane,activateReady,renderLibrary,syncSidebars,refreshCatalog};`,sandbox);
+  vm.runInNewContext(`${hostSource}\n${part('async function start(){','\nstart().catch')}\nglobalThis.host={start,openCollection,suspendPane,activateReady,renderLibrary,syncSidebars,refreshCatalog};`,sandbox);
   function add(id,kind='bank'){
     const row={id,title:id,questions:[{id:'first',title:'甲'},{id:'second',title:'乙'}],states:{}};
     descriptors.set(`${kind}:${id}`,row);sandbox.catalog[kind==='bank'?'banks':'extensions'].push({id,title:id,questionCount:2});
@@ -52,6 +53,19 @@ function fixture(t,{drawer=false,developmentEnabled=false}={}){
   }
   return {dom,document,collections,errors,saved,descriptors,sandbox,host:sandbox.host,add,click};
 }
+
+test('startup renders a pending bank before its collection request finishes',async t=>{
+  const f=fixture(t);f.add('bank');let release,started;
+  const loading=new Promise(resolve=>{started=resolve;});const blocked=new Promise(resolve=>{release=resolve;});const request=f.sandbox.request;
+  f.sandbox.request=async(path,options)=>{
+    if(path==='/api/library/index')return {...f.sandbox.catalog,banks:[{id:'bank',title:'bank',kind:'bank',validationStatus:'pending'}]};
+    if(path==='/api/settings/development')return {enabled:false};
+    if(path==='bank:bank'){assert.equal(options.timeoutMs,60000);started();await blocked;}
+    return request(path);
+  };
+  const start=f.host.start();await loading;assert.match(f.document.querySelector('[data-item-id="bank"]').textContent,/待校验/);assert.equal(f.collections.size,0);
+  release();await start;assert.equal(f.sandbox.activeKey,'bank:bank');f.host.refreshCatalog.client.stop();
+});
 
 test('the title row keeps both sidebar controls and the collection tab bar is gone',t=>{
   const f=fixture(t);f.host.syncSidebars();
@@ -73,7 +87,7 @@ test('normal mode exposes only banks and developer mode enables the full extensi
   f.document.querySelector('#show-extensions').click();await f.sandbox.transition;
   assert.equal(f.sandbox.listMode,'bank');assert.equal(f.sandbox.activeKey,'bank:bank');
   const request=f.sandbox.request;
-  f.sandbox.request=async path=>path==='/api/settings/development'?{enabled:true}:path==='/api/catalog'?f.sandbox.catalog:request(path);
+  f.sandbox.request=async path=>path==='/api/settings/development'?{enabled:true}:path==='/api/library/index'?{...f.sandbox.catalog,developmentEnabled:true}:request(path);
   await f.host.refreshCatalog();assert.equal(toggle.hidden,false);
   f.document.querySelector('#show-extensions').click();await f.sandbox.transition;
   assert.equal(f.sandbox.activeKey,'extension:formal-sample');assert.equal(f.document.querySelector('#library-label').textContent,'题型拓展');
@@ -89,7 +103,7 @@ test('turning developer mode off returns to the previous bank and preserves a sa
   pane.editorSession=createEditorSession({persistDraft:async(id,entry,snapshot)=>persisted.push(snapshot.draft)});
   pane.editorSession.add('first',{id:'first',plugin:pane.plugin,changed:true,value:{contentVersion:'v1'}});
   const request=f.sandbox.request;
-  f.sandbox.request=async path=>path==='/api/settings/development'?{enabled:false}:path==='/api/catalog'?f.sandbox.catalog:request(path);
+  f.sandbox.request=async path=>path==='/api/settings/development'?{enabled:false}:path==='/api/library/index'?{...f.sandbox.catalog,developmentEnabled:false}:request(path);
   await f.host.refreshCatalog();
   assert.equal(f.document.querySelector('.library-switch').hidden,true);assert.equal(f.sandbox.listMode,'bank');
   assert.equal(f.sandbox.activeKey,'bank:bank');assert.equal(f.collections.get('bank:bank').questionId,'second');
@@ -98,7 +112,7 @@ test('turning developer mode off returns to the previous bank and preserves a sa
 
 test('turning developer mode off without any banks shows the welcome page and keeps the sample session',async t=>{
   const f=fixture(t,{developmentEnabled:true});f.add('sample','extension');f.sandbox.listMode='extension';await f.host.openCollection('extension','sample');
-  f.sandbox.request=async path=>path==='/api/settings/development'?{enabled:false}:f.sandbox.catalog;
+  f.sandbox.request=async path=>path==='/api/settings/development'?{enabled:false}:{...f.sandbox.catalog,developmentEnabled:false};
   await f.host.refreshCatalog();
   assert.equal(f.sandbox.activeKey,null);assert.equal(f.document.querySelector('#welcome').hidden,false);assert.equal(f.document.querySelector('.library-switch').hidden,true);
   assert.equal(f.collections.has('extension:sample'),true);assert.equal(f.collections.get('extension:sample').node.hidden,true);assert.deepEqual(f.errors,[]);

@@ -1,3 +1,4 @@
+import {createLibraryIndexClient} from './library-index-client.js';
 import {request,readResource,setAccessToken,collectionPath,questionPath,makeRequestId} from './api.js';
 import {mountExtension} from './frame.js';
 import {prepareExtensionAssets} from './page-assets.js';
@@ -551,8 +552,8 @@ async function openCollection(kind,id){
   await flushPane(active());
   if(collections.has(key)){await activateReady(key);return;}
   let development;
-  if(kind.startsWith('development'))development=await request(developmentPath({kind,id}));
-  const collection=await request(collectionPath(kind,id));
+  if(kind.startsWith('development'))development=await request(developmentPath({kind,id}),{timeoutMs:60000});
+  const collection=await request(collectionPath(kind,id),{timeoutMs:60000});
   if(!collection.questions?.length)throw new Error('这个列表还没有题目');
   await suspendPane(active());
   collection.states ||= {};
@@ -656,11 +657,11 @@ function toggleSidebar(key){
 }
 async function refreshCatalog(){
   const button=$('#refresh');button.classList.add('is-loading');
-  // A cold directory scan validates installed versions and banks in separate rule processes.
   try{
-    const [value,settings]=await Promise.all([request('/api/catalog',{timeoutMs:60000}),request('/api/settings/development')]);
+    const [value,settings]=await Promise.all([libraryIndexClient().refresh(),request('/api/settings/development')]);
+    if(!value)return;
     const returnToBanks=listMode==='extension'||catalog.developmentEnabled&&!active()||['extension','development','development-bank'].includes(active()?.kind);
-    catalog.banks=value.banks;catalog.extensions=value.extensions;catalog.groups=value.groups||{banks:[],extensions:[]};catalog.canManage=value.canManage===true;catalog.developmentEnabled=settings.enabled===true;renderLibrary();
+    catalog.banks=value.banks;catalog.extensions=value.extensions;catalog.groups=value.groups||{banks:[],extensions:[]};catalog.canManage=value.canManage===true;catalog.developmentEnabled=(value.developmentEnabled??settings.enabled)===true;renderLibrary();
     if(!catalog.developmentEnabled&&returnToBanks){
       const previous=[...collections.values()].filter(pane=>pane.kind==='bank'&&catalog.banks.some(row=>row.id===pane.id&&!row.error)).at(-1),first=catalog.banks.find(row=>!row.error);
       if(previous||first)await openCollection(previous?.kind||first.kind||'bank',previous?.id||first.id);
@@ -669,6 +670,18 @@ async function refreshCatalog(){
   }
   catch(error){if(error.status===401){if(!$('#access-dialog').open)$('#access-dialog').showModal();}else throw error;}
   finally{button.classList.remove('is-loading');}
+}
+function libraryIndexClient(){
+  return refreshCatalog.client ||= createLibraryIndexClient({
+    request:(path,options)=>request(path,options),
+    isVisible:()=>document.visibilityState==='visible',
+    onIndex:value=>{
+      catalog.banks=value.banks;catalog.extensions=value.extensions;catalog.groups=value.groups||{banks:[],extensions:[]};catalog.canManage=value.canManage===true;
+      if(typeof value.developmentEnabled==='boolean')catalog.developmentEnabled=value.developmentEnabled;
+      renderLibrary();
+    },
+    onError:error=>{if(error.status===401){if(!$('#access-dialog').open)$('#access-dialog').showModal();}else failure(error);},
+  });
 }
 function switchList(kind){if(kind==='extension'&&!catalog.developmentEnabled)return;listMode=kind;renderLibrary();const open=[...collections.values()].filter(pane=>kind==='bank'?['bank','development-bank'].includes(pane.kind):['extension','development'].includes(pane.kind)).at(-1);const first=(kind==='bank'?catalog.banks:catalog.extensions).find(row=>!row.error);if(open||first)transitionTo(()=>openCollection(open?.kind||first.kind||kind,open?.id||first.id));}
 
@@ -751,6 +764,7 @@ $('#access-form').addEventListener('submit',async event=>{
   finally{button.disabled=false;}
 });
 window.addEventListener('beforeunload',event=>{if(pendingWrites||[...collections.values()].some(pane=>pane.ink.pending||pane.writes.hasFailures||pane.editorSession?.isDirty||pane.plugin?.hasUnsavedInput||pane.retainedQuestions?.size)){event.preventDefault();event.returnValue='';}});
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){const pane=active();if(pane&&!pane.loading&&pane.view==='practice'){pane.whiteboard.flush();saveInk(pane).catch(()=>{});}}});
+window.addEventListener('pagehide',()=>refreshCatalog.client?.stop());
+document.addEventListener('visibilitychange',()=>{refreshCatalog.client?.visibilityChanged();if(document.visibilityState==='hidden'){const pane=active();if(pane&&!pane.loading&&pane.view==='practice'){pane.whiteboard.flush();saveInk(pane).catch(()=>{});}}});
 async function start(){await refreshCatalog();const first=catalog.banks.find(row=>!row.error);if(first&&!collections.size)await transitionTo(()=>openCollection(first.kind||'bank',first.id));}
 start().catch(failure);
