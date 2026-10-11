@@ -16,10 +16,10 @@ $ownsMutex = $false
 $browserHelper = $null
 
 function Find-RunningQuizForge {
-  $processes = Get-CimInstance Win32_Process -Filter "Name='java.exe' OR Name='javaw.exe'" -ErrorAction SilentlyContinue
+  $processes = Get-CimInstance Win32_Process -Filter "Name='node.exe' OR Name='java.exe' OR Name='javaw.exe'" -ErrorAction SilentlyContinue
   foreach ($candidate in $processes) {
     $commandLine = $candidate.CommandLine
-    if (-not $commandLine -or $commandLine -notmatch 'quizforge-web-[\w.\-]+\.jar|io\.quizforge\.web\.Main') { continue }
+    if (-not $commandLine -or $commandLine -notmatch 'server[\\/]main\.mjs|quizforge-web-[\w.\-]+\.jar|io\.quizforge\.web\.Main') { continue }
     $rootMatch = [regex]::Match($commandLine, '(?:^|\s)--root\s+(?:"(?<root>[^"]+)"|(?<root>\S+))')
     $portMatch = [regex]::Match($commandLine, '(?:^|\s)--port\s+"?(?<port>\d+)"?(?:\s|$)')
     if (-not $rootMatch.Success -or -not $portMatch.Success) { continue }
@@ -29,6 +29,7 @@ function Find-RunningQuizForge {
       return [pscustomobject]@{
         Port = [int]$portMatch.Groups['port'].Value
         Pid = $candidate.ProcessId
+        Native = $candidate.Name -ieq 'node.exe'
         StartedAtUtc = if ($candidate.CreationDate) { $candidate.CreationDate.ToUniversalTime() } else { $null }
       }
     }
@@ -37,17 +38,13 @@ function Find-RunningQuizForge {
 
 function Get-RunningQuizForgeRefreshReason($running) {
   if ($Rebuild) { return '已指定 -Rebuild，不能复用正在运行的服务。' }
+  if (-not $running.Native) { return '正在运行的是旧 Java 后端，需要停止旧服务后再启动新版 Node 后端。' }
   if (-not $running.StartedAtUtc) { return '无法确认正在运行的服务是否使用当前后端。' }
-  $jarPath = Join-Path $coreRoot 'target/quizforge-web-1.0.0.jar'
-  if (-not (Test-Path -LiteralPath $jarPath -PathType Leaf)) { return '当前 Java 构建文件缺失，不能复用正在运行的服务。' }
-  if ((Get-Item -LiteralPath $jarPath).LastWriteTimeUtc -gt $running.StartedAtUtc) {
-    return 'Java 程序已更新，正在运行的服务仍使用旧后端。'
-  }
-  # A running JVM does not load later Java/POM changes, even with -SkipBuild.
-  $buildInputs = @((Get-Item -LiteralPath (Join-Path $coreRoot 'pom.xml')))
-  $buildInputs += @(Get-ChildItem -LiteralPath (Join-Path $coreRoot 'src/main') -Recurse -File)
+  $buildInputs = @((Get-Item -LiteralPath (Join-Path $coreRoot 'package-lock.json')))
+  $buildInputs += @(Get-ChildItem -LiteralPath (Join-Path $coreRoot 'server') -Recurse -File)
+  $buildInputs += @(Get-ChildItem -LiteralPath (Join-Path $coreRoot 'node_modules') -Filter '.package-lock.json' -File)
   if (@($buildInputs | Where-Object { $_.LastWriteTimeUtc -gt $running.StartedAtUtc }).Count -gt 0) {
-    return 'Java 源码或 POM 已更新，正在运行的服务仍使用旧后端。'
+    return 'Node 后端或依赖已更新，正在运行的服务仍使用旧代码。'
   }
 }
 
@@ -72,7 +69,7 @@ function Test-DependenciesReady {
   $sourceLock = Join-Path $coreRoot 'package-lock.json'
   $installedLock = Join-Path $coreRoot 'node_modules/.package-lock.json'
   if (-not (Test-Path -LiteralPath $installedLock)) { return $false }
-  foreach ($name in @('ajv', 'fast-deep-equal', 'fast-uri', 'json-schema-traverse', 'require-from-string')) {
+  foreach ($name in @('ajv', 'fast-deep-equal', 'fast-uri', 'json-schema-traverse', 'require-from-string', 'yauzl', 'yazl')) {
     if (-not (Test-Path -LiteralPath (Join-Path $coreRoot "node_modules/$name/package.json"))) { return $false }
   }
   # npm locks contain an empty property name, unsupported by Windows PowerShell's JSON reader.
@@ -101,7 +98,7 @@ try {
   if ($SkipBuild -and $Rebuild) { throw '-SkipBuild 和 -Rebuild 不能同时使用。' }
   Set-Location -LiteralPath $coreRoot
 
-  # Keep the lock for the lifetime of this foreground launcher, before Java can recover state.
+  # Keep the launcher lock before the Node host can recover state.
   $hasher = [Security.Cryptography.SHA256]::Create()
   try { $rootHash = [BitConverter]::ToString($hasher.ComputeHash([Text.Encoding]::UTF8.GetBytes($projectRoot.ToLowerInvariant()))).Replace('-', '') }
   finally { $hasher.Dispose() }
@@ -121,12 +118,8 @@ try {
   }
   if (Test-PortInUse) { throw "端口 $Port 已被其他程序占用。请关闭占用程序，或使用 -Port 8789 指定其他端口。" }
 
-  $javaCommand = Get-Command java -ErrorAction SilentlyContinue
   $nodeCommand = Get-Command node -ErrorAction SilentlyContinue
-  if (-not $javaCommand) { throw '未找到 Java。请安装 JDK 21 或更高版本，并重新打开启动脚本。' }
   if (-not $nodeCommand) { throw '未找到 Node.js。请安装 Node.js 24，并重新打开启动脚本。' }
-  $javaVersion = (& $javaCommand.Source --version | Out-String)
-  if ($LASTEXITCODE -ne 0 -or $javaVersion -notmatch '(?m)^(?:openjdk|java)\s+(\d+)' -or [int]$Matches[1] -lt 21) { throw 'Java 版本不符合要求，需要 JDK 21 或更高版本。' }
   $nodeVersion = (& $nodeCommand.Source --version | Out-String).Trim()
   if ($LASTEXITCODE -ne 0 -or $nodeVersion -notmatch '^v24\.') { throw "Node.js 版本不符合要求，需要 Node.js 24，当前为 $nodeVersion。" }
 
@@ -134,25 +127,14 @@ try {
     $npmCommand = Get-Command npm.cmd -ErrorAction SilentlyContinue
     if (-not $npmCommand) { throw '依赖需要安装，但未找到 npm。请重新安装 Node.js 24。' }
     Write-Host '正在安装或更新 Node 依赖，首次运行可能需要联网……'
-    & $npmCommand.Source ci --no-audit --no-fund
+    $npmCache = Join-Path $projectRoot '.temp/npm-cache'
+    & $npmCommand.Source ci --cache $npmCache --no-audit --no-fund
     if ($LASTEXITCODE -ne 0) { throw 'Node 依赖安装失败，请检查网络和上方错误后重新双击启动。' }
   }
 
-  $jarPath = Join-Path $coreRoot 'target/quizforge-web-1.0.0.jar'
-  $needsBuild = $Rebuild -or -not (Test-Path -LiteralPath $jarPath)
-  if (-not $needsBuild -and -not $SkipBuild) {
-    $jarTime = (Get-Item -LiteralPath $jarPath).LastWriteTimeUtc
-    $buildInputs = @((Get-Item -LiteralPath (Join-Path $coreRoot 'pom.xml')))
-    $buildInputs += @(Get-ChildItem -LiteralPath (Join-Path $coreRoot 'src/main') -Recurse -File)
-    $needsBuild = @($buildInputs | Where-Object { $_.LastWriteTimeUtc -gt $jarTime }).Count -gt 0
-  }
-  if ($needsBuild) {
-    $mavenCommand = Get-Command mvn.cmd -ErrorAction SilentlyContinue
-    if (-not $mavenCommand) { throw '需要构建 Java 程序，但未找到 Maven。请安装 Maven 并加入 PATH 后重新启动。' }
-    Write-Host '正在构建 QuizForge Web……'
-    & $mavenCommand.Source -q '-DskipTests' package
-    if ($LASTEXITCODE -ne 0) { throw 'Java 构建失败，请查看上方错误后重新启动。' }
-  } else { Write-Host '使用已有构建，跳过 Maven。' }
+  if ($SkipBuild -or $Rebuild) { Write-Host 'Node 后端直接运行源码；旧构建参数保留兼容，无需 Java 构建。' }
+  $entryPoint = Join-Path $coreRoot 'server/main.mjs'
+  if (-not (Test-Path -LiteralPath $entryPoint -PathType Leaf)) { throw 'Node 后端入口缺失，请检查应用文件。' }
 
   $bindAddress = if ($Lan) { '0.0.0.0' } else { '127.0.0.1' }
   if ($Lan -and -not $AccessToken) {
@@ -162,7 +144,7 @@ try {
     $AccessToken = [BitConverter]::ToString($tokenBytes).Replace('-', '').ToLowerInvariant()
   }
   $baseUrl = "http://127.0.0.1:$Port/"
-  $serverArguments = @('-jar', $jarPath, '--root', $projectRoot, '--host', $bindAddress, '--port', "$Port", '--node', $nodeCommand.Source)
+  $serverArguments = @($entryPoint, '--root', $projectRoot, '--host', $bindAddress, '--port', "$Port")
   if ($UpgradeShortAnswer) {
     Write-Host '已选择显式简答升级：将修改旧简答题库的拓展绑定及兼容题目内容，并建立新版状态；原版本历史保留。' -ForegroundColor Yellow
     $serverArguments += '--upgrade-short-answer'
@@ -185,7 +167,7 @@ try {
     Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue | Where-Object { $_.IPAddress -notlike '127.*' -and $_.IPAddress -notlike '169.254.*' -and $_.PrefixOrigin -ne 'WellKnown' } | ForEach-Object { Write-Host ("  http://" + $_.IPAddress + ":$Port/") }
   }
   Write-Host '请保持本窗口打开。关闭窗口或按 Ctrl+C 停止服务。'
-  & $javaCommand.Source @serverArguments
+  & $nodeCommand.Source @serverArguments
   if ($LASTEXITCODE -ne 0) { throw '服务未能启动或异常退出，请查看上方错误信息。' }
 } catch {
   Write-Host ("启动失败：" + $_.Exception.Message) -ForegroundColor Red

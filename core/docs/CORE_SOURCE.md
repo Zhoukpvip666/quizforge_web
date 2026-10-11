@@ -2,41 +2,41 @@
 
 AI 评分支持可选 `targetId`：省略时沿用整题流程，指定时按小题绑定任务。`prepareAiGrading` 的第三参数提供目标与状态；自动提交评分另带 `automatic:true`，规则可返回整题材料或 `{targets:[{targetId,input}]}` 小题清单。宿主校验完整清单后按现有有界单线程队列逐项评分，不从大纲猜目标；`review` 的第四参数提供最新状态，拓展据此合并小题成绩。宿主保存对应任务、各小题 AI 评价和汇总历史，不向模型发送路由标识。详见 `IMPLEMENTATION_CONTRACT.md` 的 AI grading upgrade。
 
-核心代码、依赖、构建产物和开发资料集中在 `core/`，题库、拓展、技能、启动入口与 README 保持产品根层。下文路径均相对于产品根目录；服务 `--root` 仍指向产品根目录，对外协议保持稳定。
+核心代码、依赖、构建产物和开发资料集中在 `core/`，题库、拓展、技能、启动入口与 README 保持产品根层。下文完整路径相对于产品根目录；表中未带目录的后端 JS 文件位于 `core/server/host/`。服务 `--root` 仍指向产品根目录，对外协议保持稳定。
 
 | 职责 | 主要源码 | 边界 |
 | --- | --- | --- |
-| 启动、HTTP、局域网鉴权 | `Main.java`、`QuizForgeServer.java` | 监听器、Host/Origin、密码、请求体与响应限制 |
-| 题库和题目路由 | `CollectionRoutes.java` | 将请求交给对应业务服务，不绕过统一写入检查 |
-| 题库和拓展包 | `Library.java` | 扫描、版本绑定、校验、页面资源和编辑计划 |
-| 轻量目录 | `LibraryIndex.java` | 仅读元数据，输出不可变候选及 pending/error 状态，不启动规则或导入图片 |
-| 集合加载与校验 | `ScopedLibraryLoader.java`、`CollectionValidation.java` | 按集合筛选依赖，完整目录与按需加载共用同一校验实现，复核实际源身份后发布 |
-| 校验调度 | `LibraryLoadCoordinator.java` | 前台、后台各一个执行通道，相同身份共享任务，过期结果和关闭时的任务不能发布 |
-| 资源与成功缓存 | `LibraryResourceImports.java`、`ValidationCache.java` | 分命名空间核实图片导入；只持久化成功校验，严格限制缓存大小、数量和环境身份 |
-| 更新兼容契约 | `ExtensionApi.java` | API v1.0／v1.1／v1.2、Manifest 需求和题库格式校验；缺省旧声明，页面/历史按各自运行版本加载 |
-| 混合题型批处理 | `RuleBatches.java` | 按拓展 ID／版本／签名分组，顺序有界分块，结果恢复原题序 |
-| 目录规则校验 | `CatalogRuleValidation.java` | 将同一拓展的多个题库合批校验，失败时按原集合回退；大纲仍按集合生成 |
-| 作答与历史事务 | `StateStore.java`、`HistoryRounds.java`、`EditJournal.java` | 修订号、幂等回执、保存、历史冻结、恢复；事务继续集中在状态仓库 |
-| 通用 AI 任务 | `AiGradingService.java`、`AiGradingProtocol.java` | 排队、重试、结果校验、过期检查、自动保存评分，以及最终反馈 |
-| 模型通信 | `AiSettings.java`、`AiGateway.java`、`AiProvider.java`、`OpenAiCompatibleProvider.java` | 设置与密钥、模型协议适配、输入输出预算 |
-| 浏览器协调 | `core/web/app.js` | 标签、页面生命周期、保存屏障、草稿、编辑和历史切换 |
+| 启动、HTTP、局域网鉴权 | `core/server/main.mjs`、`server.js` | 监听器、Host/Origin、密码、请求体与响应限制 |
+| 题库和题目路由 | `collection-routes.js` | 将请求交给对应业务服务，不绕过统一写入检查 |
+| 题库和拓展包 | `library.js` | 扫描、版本绑定、校验、页面资源和编辑计划 |
+| 轻量目录 | `library-index.js` | 仅读元数据，输出不可变候选及 pending/error 状态，不启动规则或导入图片 |
+| 集合加载与校验 | `library.js`、`collections.js` | 按集合筛选依赖，完整目录与按需加载共用同一校验实现，复核实际源身份后发布 |
+| 校验调度 | `transactions.js` | 前台、后台各一个执行通道，相同身份共享任务，过期结果和关闭时的任务不能发布 |
+| 资源与成功缓存 | `resources.js`、`validation-cache.js` | 分命名空间核实图片导入；只持久化成功校验，严格限制缓存大小、数量和环境身份 |
+| 更新兼容契约 | `extension-api.js` | API v1.0／v1.1／v1.2、Manifest 需求和题库格式校验；缺省旧声明，页面/历史按各自运行版本加载 |
+| 混合题型批处理 | `outline.js` | 按拓展 ID／版本／签名分组，顺序有界分块，结果恢复原题序 |
+| 目录规则校验 | `collections.js` | 各集合独立校验，集合内按拓展分块；成功缓存避免重复规则执行 |
+| 作答与历史事务 | `state-store.js`、`history-rounds.js`、`edit-journal.js` | 修订号、幂等回执、保存、历史冻结、恢复；事务继续集中在状态仓库 |
+| 通用 AI 任务 | `ai-grading-service.js`、`ai-protocol.js` | 排队、重试、结果校验、过期检查、自动保存评分，以及最终反馈 |
+| 模型通信 | `ai-settings.js`、`ai-provider.js`、`ai-diagnostics.js` | 设置与密钥、模型协议适配、能力测试及输入输出预算 |
+| 浏览器协调 | `core/web/app.js` | 页面生命周期、保存屏障、草稿、编辑和历史切换 |
 | 列表与大纲展示 | `core/web/views/library-view.js`、`core/web/views/outline-view.js` | 接收展示数据及操作回调；大纲仅在可见信息变化时重建，笔迹保存不释放原按钮或键盘焦点 |
 | 保存失败恢复 | `core/web/save-recovery.js` | 重试原写入或读取服务器状态；明确放弃输入时绕过失败的拓展保存钩子，替换题卡成功前保留旧输入 |
-| 考试与临时生命周期 | `ExamSessions.java`、`TemporaryExamSessions.java` | 考试编排与持久记录；临时考试独立管理页面归属、容量、闲置过期和资源释放 |
+| 考试与临时生命周期 | `exam-sessions.js`、`temporary-exams.js` | 考试编排与持久记录；临时考试独立管理页面归属、容量、闲置过期和资源释放 |
 | 题型请求与视图上下文 | `core/web/extension-requests.js`、`core/web/practice-context.js`、`core/web/extension-pages.js` | 请求分发、读写权限、导航、题目级拓展页面路由与缓存归属 |
 | 拓展沙箱与 AI 桥接 | `core/web/frame.js`、`core/web/ai-client.js` | 会话来源校验、SDK、请求去重、评分保存后更新宿主状态 |
-| 简答业务 | `extensions/基础题型/short-answer-1.3.0/` | 统一题干、两级富文本编辑、AI 评分输入、默认零分、0.5 分滑条自动保存；使用应用提供的富文本接口，旧版包位于兼容测试 fixture |
-| 简答评分迁移 | `ShortAnswerAutoUpgrade.java`、`Library.java`、`StateStore.java` | 显式 1.2.2 → 1.3.0，保持题目内容、现有正式成绩及完成状态，备份原题库/状态，沿用恢复事务 |
+| 简答业务 | `extensions/基础题型/short-answer-richtext-dev/` | 当前开发原型；完成程度由 development.json 和未实现错误明确声明；旧版完整规则用于兼容 fixture |
+| 简答评分迁移 | `short-answer-upgrade.js`、`library.js`、`state-store.js` | 显式 1.2.2 → 1.3.0，保持题目内容、现有正式成绩及完成状态，备份原题库/状态，沿用恢复事务 |
 
-Java 文件均位于 `core/src/main/java/io/quizforge/web/`；共享组件位于 `core/shared/richtext/`。题型自己的题干、参考答案、评分说明和判分规则留在根层 `extensions/` 中；分值汇总、历史、模型设置和密钥由应用负责。
+原生 JS 后端模块位于 `core/server/host/`，启动入口位于 `core/server/main.mjs`；原 Java 源码只保留作兼容性对照；共享组件位于 `core/shared/richtext/`。题型自己的题干、参考答案、评分说明和判分规则留在根层 `extensions/` 中；分值汇总、历史、模型设置和密钥由应用负责。
 
 普通题库与正式/runtime 样例的根 `features` 控制整库编辑、白板、历史含练习持久化及考试，四项省略默认 true，仅显式 false 关闭；考试入口由宿主提供，详见 [考试模式](EXAM_MODE.md)。history=false 的答案、分数、白板、完成状态、练习图片和 AI 任务仅在当前浏览器页面会话中有效；刷新或关闭浏览器标签后不能恢复，editing=true 仍允许保存题目文件和编辑图片。样例编辑只维护 examples 和样例图片，不修改 manifest、规则、Schema、页面或 SDK 等版本代码，也不改变其他题库的代码身份；旧历史仍冻结。具体规则见 [题库格式](QUESTION_BANK_FORMAT.md#整库功能开关) 与 [兼容政策](COMPATIBILITY.md)。下文持久保存与恢复描述适用于历史开启的集合。
 
-当前安装的单选和简答位于 `extensions/基础题型/{single-choice,short-answer-1.3.0}`，保持各自原 ID/版本；`kaoyan-english-2026-dev` 和 `ui-preview-dev` 是独立开发叶。物理分组无清单、身份或共同版本，见 [分组规则](EXTENSION_GROUPS.md)。旧简答包保留在 `core/test/fixtures/legacy-extensions/`，重复的旧 AI 简答示例题库保留在 `core/test/fixtures/legacy-banks/`，不参与正常目录扫描；用户自行安装的旧版本仍遵循既有兼容政策。
+基础富文本单选和简答原型位于 `extensions/基础题型/{single-choice-richtext-dev,short-answer-richtext-dev}`，保持迁移前的 ID、版本与开发声明。物理分组无清单、身份或共同版本，见 [分组规则](EXTENSION_GROUPS.md)。旧简答包保留在 `core/test/fixtures/legacy-extensions/`，重复的旧 AI 简答示例题库保留在 `core/test/fixtures/legacy-banks/`，不参与正常目录扫描；用户自行安装的旧版本仍遵循既有兼容政策。
 
 题库允许每题绑定不同拓展或同一拓展的不同版本；旧根级绑定保持原状态标识。混合历史保存去重的 `pages` 表和每题 `pageKey`，历史读取只使用当时的投影与页面。拓展集合及其内容签名在加载集合时计算一次，暖缓存检查不重复生成混合拓展签名。浏览器继续只保留一个活动题型页面。
 
-首次目录扫描先校验拓展示例，再将题库中属于同一拓展身份、版本、签名、目录和运行模式的题目交给有界批处理，减少 Node 进程启动次数。合批保留原集合和原分块的 VM 重置边界，拓展内部状态不会跨题库传播。某一合批失败时只回退该类型的原集合，保持坏题库的错误归属和开发版容错。大纲生成保持逐集合执行，避免跨题库重复题目 ID 混淆结果；直接编辑和导入仍完整校验。成功校验缓存及题库、规则、Schema、runner 的失效规则沿用原逻辑。
+目录入口先读取元数据，前台按需加载当前集合，后台单通道校验其他集合。集合内仍按拓展身份、版本和签名进行有界批处理，结果恢复原题序；大纲逐集合生成。成功缓存绑定完整内容和规则运行环境，编辑、发布及导入完整校验。参见 Node 宿主迁移记录。
 
 普通作答保存将答案校验与未提交页面投影合并到一次 Node 调用，减少进程启动及 Schema 编译开销；两步仍分别使用独立 VM，投影不接收答案或已提交状态。投影失败时不保存答案、不返回成功回执。此优化不改变拓展接口、提交按钮等待规则、修订号或幂等回执。
 
@@ -53,11 +53,11 @@ flowchart LR
 
 ## 原简答题库升级
 
-正常启动不传入 `--upgrade-short-answer`，不改题库的拓展绑定。只有用户显式运行根层 `.\Start-QuizForge-Web.cmd -UpgradeShortAnswer`（或自行传 Java 开关 `--upgrade-short-answer`），才将已安装的 `quizforge.short-answer` 1.0.0／1.1.0／1.2.0／1.2.1 升级到 1.2.2，支持根级单拓展和题目级混合绑定。该操作会修改旧题库，执行前先保存、关闭原服务并备份整个产品目录。脚本在检测到同根服务运行或另一个启动窗口占用目录时拒绝升级，不复用当前服务。升级在新服务开始接受请求之前进行；不要让不同端口的服务同时使用同一份数据目录。
+正常启动不传入 `--upgrade-short-answer`，不改题库的拓展绑定。只有用户显式运行根层 `.\Start-QuizForge-Web.cmd -UpgradeShortAnswer`（或自行传 Node 启动开关 `--upgrade-short-answer`），才将已安装的 `quizforge.short-answer` 1.0.0／1.1.0／1.2.0／1.2.1 升级到 1.2.2，支持根级单拓展和题目级混合绑定。该操作会修改旧题库，执行前先保存、关闭原服务并备份整个产品目录。脚本在检测到同根服务运行或另一个启动窗口占用目录时拒绝升级，不复用当前服务。升级在新服务开始接受请求之前进行；不要让不同端口的服务同时使用同一份数据目录。
 
-这条旧版迁移要求所需旧包与 1.2.2 目标包实际安装到 `extensions/`；测试 fixture 不作为安装包。当前随附简答题库已绑定 1.3.0，不需要执行。
+这条旧版迁移要求所需旧包与 1.2.2 目标包实际安装到 `extensions/`；测试 fixture 不作为安装包。Node 后端迁移无需执行这条命令。
 
-富文本公共接口与实现分离：`RichTextService.java` 读取 `shared/richtext/service.json`，为新 `requiresRichText` 与已知旧依赖选择兼容实现；`QF.content` 是宿主公开的服务门面，拓展无需直接使用 Tiptap。当前高级文档约定使用组件 1.1.2，基础约定保留 1.0.0；普通更新不修改拓展或题库绑定。页面资源版本包含实现选择，题目/作答/草稿身份不包含实现版本。历史冻结实际选择，读取 `.state/sdk/` 中固定组件及原页面；不会按当前配置替换旧历史。详见 [富文本服务](RICHTEXT_SERVICE.md)。
+富文本公共接口与实现分离：`richtext-service.js` 读取 `shared/richtext/service.json`，为新 `requiresRichText` 与已知旧依赖选择兼容实现；`QF.content` 是宿主公开的服务门面，拓展无需直接使用 Tiptap。当前高级文档约定使用组件 1.1.2，基础约定保留 1.0.0；普通更新不修改拓展或题库绑定。页面资源版本包含实现选择，题目/作答/草稿身份不包含实现版本。历史冻结实际选择，读取 `.state/sdk/` 中固定组件及原页面；不会按当前配置替换旧历史。详见 [富文本服务](RICHTEXT_SERVICE.md)。
 
 升级保持题库 ID、题目 ID、原题干和图片；1.0.0／1.1.0 的旧独立题名作为题干开头的二级标题保留，已有相同开头时不重复添加，1.2.0／1.2.1 的题干不再追加题名。通用题目元数据仍保留 title，新简答编辑器从题干生成该字段。根级单拓展绑定使用独立状态文件与新的修订号，旧版 `.state` 文件不变；题目级绑定的状态标识仍为 `bank:<id>:mixed`，即使只有一种题型也沿用该标识。升级先将原题库和状态字节备份到 `.state/upgrade-backups/`，再通过已有编辑事务更新同一状态文件。进行中轮次保留其他题型的答案、结果与修订号；已完成轮次的全部答案转为草稿，清空当前结果并增加修订号。历史中的题目、页面、答案和评分内容保持原样，旧进行中轮标记中断并记录关闭时间，已完成历史保持冻结。旧写入回执不会套用到新版本。
 
@@ -69,17 +69,17 @@ flowchart LR
 
 ## 简答自动保存评分升级
 
-可显式执行一次性迁移，将现有题库中 `quizforge.short-answer` 的精确绑定 1.2.2 迁移到已安装的 1.3.0。此路径由 `ShortAnswerAutoUpgrade` 调用 `Library.prepareShortAnswerAutoUpgrade` 和 `StateStore.upgradeShortAnswerAuto`；与上面的旧版 → 1.2.2 升级分别实现，不能套用其“完成答案转草稿”行为。新版提交保存默认 0 分，人工滑条按 0.5 分调整并自动保存，AI 校验成功后保存实际成绩。
+可显式执行一次性迁移，将现有题库中 `quizforge.short-answer` 的精确绑定 1.2.2 迁移到已安装的 1.3.0。此路径由 `short-answer-upgrade.js` 的 `upgradeShortAnswerBanks(library, states, true)` 实现；与上面的旧版 → 1.2.2 升级分别实现，不能套用其“完成答案转草稿”行为。新版提交保存默认 0 分，人工滑条按 0.5 分调整并自动保存，AI 校验成功后保存实际成绩。
 
 迁移前确认 1.2.2 与 1.3.0 包都已安装；当前随附题库无需再迁移。
 
 先保存或取消未完成编辑并关闭当前服务，从产品根目录执行：
 
 ```powershell
-java -jar core/target/quizforge-web-1.0.0.jar --root . --port 8787 --upgrade-short-answer-auto --upgrade-only
+node core/server/main.mjs --root . --port 8787 --upgrade-short-answer-auto --upgrade-only
 ```
 
-Main 先绑定所选端口，再通过 `QuizForgeServer.upgradeShortAnswerAutoBanks()` 迁移；同端口已有服务时不会开始写入。`--upgrade-only` 完成后关闭并退出，不启动网页服务；随后用普通启动脚本开启。普通启动没有这个开关，不自动改变题库，执行迁移时也不要让其他端口的实例访问同一目录。
+Node 入口先绑定所选端口并取得数据目录锁，再调用专用迁移；端口或数据目录已有实例时不会开始写入。`--upgrade-only` 完成后关闭并退出，不启动网页服务；随后用普通启动脚本开启。普通启动没有这个开关，不自动改变题库，执行迁移时也不要让其他端口的实例访问同一目录。
 
 迁移只处理 1.2.2 → 1.3.0，不改变题目 data、title、outline、题库/题目 ID，也不修改其他题型绑定。原答案和白板保留；已有数值的正式成绩保留，已提交 pending 简答通过新规则转为正式 0 分。未提交答案保持原作答/草稿状态。已完成练习继续保持 finished，不重置成新草稿或重复添加旧完成记录；旧历史中的页面、题目、答案、评分与完成状态保持冻结。新版本作答使用更新的签名与修订号，旧写入回执和旧 AI 任务不能覆盖新状态。
 
@@ -87,7 +87,7 @@ Main 先绑定所选端口，再通过 `QuizForgeServer.upgradeShortAnswerAutoBa
 
 ## 小题导航
 
-题库每题的 `outline` 明确选择大题标签或小题列表，集合加载时校验并缓存；`getOutlineItems(data)` 仅为未配置的文件提供目录。`OutlineItems` 校验显式互斥结构，`RuleBatches` 只对缺字段的题目运行生成钩子。`renderOutline` 按原题序和相邻父题型/版本展平为同一个编号矩阵，小题替换大题按钮，不留占位列；旧题库及历史也使用该布局。`outline-navigation.js` 在复用或打开父题后调用页面的 `onOutlineNavigate(itemId)`；历史从冻结集合读取标签和顺序。父题状态、内容指纹与评分结构不变。完整格式及接口见 [QUESTION_BANK_FORMAT.md](QUESTION_BANK_FORMAT.md) 和 [SUBQUESTION_OUTLINE.md](SUBQUESTION_OUTLINE.md)。
+题库每题的 `outline` 明确选择大题标签或小题列表，集合加载时校验并缓存；`getOutlineItems(data)` 仅为未配置的文件提供目录。`outline.js` 校验显式互斥结构，并只对缺字段的题目运行生成钩子。`renderOutline` 按原题序和相邻父题型/版本展平为同一个编号矩阵，小题替换大题按钮，不留占位列；旧题库及历史也使用该布局。`outline-navigation.js` 在复用或打开父题后调用页面的 `onOutlineNavigate(itemId)`；历史从冻结集合读取标签和顺序。父题状态、内容指纹与评分结构不变。完整格式及接口见 [QUESTION_BANK_FORMAT.md](QUESTION_BANK_FORMAT.md) 和 [SUBQUESTION_OUTLINE.md](SUBQUESTION_OUTLINE.md)。
 
 ## API 与题库版本兼容
 
@@ -95,7 +95,7 @@ Main 先绑定所选端口，再通过 `QuizForgeServer.upgradeShortAnswerAutoBa
 
 ## 开发版拓展
 
-`DevelopmentSettings` 保存本机开发者模式开关，`DevelopmentExtensions` 读取显式 UI/runtime 标记、页面及本地资源。`Library` 分开解析正式包与开发包，测试题库须明确绑定开发目录；服务把开发作答、历史、编辑草稿、资源和 AI 任务路由到独立状态目录。UI 预览由 `development-preview.js` 加载，不注入 QF SDK；`development-watch.js` 只监测当前可见页面，写入未完成时保留上次可用画面。runtime 使用原有题型接口，发布前校验并复制为新的正式版本。使用方式和边界见 [DEVELOPMENT_EXTENSIONS.md](DEVELOPMENT_EXTENSIONS.md)。
+`development-settings.js` 保存本机开发者模式开关，`extension-packages.js` 读取显式 UI/runtime 标记、页面及本地资源。`Library` 分开解析正式包与开发包，测试题库须明确绑定开发目录；服务把开发作答、历史、编辑草稿、资源和 AI 任务路由到独立状态目录。UI 预览由 `development-preview.js` 加载，不注入 QF SDK；`development-watch.js` 只监测当前可见页面，写入未完成时保留上次可用画面。runtime 使用原有题型接口，发布前校验并复制为新的正式版本。使用方式和边界见 [DEVELOPMENT_EXTENSIONS.md](DEVELOPMENT_EXTENSIONS.md)。
 
 ## 开发与验证
 
@@ -105,11 +105,11 @@ Main 先绑定所选端口，再通过 `QuizForgeServer.upgradeShortAnswerAutoBa
 
 ```powershell
 Push-Location .\core
-node --test test/extension-requests.test.mjs test/ai-host.test.mjs test/short-answer-ai-*.test.mjs
-mvn.cmd '-Dtest=ShortAnswerUpgradeTest,AiHttpTest,AiGradingServiceTest,ServerTest' test
+node --import ./scripts/test-environment.mjs --test test/extension-requests.test.mjs test/ai-host.test.mjs test/short-answer-ai-*.test.mjs
+npm run test:host
 Pop-Location
 ```
 
-以上示例从产品根目录执行；测试结果与构建产物位于 `core/target/`。
+以上示例从产品根目录执行；测试临时文件位于产品 `.temp/`。Java 源码和 `core/target/` 仅用于保留的旧版对照，不是新宿主启动依赖。
 
 真实模型连接需要用户在左下角设置中配置。自动测试和开发预览使用临时目录与模拟模型，不调用用户的付费模型。

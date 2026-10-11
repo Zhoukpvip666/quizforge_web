@@ -3,17 +3,19 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Local QuizForge extension rule runner and browser checks",
+  "description": "Native Node.js QuizForge host, extension rule runner and browser checks",
   "engines": {
     "node": ">=24 <25"
   },
   "scripts": {
+    "start": "node server/main.mjs --root ..",
     "build:richtext": "node scripts/build-richtext.mjs",
     "build:richtext-advanced": "node scripts/build-richtext-advanced.mjs",
     "build:short-answer-advanced": "node scripts/build-short-answer-advanced.mjs",
     "build:short-answer-ai": "node scripts/build-short-answer-ai.mjs",
-    "test": "node --test test/*.test.mjs server/*.test.cjs",
-    "test:rules": "node --test server/*.test.cjs"
+    "test": "node --import ./scripts/test-environment.mjs --test --test-concurrency=4 test/*.test.mjs server/*.test.cjs server/host/*.test.mjs",
+    "test:host": "node --import ./scripts/test-environment.mjs --test --test-concurrency=4 server/host/*.test.mjs",
+    "test:rules": "node --import ./scripts/test-environment.mjs --test server/*.test.cjs"
   },
   "dependencies": {
     "@tiptap/core": "3.31.4",
@@ -32,7 +34,9 @@
     "ajv": "8.20.0",
     "esbuild": "0.28.2",
     "html2canvas": "1.4.1",
-    "katex": "0.16.43"
+    "katex": "0.16.43",
+    "yauzl": "3.4.0",
+    "yazl": "3.3.1"
   },
   "devDependencies": {
     "jsdom": "27.4.0"
