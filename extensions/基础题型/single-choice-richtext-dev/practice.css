@@ -1,9 +1,9 @@
 :root{color-scheme:light}
 *{box-sizing:border-box}
-body{margin:0;background:transparent;color:#302c37;font-family:Arial,"Microsoft YaHei",sans-serif}
+body{display:flow-root;margin:0;background:transparent;color:#302c37;font-family:Arial,"Microsoft YaHei",sans-serif}
 [hidden]{display:none!important}
 button,input{font:inherit}
-.single-choice-card{width:100%;max-width:704px;margin:0 auto;padding:24px 24px 18px;min-width:0;background:#fff;border:1px solid #e8e3ec;border-radius:14px}
+.single-choice-card{width:calc(100% - 48px);max-width:800px;margin:28px auto 32px;padding:24px 24px 22px;min-width:0;background:#fff;border:1px solid #e8e3ec;border-radius:14px}
 .question-header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px;min-width:0}
 .question-type{display:inline-block;flex:none;padding:5px 12px;border-radius:999px;background:#f1eaf8;color:#80639d;font-size:13px;font-weight:400;line-height:1.5}
 .question-score{flex:none;color:#8b789d;font-size:14px;line-height:1.5;white-space:nowrap}
@@ -59,4 +59,13 @@ label.choice:hover{border-color:#bbabd0;background:#fcfaff}
 .editable-field .qfrt-toolbar{padding:4px 5px}
 .editable-field .qfrt-body .tiptap{padding:10px 12px;min-height:68px}
 .editable-field .qfrt-advanced .qfrt-body .tiptap{min-height:calc(100% - 1px)}
-@media(max-width:520px){.single-choice-card{padding:18px 16px 15px;border-radius:10px}.choice,.authoring .choice{padding:10px;gap:8px}.qfrt-document{font-size:14px}.choice-letter{font-size:14px}.editable-field .qfrt-body .tiptap{padding:8px}.primary,.secondary{min-height:40px}}
+@media(max-width:520px){.single-choice-card{padding:20px 16px 20px}.choice,.authoring .choice{padding:10px;gap:8px}.qfrt-document{font-size:14px}.choice-letter{font-size:14px}.editable-field .qfrt-body .tiptap{padding:8px}.primary,.secondary{min-height:40px}}
+
+.choice input[type=checkbox]{flex:none;margin:5px 0 0;width:16px;height:16px;accent-color:#7956a4;cursor:inherit}
+.choice.is-correct input[type=checkbox]{accent-color:#28744b}.choice.is-incorrect input[type=checkbox]{accent-color:#a84444}
+.true-false-options{grid-template-columns:repeat(2,minmax(0,1fr));max-width:440px}.true-false-options .choice{align-items:center}.true-false-options input[type=radio]{margin:0}.true-false-options .choice-letter{line-height:26px}
+.demo-score{font-size:13px;color:#806b91;margin:0 0 10px}.qfrt-document{overflow-wrap:anywhere}
+
+/* Desktop editor host already supplies the outer 24px gutter and top gap. */
+@media(min-width:601px){.single-choice-card.authoring{width:100%;margin-top:4px}}
+@media(max-width:600px){.single-choice-card{width:calc(100% - 32px);margin:28px auto 24px;padding:20px 16px;border-radius:12px}body>main.single-choice-card{border:1px solid #e8e3ec!important;border-radius:12px!important}}

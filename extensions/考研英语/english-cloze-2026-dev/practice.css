@@ -39,7 +39,7 @@ select:focus-visible {
 
 .question-card {
   width: 100%;
-  max-width: 704px;
+  max-width:800px;
   margin: auto;
   padding: 24px;
   background: #fff;
@@ -549,7 +549,7 @@ select:focus-visible {
 }
 
 .compact .part-title {
-  margin: 8px 0 0
+  margin: 6px 0 0
 }
 
 .compact .part-number {
@@ -569,18 +569,19 @@ select:focus-visible {
   min-height: 38px;
   gap: 5px;
   border-radius: 6px;
-  align-items: baseline
+  align-items: start
 }
 
 .compact .option input {
   width: 19px;
   height: 19px;
   margin: 0;
-  align-self: center
+  align-self: start;
+  margin-top: 5px
 }
 
 .compact .option-letter {
-  font: 15px/1.5 system-ui;
+  font: inherit;
   color: inherit
 }
 
@@ -701,3 +702,23 @@ select:focus-visible {
 .gap-choice{padding:9px 12px;border:0;border-radius:6px;text-align:left;background:#fff;color:#303044;font:14pt/1.5 "Times New Roman","Microsoft YaHei",serif;overflow-wrap:anywhere;}
 .gap-choice:hover,.gap-choice:focus-visible{background:#f3edf8;}
 .gap-choice[aria-pressed=true]{background:#eee5f8;color:#70508e;}
+
+/* Keep the number, marker and first line on the same baseline. */
+.compact .part { padding: 3px 0; gap: 10px; }
+.compact .part-title { margin: 5px 0 0; }
+.compact .part-number { font: 600 14pt/1.5 "Times New Roman", "Microsoft YaHei", serif; }
+.compact .option {
+  display: grid;
+  grid-template-columns: 19px max-content minmax(0, 1fr);
+  align-items: start;
+  padding: 5px 4px;
+  min-height: 38px;
+  font: 14pt/1.5 "Times New Roman", "Microsoft YaHei", serif;
+}
+.compact .option-letter,
+.question-card.compact .option-text { font: inherit; color: inherit; }
+.compact .option input { margin: 5px 0 0; align-self: start; }
+.compact .option-text { overflow-wrap: anywhere; word-break: normal; }
+
+/* Symmetric spacing keeps short cards centred by the host. */
+body { padding-block:24px; }

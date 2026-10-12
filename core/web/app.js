@@ -1,45 +1,48 @@
-import {createLibraryIndexClient} from './library-index-client.js';
-import {request,readResource,setAccessToken,collectionPath,questionPath,makeRequestId} from './api.js';
-import {mountExtension} from './frame.js';
-import {prepareExtensionAssets} from './page-assets.js';
-import {mountWhiteboard} from './whiteboard.js';
-import {captureDraftRegion} from './whiteboard-capture.js';
-import {createWriteQueue,createDraftBuffer} from './write-queue.js';
-import {createQuestionCache} from './question-cache.js';
-import {navigateOutlineTarget} from './outline-navigation.js';
-import {practiceViewport} from './view-camera.js';
-import {createHistoryView,historyProgress} from './history-view.js';
-import {createEditorSession} from './editor-session.js';
-import {mountPracticeSummary} from './practice-summary.js';
-import {bindNetworkSettings} from './network-settings.js';
-import {bindAiSettings} from './ai-settings.js';
-import {bindExamMode} from './exam-mode.js';
-import {bindDevelopmentSettings} from './development-settings.js';
-import {createDevelopmentWatcher} from './development-watch.js';
-import {createAiClient} from './ai-client.js';
-import {createDraftFullscreen} from './draft-fullscreen.js';
-import {visibleQuestions,visibleQuestionId,hasScoreSummary,navigationIndex,stateFor,contextFor,collectionFeature,canEditCollection,practiceSaveLabel,canViewDraft,draftViewActive,examActive} from './practice-context.js';
-import {createExtensionRouter} from './extension-requests.js';
-import {questionExtension,collectionHasExtension,extensionPageRoute,sameQuestionStamp,unusedPagePrefixes} from './extension-pages.js';
-import {renderLibraryView} from './views/library-view.js';
-import {renderOutlineView} from './views/outline-view.js';
-import {bindLibraryManagement} from './library-management.js';
-import {bindLibraryTransfer} from './library-transfer.js';
-import {bindLibraryResize} from './library-resize.js';
-import {bindSaveRecovery} from './save-recovery.js';
+import {createLibraryIndexClient} from './library/library-index-client.js';
+import {createCollectionLoading} from './practice/collection-loading.js';
+import {reportAnswerPreview,previewDraftAnswer,confirmAnswerPreview,answerStateForSave} from './practice/answer-preview.js';
+import {request,readResource,setAccessToken,collectionPath,questionPath,makeRequestId} from './shared/api.js';
+import {mountExtension} from './bridge/frame.js';
+import {prepareExtensionAssets} from './bridge/page-assets.js';
+import {mountWhiteboard} from './draft/whiteboard.js';
+import {captureDraftRegion} from './draft/whiteboard-capture.js';
+import {createWriteQueue,createDraftBuffer} from './shared/write-queue.js';
+import {createQuestionCache} from './practice/question-cache.js';
+import {navigateOutlineTarget} from './outline/outline-navigation.js';
+import {syncQuestionLayout} from './practice/question-layout.js';
+import {createHistoryView,historyProgress} from './history/history-view.js';
+import {createEditorSession} from './editor/editor-session.js';
+import {mountPracticeSummary} from './practice/practice-summary.js';
+import {bindNetworkSettings} from './shell/network-settings.js';
+import {bindAiSettings} from './ai/ai-settings.js';
+import {bindExamMode} from './exam/exam-mode.js';
+import {bindDevelopmentSettings} from './development/development-settings.js';
+import {createDevelopmentWatcher} from './development/development-watch.js';
+import {createAiClient} from './ai/ai-client.js';
+import {createDraftFullscreen} from './draft/draft-fullscreen.js';
+import {visibleQuestions,visibleQuestionId,hasScoreSummary,navigationIndex,stateFor,contextFor,collectionFeature,canEditCollection,practiceSaveLabel,canViewDraft,draftViewActive,examActive} from './practice/practice-context.js';
+import {createExtensionRouter} from './bridge/extension-requests.js';
+import {questionExtension,collectionHasExtension,extensionPageRoute,sameQuestionStamp,unusedPagePrefixes} from './bridge/extension-pages.js';
+import {renderLibraryView} from './library/library-view.js';
+import {renderOutlineView} from './outline/outline-view.js';
+import {bindLibraryManagement} from './library/library-management.js';
+import {bindLibraryTransfer} from './library/library-transfer.js';
+import {bindLibraryResize} from './library/library-resize.js';
+import {bindSaveRecovery} from './practice/save-recovery.js';
 
 const $=selector=>document.querySelector(selector);
 const catalog={banks:[],extensions:[],groups:{banks:[],extensions:[]},canManage:false,developmentEnabled:false},collections=new Map();
 const collapsedExtensionGroups=new Set();
 const questionsCache=createQuestionCache(),pagesCache=createQuestionCache({capacity:4,maxBytes:4*1024*1024});
 const sdkCache=createQuestionCache({capacity:4,maxBytes:8*1024*1024});
+const collectionLoading=createCollectionLoading(document);
 const editorDraftPath=(pane,qid)=>`/api/${pane.kind.startsWith('development')?'development/':''}editor-drafts/${encodeURIComponent(pane.id)}/${encodeURIComponent(qid)}${['extension','development'].includes(pane.kind)?`?kind=${pane.kind}`:''}`;
 async function prepareAssets(assets){return prepareExtensionAssets(assets,dependency=>sdkCache.load(`${dependency.id}:${dependency.version}:static`,()=>request(`/api/sdk/${encodeURIComponent(dependency.id)}/${encodeURIComponent(dependency.version)}`)));}
 const sidebarPreferences={library:true,outline:true};
 try{const saved=JSON.parse(localStorage.getItem('quizforge-sidebars')||'{}');for(const key of Object.keys(sidebarPreferences))if(typeof saved[key]==='boolean')sidebarPreferences[key]=saved[key];}catch{}
 const libraryDrawer=matchMedia('(max-width:800px)'),outlineDrawer=matchMedia('(max-width:1100px)');
 const phoneLayout=matchMedia('(max-width:600px)');
-let listMode='bank',activeKey=null,transition=Promise.resolve(),pendingWrites=0;
+let listMode='bank',activeKey=null,pendingLibraryKey=null,transition=Promise.resolve(),pendingWrites=0;
 const el=(tag,className,text)=>{const node=document.createElement(tag);if(className)node.className=className;if(text!=null)node.textContent=text;return node;};
 function notice(message){$('#notice').textContent=message||'';$('#notice').hidden=!message;}
 function failure(error){notice(error.message||String(error));}
@@ -71,17 +74,23 @@ function makeWriteQueue(pane){return createWriteQueue({
       questionsCache.set(questionCacheKey(pane,qid),value);
       pane.collection.states[qid]=value.state;
       if(pane.questionId===qid){pane.payload=value;if(action!=='whiteboard'&&action!=='draft')pane.plugin?.update(contextFor(pane));}
-      if(active()===pane){renderOutline();updateChrome();saveStatus(pane.writes.hasFailures?'仍有内容未保存':practiceSaveLabel(pane),pane.writes.hasFailures?'error':'');renderRecovery();}
+      if(active()===pane){renderOutline();updateChrome();saveStatus(pane.writes.hasFailures?'仍有内容未保存':pane.answerPreviews?.size?'答案尚未保存':practiceSaveLabel(pane),pane.writes.hasFailures?'error':pane.answerPreviews?.size?'saving':'');renderRecovery();}
     },
     onFailed:async(qid,_action,error)=>{
       if(error.status===409){try{const latest=await loadQuestion(pane,qid,{fresh:true});pane.collection.states[qid]=latest.state;if(pane.questionId===qid)pane.payload=latest;if(active()===pane)renderOutline();}catch{/* Keep the failed input locally until a confirmed retry. */}}
       if(active()===pane){saveStatus('保存失败','error');failure(error);renderRecovery();}
     }
   });}
-async function mutate(pane,action,data){
+async function mutate(pane,action,data,options={}){
   if(action==='whiteboard'&&!collectionFeature(pane,'whiteboard'))throw Object.assign(new Error('题库未开放草稿白板'),{code:'FEATURE_DISABLED'});
+  const qid=pane.questionId,contentVersion=pane.renderedContentVersion,answerState=action==='draft'?answerStateForSave(pane,qid,options.answerStateId):null,preview=action==='draft'?previewDraftAnswer(pane,qid,options.answerStateId):null;
+  if(preview&&active()===pane){renderOutline();saveStatus('保存中…','saving');}
   if(action==='submit'){pane.whiteboard.flush();await saveInk(pane);}
-  const value=await pane.writes.enqueue(pane.questionId,action,data,{contentVersion:pane.renderedContentVersion});
+  const value=await pane.writes.enqueue(qid,action,answerState?{...data,answerState}:data,{contentVersion});
+  if(preview)confirmAnswerPreview(pane,qid,preview);
+  if(action==='submit'||action==='retry')pane.answerPreviews?.delete(qid);
+  for(const [stateId,snapshot]of pane.answerStateSnapshots||[])if(snapshot.qid===qid&&(['submit','retry'].includes(action)||stateId===options.answerStateId))pane.answerStateSnapshots.delete(stateId);
+  if(active()===pane){renderOutline();saveStatus(pane.writes.hasFailures?'仍有内容未保存':pane.answerPreviews?.size?'答案尚未保存':practiceSaveLabel(pane),pane.writes.hasFailures?'error':pane.answerPreviews?.size?'saving':'');}
   return {ok:true,data:{status:value.state.status,result:value.state.result}};
 }
 function renderRecovery(){
@@ -112,7 +121,9 @@ async function flushPane(pane){
     if(pane.view!=='practice')return true;
     pane.whiteboard?.flush();await saveInk(pane);await pane.writes.settled();
     if(pane.writes.hasFailures)throw Object.assign(new Error('保存未完成，当前输入已保留。请重试保存，或读取服务器状态。'),{code:'SAVE_FAILED'});
-    return !pane.plugin?.hasUnsavedInput;
+    const saved=!pane.plugin?.hasUnsavedInput;
+    if(saved&&pane.keepRuntime&&!pane.plugin?.hasError){pane.keepRuntime=false;clearPageFailure(pane);}
+    return saved;
   }catch(error){
     if(!pane.development)throw error;
     pane.keepRuntime=true;if(active()===pane){saveStatus('开发功能尚未完成，当前输入保留','error');notice(error.message);}
@@ -124,6 +135,7 @@ const pageRequest=createExtensionRouter({
   uploadResource:(args,pane)=>request(pane.exam?`${collectionPath('exam',pane.id)}/resources`:`/api/${pane.kind.startsWith('development')?'development/':''}resources`,{method:'POST',headers:pane.view==='practice'&&!collectionFeature(pane,'history')?{'X-QuizForge-Transient-Resource':'true'}:{},body:JSON.stringify(args)}),
   loadSdk:(id,version)=>sdkCache.load(`${id}:${version}:editor`,()=>request(`/api/sdk/${encodeURIComponent(id)}/${encodeURIComponent(version)}/editor`)),
   save:mutate,
+  reportAnswerState:(pane,value)=>{const entry=reportAnswerPreview(pane,value);if(active()===pane){renderOutline();saveStatus('答案尚未保存','saving');}return Promise.resolve({ok:true,data:{status:'reported',stateId:entry.stateId}});},
   navigate:(pane,id)=>transitionTo(()=>navigateQuestion(pane,id)),
   summary:pane=>transitionTo(()=>showScoreSummary(pane)),
   ai:requestAi,
@@ -166,6 +178,7 @@ async function showQuestion(pane,qid,{payload:prepared,collection:descriptor=pan
     pane.questionId=qid;pane.outlineItemId=null;pane.ink.clear();pane.payload=payload;pane.renderedContentVersion=payload.stamp?.contentVersion;pane.collection.states[qid]=payload.state;
     pane.plugin?.destroy();pane.plugin=null;if(candidateHost){for(const child of [...pane.frameHost.children])if(child!==candidateHost&&!child.classList.contains('development-retained-question'))child.remove();candidateHost.classList.remove('development-preview-candidate');}else pane.frameHost.replaceChildren();
     pane.viewport.scrollTop=0;pane.viewport.scrollLeft=0;
+    pane.draftLayoutPending=!payload.draft;
     const zoom=Math.max(.25,Math.min(1,(pane.viewport.clientWidth-24)/760));
     const draft=collectionFeature(pane,'whiteboard')&&structuredClone(payload.draft)||{schemaVersion:1,viewport:{x:(pane.viewport.clientWidth/zoom-760)/2,y:0,zoom},strokes:[],paper:{color:'#ffffff',pattern:'plain'}};
     pane.whiteboard.setReadOnly(!!pane.exam&&!examActive(pane));pane.whiteboard.load(draft);pane.tools.hidden=!pane.draftMode;pane.whiteboard.setMode(pane.draftMode?'draft':'practice');
@@ -177,7 +190,7 @@ async function showQuestion(pane,qid,{payload:prepared,collection:descriptor=pan
     pane.viewport.scrollTop=0;if(active()===pane){renderOutline();updateChrome();saveStatus(pane.payload.state.status==='unanswered'?'':practiceSaveLabel(pane));}
     if(pane.restartApplied){pane.scoreSummary=null;pane.restartRequest=null;pane.restartApplied=false;}
   }catch(error){if(candidatePlugin&&pane.plugin!==candidatePlugin){candidatePlugin.destroy();candidateHost?.remove();}if(!pane.plugin&&!pane.questionId)pane.questionId=qid;showPageFailure(pane,error,qid);throw error;}
-  finally{pane.loading=false;clearTimeout(loadingTimer);loading.remove();pane.node.dataset.loadMs=String(Math.round(performance.now()-started));}
+  finally{pane.loading=false;if(pane.plugin&&!pane.pageFailure)syncPracticeCamera(pane);clearTimeout(loadingTimer);loading.remove();pane.node.dataset.loadMs=String(Math.round(performance.now()-started));}
 }
 function clearPageFailure(pane){pane.errorBox?.remove();pane.errorBox=null;pane.pageFailure=null;}
 function showPageFailure(pane,error,qid=pane.questionId){
@@ -198,14 +211,14 @@ function parkDevelopmentQuestion(pane){
   const retained=pane.retainedQuestions??=new Map();
   if(retained.size>=4&&!retained.has(pane.questionId))throw new Error('已有 4 张开发题卡保留未保存输入，请先重试保存或关闭标签。');
   const host=pane.plugin.frame.parentElement;pane.plugin.setActive?.(false);host.hidden=true;host.classList.add('development-retained-question');
-  retained.set(pane.questionId,{plugin:pane.plugin,host,payload:pane.payload,pageAssets:pane.pageAssets,contentVersion:pane.renderedContentVersion,draft:pane.whiteboard.getDraft(),ink:pane.ink,scrollTop:pane.viewport.scrollTop,draftMode:pane.draftMode});
+  retained.set(pane.questionId,{plugin:pane.plugin,host,payload:pane.payload,pageAssets:pane.pageAssets,contentVersion:pane.renderedContentVersion,draft:pane.whiteboard.getDraft(),ink:pane.ink,scrollTop:pane.viewport.scrollTop,draftMode:pane.draftMode,draftLayoutPending:pane.draftLayoutPending});
   pane.plugin=null;pane.ink=createDraftBuffer();pane.keepRuntime=false;clearPageFailure(pane);
 }
 function restoreDevelopmentQuestion(pane,qid){
   const value=pane.retainedQuestions?.get(qid);if(!value)return false;
   pane.plugin?.destroy();for(const child of [...pane.frameHost.children])if(child!==value.host&&!child.classList.contains('development-retained-question'))child.remove();
   pane.retainedQuestions.delete(qid);value.host.hidden=false;value.host.classList.remove('development-retained-question');pane.plugin=value.plugin;pane.payload=value.payload;pane.pageAssets=value.pageAssets;pane.questionId=qid;pane.renderedContentVersion=value.contentVersion;pane.ink=value.ink;pane.draftMode=value.draftMode;pane.plugin.setActive?.(true);
-  pane.whiteboard.load(value.draft);pane.whiteboard.setMode(pane.draftMode?'draft':'practice');pane.tools.hidden=!pane.draftMode;pane.node.classList.toggle('is-draft',pane.draftMode);pane.viewport.scrollTop=value.scrollTop;clearPageFailure(pane);syncPracticeCamera(pane);renderOutline();updateChrome();return true;
+  pane.draftLayoutPending=value.draftLayoutPending;pane.whiteboard.load(value.draft);pane.whiteboard.setMode(pane.draftMode?'draft':'practice');pane.tools.hidden=!pane.draftMode;pane.node.classList.toggle('is-draft',pane.draftMode);pane.viewport.scrollTop=value.scrollTop;clearPageFailure(pane);syncPracticeCamera(pane);renderOutline();updateChrome();return true;
 }
 function disposeRetainedQuestions(pane){for(const value of pane.retainedQuestions?.values()||[]){value.plugin.destroy();value.host.remove();}pane.retainedQuestions?.clear();}
 function allowLeaveDevelopmentInput(pane){
@@ -215,7 +228,7 @@ function allowLeaveDevelopmentInput(pane){
 }
 async function toggleDraftMode(pane=active()){
   if(!canViewDraft(pane)||pane.loading)return;
-  if(pane.view==='practice')await flushPane(pane);
+  if(pane.view==='practice'&&await flushPane(pane)===false)return;
   const key=pane.view==='history'?'historyDraftMode':'draftMode';
   pane[key]=!pane[key];
   const draft=draftViewActive(pane);
@@ -225,8 +238,7 @@ async function toggleDraftMode(pane=active()){
 }
 function syncPracticeCamera(pane){
   if(pane.closed||pane.richtextFrame||!pane.whiteboard||pane.viewport.clientWidth<100)return;
-  const fluid=phoneLayout.matches&&!draftViewActive(pane);
-  if(pane.view!=='edit')pane.whiteboard.setViewCamera(fluid?{x:0,y:0,zoom:1}:practiceViewport({width:pane.viewport.clientWidth,height:pane.viewport.clientHeight,cardHeight:pane.plugin?.frame.offsetHeight||pane.frameHost.offsetHeight,horizontalGutter:112,verticalGutter:48}));
+  if(pane.view!=='edit')syncQuestionLayout(pane,draftViewActive(pane));
   resizeStage(pane);
 }
 function setEditorLayout(pane,{expanded},frame){
@@ -243,7 +255,7 @@ function setEditorLayout(pane,{expanded},frame){
 }
 function resizeStage(pane,camera=pane.whiteboard?.getViewCamera()){
   if(!camera)return;
-  const fluid=phoneLayout.matches&&!draftViewActive(pane);
+  const fluid=!draftViewActive(pane)&&pane.view!=='edit';
   const height=fluid?Math.max(pane.viewport.clientHeight,pane.world.offsetHeight):pane.view==='edit'?pane.world.offsetHeight:draftViewActive(pane)?pane.world.offsetHeight*camera.zoom+Math.max(0,camera.y*camera.zoom):Math.max(pane.viewport.clientHeight,(34+(pane.plugin?.frame.offsetHeight||pane.frameHost.offsetHeight)+camera.y)*camera.zoom+24);
   pane.stage.style.height=`${Math.max(1,height)}px`;
 }
@@ -272,7 +284,8 @@ async function returnToPractice(pane){
 }
 async function showScoreSummary(pane){
   if(!hasScoreSummary(pane))return;const history=pane.view==='history';
-  await flushPane(pane);if(!allowLeaveDevelopmentInput(pane))return;pane.loading=true;updateChrome();
+  if(await flushPane(pane)===false){saveStatus('答案尚未保存，请先完成保存后再查看汇总','error');return;}
+  if(!allowLeaveDevelopmentInput(pane))return;pane.loading=true;updateChrome();
   try{
     const summary=history?pane.historyEntry.summary:await request(`${collectionPath(pane.kind,pane.id)}/summary`);
     disposeEditorSession(pane);disposeScoreSummary(pane);pane.plugin?.destroy();pane.plugin=null;pane.frameHost.replaceChildren();
@@ -306,7 +319,7 @@ async function restartPractice(pane,summary){
       if(!pane.restartApplied){
         if(!pane.restartRequest||pane.restartRequest.summaryVersion!==summary.summaryVersion)pane.restartRequest={requestId:makeRequestId(),roundId:summary.roundId,summaryVersion:summary.summaryVersion};
         await request(`${collectionPath(pane.kind,pane.id)}/restart`,{method:'POST',body:JSON.stringify(pane.restartRequest)});
-        pane.restartApplied=true;pane.finishRequest=null;pane.historyRecords=[];
+        pane.restartApplied=true;pane.finishRequest=null;pane.historyRecords=[];pane.answerPreviews?.clear();pane.answerStateSnapshots?.clear();
       }
       // Retry a failed load without resetting a round that already started on the server.
       questionsCache.deleteCollection(`${pane.key}:`);pane.ink.clear();clearTimeout(pane.inkTimer);
@@ -550,27 +563,46 @@ function watchDevelopment(pane,descriptor){
 }
 async function openCollection(kind,id){
   const key=`${kind}:${id}`;
-  await flushPane(active());
-  if(collections.has(key)){await activateReady(key);return;}
-  const [development,collection]=await Promise.all([
-    kind.startsWith('development')?request(developmentPath({kind,id}),{timeoutMs:60000}):undefined,
-    request(collectionPath(kind,id),{timeoutMs:60000}),
-  ]);
-  if(!collection.questions?.length)throw new Error('这个列表还没有题目');
-  await suspendPane(active());
-  collection.states ||= {};
-  const node=el('section','question-pane'),tools=el('div','qf-whiteboard-tool-row'),viewport=el('div','question-viewport'),stage=el('div','question-stage'),world=el('div','question-world'),frameHost=el('div','question-frame-wrapper');
-  tools.hidden=true;world.append(frameHost);stage.append(world);viewport.append(stage);node.append(tools,viewport);$('#panes').append(node);
-  const pane={key,kind,id,collection,node,tools,viewport,stage,world,frameHost,questionId:null,payload:null,plugin:null,whiteboard:null,writes:null,ink:createDraftBuffer(),draftMode:false,historyDraftMode:false,view:'practice',historyEntry:null,historyRecords:[],historyView:null,historyQuestion:null,historyQuestionId:null,editState:null,editorSession:null,loading:true,closed:false,inkTimer:null};
-  if(kind==='exam'){pane.exam=collection.exam;examControls.observe(pane.exam);}
-  if(development){pane.development=development.development||{};pane.developmentDescriptor=development;}
-  pane.writes=makeWriteQueue(pane);
-  attachRuntime(pane);
-  pane.sizeObserver=new ResizeObserver(()=>syncPracticeCamera(pane));pane.sizeObserver.observe(viewport);
-  pane.worldObserver=new ResizeObserver(()=>syncPracticeCamera(pane));pane.worldObserver.observe(world);
-  collections.set(key,pane);activate(key);
-  if(development)watchDevelopment(pane,development);
-  await showQuestion(pane,collection.questions[0].id);
+  const previous=active(),previousInert=previous?.node.inert;
+  const row=[...catalog.banks,...catalog.extensions].find(row=>row.id===id&&(row.kind||kind)===kind);
+  const loading=collectionLoading.begin(row?.title||row?.name||collections.get(key)?.collection.title||'');
+  let pane=null,committed=false;
+  if(previous)previous.node.inert=true;
+  try{
+    pendingLibraryKey=key;renderLibrary();
+    await flushPane(previous);
+    if(collections.has(key)){loading.setDetail('正在恢复题目…');await activateReady(key);return;}
+    const [development,collection]=await Promise.all([
+      kind.startsWith('development')?request(developmentPath({kind,id}),{timeoutMs:60000}):undefined,
+      request(collectionPath(kind,id),{timeoutMs:60000}),
+    ]);
+    if(!collection.questions?.length)throw new Error('这个列表还没有题目');
+    collection.states ||= {};
+    const node=el('section','question-pane collection-candidate'),tools=el('div','qf-whiteboard-tool-row'),viewport=el('div','question-viewport'),stage=el('div','question-stage'),world=el('div','question-world'),frameHost=el('div','question-frame-wrapper');
+    node.inert=true;
+    tools.hidden=true;world.append(frameHost);stage.append(world);viewport.append(stage);node.append(tools,viewport);$('#panes').append(node);
+    pane={key,kind,id,collection,node,tools,viewport,stage,world,frameHost,questionId:null,payload:null,plugin:null,whiteboard:null,writes:null,ink:createDraftBuffer(),draftMode:false,historyDraftMode:false,view:'practice',historyEntry:null,historyRecords:[],historyView:null,historyQuestion:null,historyQuestionId:null,editState:null,editorSession:null,loading:true,closed:false,inkTimer:null};
+    if(kind==='exam')pane.exam=collection.exam;
+    if(development){pane.development=development.development||{};pane.developmentDescriptor=development;}
+    pane.writes=makeWriteQueue(pane);
+    attachRuntime(pane);
+    pane.sizeObserver=new ResizeObserver(()=>syncPracticeCamera(pane));pane.sizeObserver.observe(viewport);
+    pane.worldObserver=new ResizeObserver(()=>syncPracticeCamera(pane));pane.worldObserver.observe(world);
+    loading.setDetail('正在加载首题…');
+    await showQuestion(pane,collection.questions[0].id);
+    await suspendPane(previous);
+    collections.set(key,pane);committed=true;node.classList.remove('collection-candidate');activate(key);
+    if(pane.exam)examControls.observe(pane.exam);
+    if(development)watchDevelopment(pane,development);
+  }catch(error){
+    if(pane&&!committed){pane.closed=true;clearTimeout(pane.inkTimer);pane.sizeObserver?.disconnect();pane.worldObserver?.disconnect();pane.plugin?.destroy();pane.whiteboard?.destroy();pane.node.remove();}
+    throw error;
+  }finally{
+    if(previous&&!previous.closed)previous.node.inert=previousInert;
+    if(committed)pane.node.inert=false;
+    loading.finish();
+    if(pendingLibraryKey===key){pendingLibraryKey=null;renderLibrary();}
+  }
 }
 function activate(key){const selected=collections.get(key);if(selected){collections.delete(key);collections.set(key,selected);}activeKey=key;notice('');for(const pane of collections.values()){pane.node.hidden=pane.key!==key;pane.plugin?.setActive?.(pane.key===key);pane.developmentWatcher?.setActive(pane.key===key);}$('#welcome').hidden=!!selected;renderLibrary();renderOutline();updateChrome();renderRecovery();closeDrawers();const pane=active();saveStatus(pane?.writes.hasFailures?'仍有内容未保存':pane?.view==='history'?'只读快照':pane?.view==='edit'?'编辑中':pane?.payload&&pane.payload.state.status!=='unanswered'?practiceSaveLabel(pane):'',pane?.writes.hasFailures?'error':'');}
 function attachRuntime(pane){if(pane.whiteboard)return;pane.whiteboard=mountWhiteboard(pane.viewport,{toolbarContainer:pane.tools,onChange:value=>enqueueInk(pane,value),onViewChange:camera=>resizeStage(pane,camera),onFullscreen:()=>draftFullscreen.toggle(),onCapture:value=>captureDraftRegion(value,{viewport:pane.viewport,frame:pane.plugin?.frame,capture:pane.plugin?.captureRegion?.bind(pane.plugin)})});pane.whiteboard.setFullscreenState(draftFullscreen.getState());pane.sizeObserver?.observe(pane.viewport);pane.worldObserver?.observe(pane.world);}
@@ -604,7 +636,7 @@ async function activateReady(key){
   }
 }
 function renderLibrary(){
-  listMode=renderLibraryView({document,catalog,listMode,activeKey,collapsedGroups:collapsedExtensionGroups,onNotice:notice,
+  listMode=renderLibraryView({document,catalog,listMode,activeKey:pendingLibraryKey??activeKey,collapsedGroups:collapsedExtensionGroups,onNotice:notice,
     onOpen:(kind,id)=>transitionTo(()=>openCollection(kind,id)),
     onManage:(target,row,action)=>libraryManager.open(target,row,action),onExport:row=>libraryTransfer.exportGroup(row)});
 }
@@ -691,7 +723,10 @@ $('#show-banks').addEventListener('click',()=>switchList('bank'));$('#show-exten
 $('#refresh').addEventListener('click',()=>transitionTo(async()=>{for(const pane of collections.values())await flushPane(pane);questionsCache.clear();pagesCache.clear();await refreshCatalog();for(const pane of collections.values())pane.needsRefresh=true;if(activeKey)await activateReady(activeKey);}));
 const prepareLibraryChange=()=>transitionTo(async()=>{
     if([...collections.values()].some(pane=>pane.view==='edit'))throw new Error('请先保存或取消题目编辑，再修改目录。');
-    for(const pane of collections.values())if(await flushPane(pane)===false)throw new Error('请先保存未完成的开发输入，再修改目录。');
+    for(const pane of collections.values())if(await flushPane(pane)===false){
+      const title=pane.collection?.title||pane.development?.name||pane.id||'开发题库',question=pane.payload?.question?.title||pane.questionId||'当前题目';
+      throw new Error(`「${title}」中的「${question}」仍有未保存输入。请返回该题重试保存，完成后再修改目录。`);
+    }
   });
 
 async function applyLibraryChange(result,operation){
@@ -723,7 +758,7 @@ const libraryTransfer=bindLibraryTransfer({request,getContext:()=>({kind:listMod
     notice(`已导入「${result.group}」：${result.importedBanks} 本题库、${result.importedExtensions} 个拓展；跳过 ${result.skippedBanks} 本相同题库、${result.skippedExtensions} 个相同拓展。`);
   })});
 $('#library-new-group').addEventListener('click',()=>libraryManager.open('group',null,'create'));
-bindSaveRecovery({document,active,transitionTo,loadQuestion,showQuestion,saveInk,notice,collectionFeature});
+bindSaveRecovery({document,active,transitionTo,loadQuestion,showQuestion,saveInk,notice,collectionFeature,renderOutline});
 $('#draft-toggle').addEventListener('click',()=>transitionTo(()=>toggleDraftMode()));
 for(const [id,offset]of [['previous',-1],['next',1]])$(`#${id}`).addEventListener('click',()=>transitionTo(async()=>{const pane=active();if(!pane)return;const rows=visibleQuestions(pane),index=navigationIndex(pane),target=rows[index+offset];if(target)await navigateQuestion(pane,target.id);else if(index+offset===rows.length&&hasScoreSummary(pane))await showScoreSummary(pane);}));
 for(const id of ['history-open','history-choose'])$(`#${id}`).addEventListener('click',()=>transitionTo(()=>openHistoryList(active())));
@@ -743,7 +778,7 @@ phoneLayout.addEventListener('change',()=>{for(const pane of collections.values(
 $('#scrim').addEventListener('click',closeDrawers);syncSidebars();
 bindLibraryResize({shell:$('.app-shell'),library:$('.library'),handle:$('#library-resize')});
 bindAiSettings({request});
-const examControls=bindExamMode({document,request,active,collectionPath,makeRequestId,flush:pane=>transitionTo(()=>flushPane(pane)),open:(kind,id)=>transitionTo(()=>openCollection(kind,id)),onError:failure,refresh:(pane,value)=>transitionTo(()=>refreshExam(pane,value))});
+const examControls=bindExamMode({document,request,active,collectionPath,makeRequestId,onDeadline:()=>updateChrome(),flush:pane=>transitionTo(()=>flushPane(pane)),open:(kind,id)=>transitionTo(()=>openCollection(kind,id)),onError:failure,refresh:(pane,value)=>transitionTo(()=>refreshExam(pane,value))});
 async function refreshExam(pane,exam){
   if(pane.closed)return;const changed=pane.exam?.status!==exam.status||JSON.stringify(pane.exam?.gradingErrors||[])!==JSON.stringify(exam.gradingErrors||[]);pane.exam=exam;
   if(changed){

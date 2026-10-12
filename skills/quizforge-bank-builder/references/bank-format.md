@@ -40,7 +40,7 @@ question-banks/my-exam/
 }
 ```
 
-`data` 必须按对应独立拓展的 schema 填写。根对象可以有 `extension` 作为默认绑定，每题的 `extension` 优先；没有根绑定时每题都必须有绑定。正式引用是精确 `{id,version}`，不支持 `latest`、范围或只填 id。不同题可以引用同组或跨组的独立拓展，物理分组名和路径不进入绑定，不使用 `typeId` 或 `extensionGroup`。见 [独立拓展与分组](extension-development.md)，绑定形状可参考 [最小混合题库](../assets/minimal-mixed-bank/bank.json)，实际 data 按各题型填写。
+`data` 必须按对应独立拓展的 schema 填写。根对象可以有 `extension` 作为默认绑定，每题的 `extension` 优先；没有根绑定时每题都必须有绑定。正式引用是精确 `{id,version}`，不支持 `latest`、范围或只填 id。不同题可以引用同组或跨组的独立拓展，物理分组名和路径不进入绑定，不使用 `typeId` 或 `extensionGroup`。见 [独立拓展与分组](extension-development.md)，题型 data 直接参考 [单选题已有样例](../../../extensions/基础题型/single-choice-richtext-dev/examples/bank.json) 与 [简答题已有样例](../../../extensions/基础题型/short-answer-richtext-dev/examples/bank.json)，再按实际安装的 Schema 填写；构建混合库时逐题声明各自绑定，不另建技能样例库。
 
 开发测试题库可显式用 `extension:{"development":"new-type-dev"}` 引用全局唯一的开发叶目录名，不包含分组路径，可与正式绑定混用；仅在开发者模式开启时可用。开发绑定始终使用同一 QF 管线和隔离状态，尚未实现的动作显式报错。完整校验加 `--allow-development`；骨架预览另加 `--preview-only`，不执行规则或验收分值。正式交付改为该叶拓展已发布的精确 `id/version`，详见 [开发版拓展](extension-development.md)。
 
@@ -92,7 +92,7 @@ extensions/
 
 对象只允许 `editing/whiteboard/history/exam` 四个 boolean；四项缺项均为 true，仅显式 false 关闭对应功能，不能给每题覆盖。`editing:false` 禁用题目编辑；`whiteboard:false` 禁用白板但不阻止未提交答案的自动更新。`history:false` 关闭答案、得分、白板内容、完成状态和历史的全部练习持久化，练习上传图片与 AI 任务也只驻内存。这些数据在当前浏览器页面会话中有效，刷新页面或关闭浏览器标签后不能恢复；在同一页面切换题库再返回可以临时保留。编辑仍开启时，题目文件和编辑图片可以照常保存。
 
-考试默认保留练习并显示宿主“开始考试”入口；只有用户明确不要考试时才在题库文件根 features 写 `"exam":false`，不在列表编辑窗口设置；开始前选择 1–1440 分钟或不限时。限时到点自动交卷，不继续延长作答；不限时显示已用时间。考试与练习状态分开，交卷后统一评分，AI 失败可重试或人工评分。历史开启时可从“开始考试”对话框继续考试／查看成绩，题目与拓展快照固定；历史关闭时考试答案、图片、AI 任务和结果仅属于原浏览器页面会话，不持久保存。
+考试默认保留练习并显示宿主“开始考试”入口；只有用户明确不要考试时才在题库文件根 features 写 `"exam":false`，不在列表编辑窗口设置；开始前选择 1–1440 分钟或不限时。限时到点自动交卷，不继续延长作答；不限时显示已用时间。考试与练习状态分开，交卷后统一评分，AI 失败可重试或人工评分。历史开启时从“开始考试”对话框继续未完成考试，已完成考试统一在带“考试”标记的历史中查看，题目与拓展快照固定；历史关闭时考试答案、图片、AI 任务和结果仅属于原浏览器页面会话，不持久保存。
 
 样例采用相同题库格式，其自绑定、功能默认与受控编辑规范只见 [拓展开发](extension-development.md#每叶一本样例)。
 
@@ -104,51 +104,22 @@ extensions/
 
 宿主先按大题 `questions` 顺序展开自身入口或小题 `items`，再将相邻的相同**大题拓展 ID/version** 放在一个矩阵中，共用题型名称。物理分组不改变分类；小题样式不单独分类，后面隔开的同型不提前合并。显示小题时不显示大题按钮及其占位列。现有题库和历史也统一用修正后的单层矩阵。
 
-显式 `parts` 要求对应拓展已声明 API 1.1 `outline-items` 并有练习/历史和编辑定位回调；无需实现目录生成 `getOutlineItems`。显式配置不会被该方法覆盖。缺配置的现有文件仍可由原生成方法提供目录。题库制作或用户明确要求的结构调整涉及增删题目、修改显示编号时，必须同步维护显式目录；只改大纲不改变父题答案/计分。这属于题库结构维护，不要求题型编辑页提供题号或大纲编辑控件；`getDocument()` 按现有接口返回 title/data，显式 outline 由宿主保留。详细格式见产品的 `core/docs/QUESTION_BANK_FORMAT.md`，定位接口见 [组合题与子题大纲](extension-api.md#子题导航与状态)。
+显式 `parts` 要求对应拓展已声明 API 1.1 `outline-items` 并有练习/历史和编辑定位回调；无需实现目录生成 `getOutlineItems`。显式配置不会被该方法覆盖。缺配置的现有文件仍可由原生成方法提供目录。题库制作或用户明确要求的结构调整涉及增删题目、修改显示编号时，必须同步维护显式目录；只改大纲不改变父题答案/计分。这属于题库结构维护，不要求题型编辑页提供题号或大纲编辑控件；`getDocument()` 按现有接口返回 title/data，显式 outline 由宿主保留。详细格式见产品的 `core/docs/reference/QUESTION_BANK_FORMAT.md`，定位接口见 [组合题与子题大纲](extension-api.md#子题导航与状态)。
 
-## 题型数据示例
+## 基础题型与实际 Schema
 
-这张表是能力示例，不是安装清单。先检查用户项目实际 manifest。
+题型数据示例统一读取产品基础拓展，不在本技能重复定义私有 Schema 或维护独立样例。
 
-| 绑定 | 内容能力 | 作答与判分 | 不适合直接承载 |
-| --- | --- | --- | --- |
-| `quizforge.single-choice@1.0.0` | 纯文本题干、2–26 个纯文本选项、纯文本解析 | 选一个选项，自动判分 | 必须保留图片/表格排版的选项、多选、排序等专用交互 |
-| `quizforge.short-answer@1.3.0` | 富文本题干、参考答案、评分标准；富文本回答 | 提交默认 0 分，人工 0.5 分滑条自动保存；支持可选 AI 评分 | 要求精确选择/拖拽等专用交互且不接受简答替代的题 |
+| 参考叶 | 查看内容 |
+| --- | --- |
+| [single-choice-richtext-dev](../../../extensions/基础题型/single-choice-richtext-dev) | 富文本题干、选项、正确选项 ID、答案与解析、满分，以及已有文字/图片/公式/表格样例 |
+| [short-answer-richtext-dev](../../../extensions/基础题型/short-answer-richtext-dev) | 可选共享材料、稳定小题 ID、富文本题干与答案解析、各小题满分，以及单问/多问样例 |
 
-### 单选 data
+读取 manifest.examples 对应文件及 question.schema.json、answer.schema.json、rules.js；按实际文件核对必填项、资源、答案结构、分值范围与步长，不把旧纯文本单选或旧简答 referenceAnswer/rubric 结构套给新题型。
 
-```json
-{
-  "stem": "Java 中 7 / 2 的结果是什么？",
-  "options": [
-    {"id": "A", "text": "3"},
-    {"id": "B", "text": "3.5"}
-  ],
-  "correctOptionId": "A",
-  "explanation": "两个整数相除时，小数部分被舍去。",
-  "maxScore": 1
-}
-```
+当前参考叶为开发原型，真实保存、判分、人工/AI 评分尚未完成。它们用于设计和数据参考，不能作为已验收正式版本或对外可评分题库的依据。用户项目安装的其他完整版本按其实际精确绑定与 Schema 使用，旧兼容 fixture 不当作当前安装清单。
 
-字段均必填，拒绝额外属性。stem 1–20000 字符；每项 text 1–10000；explanation 1–20000。选项 ID 为 `^[A-Za-z0-9_-]+$`，最长 64，不能重复，正确答案必须属于这些 ID。maxScore 大于 0、最大 100000。
-
-材料无解析时可以根据已确认的答案编写解析，制作报告注明“生成解析”；材料答案本身缺失或矛盾则不能静默生成标准答案。
-
-### 简答 data
-
-```json
-{
-  "formatVersion": 1,
-  "stem": {"type": "doc", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "说明缓存的作用及数据更新后的处理方式。"}]}]},
-  "referenceAnswer": {"type": "doc", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "复用已读取或计算的数据；原数据变化后更新或使缓存失效。"}]}]},
-  "rubric": {"type": "doc", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "解释复用数据减少读取或计算得 2 分；说明更新或失效得 2 分。可按 0.5 分调整。"}]}]},
-  "maxScore": 4
-}
-```
-
-字段均必填，拒绝额外属性。maxScore 大于 0、最大 100000，必须为 0.5 的倍数。三个文档均需有效内容。参考答案与 rubric 用于评分，不放进练习未提交的可见题干。
-
-回答由页面保存为 `{ "formatVersion": 1, "document": <富文本文档> }`，不预写进题库。人工/AI 评分、练习进度及历史由宿主保存，题库制作不写 `.state`。
+材料无解析时可根据已确认答案编写解析并在报告注明；材料答案缺失或矛盾须先确认，不静默生成正式评分依据。回答由页面按拓展答案结构保存，不预写进 bank.json，也不直接写状态目录。
 
 ## 富文本与资源
 

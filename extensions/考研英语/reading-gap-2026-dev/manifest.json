@@ -5,7 +5,7 @@
   "description": "共享材料与候选项；逐小题自动判分、草稿大纲与考试统一交卷。",
   "requiresApi": {
     "major": 1,
-    "minMinor": 2,
+    "minMinor": 3,
     "capabilities": [
       "practice",
       "editor",
@@ -14,7 +14,8 @@
       "outline-items",
       "lifecycle",
       "richtext",
-      "resources"
+      "resources",
+      "answer-state"
     ]
   },
   "entry": "practice.html",

@@ -1,10 +1,11 @@
 # 外部题型拓展 API 参考
 
-适用当前 QuizForge Web：公共富文本服务 API v1.1（兼容 v1.0）、文档格式 v1。宿主通过 `core/shared/richtext/service.json` 选择兼容实现；Tiptap 是当前编辑实现，不是拓展依赖。完整现行示例 `extensions/基础题型/short-answer-1.3.0/` 使用公共富文本声明；旧简答包仅在 `core/test/fixtures/legacy-extensions/` 供兼容测试，不是当前安装清单。以下接口已从实际宿主、规则执行器及 SDK 源码核对；不要根据名称推测额外接口。
+适用当前 QuizForge Web：公共富文本服务 API v1.1（兼容 v1.0）、文档格式 v1。宿主通过 `core/shared/richtext/service.json` 选择兼容实现；Tiptap 是当前编辑实现，不是拓展依赖。基础设计与数据参考直接读取 `extensions/基础题型/{single-choice-richtext-dev,short-answer-richtext-dev}/` 及其已有 examples，当前仍是开发原型，不作为完整评分实现；旧简答包仅在 `core/test/fixtures/legacy-extensions/` 供兼容测试，不是当前安装清单。以下接口已从实际宿主、规则执行器及 SDK 源码核对；不要根据名称推测额外接口。
 
 ## 清单与公共服务声明
 
 每个独立叶使用普通 manifest；开发标记、分组、样例和发布规则只见 [拓展开发](extension-development.md)，写入权限与流程只见 SKILL.md。以下是声明形状，替换身份和真实文件，不照抄不存在的资源：
+
 ```json
 {
   "id": "example.new-type",
@@ -40,7 +41,7 @@ HTML 是 body 片段；CSS 和 JS 由宿主注入。页面及规则脚本按普�
 
 ## 页面上下文
 
-当前页面及规则环境公开只读 `QF.api:{major:1,minor:2,capabilities:[...]}`；冻结旧页面保持自己的 1.0／1.1 版本；页面资源由宿主携带 `apiVersion`。这是已实现协议的元数据，不授予写入权限，也不意味着规则环境能使用浏览器的方法。页面继续根据 context.capabilities 决定哪些操作可用。
+当前页面及规则环境公开只读 `QF.api:{major:1,minor:3,capabilities:[...]}`；冻结旧页面保持自己的 1.0／1.1／1.2 版本；页面资源由宿主携带 `apiVersion`。这是已实现协议的元数据，不授予写入权限，也不意味着规则环境能使用浏览器的方法。页面继续根据 context.capabilities 决定哪些操作可用。
 
 练习页面通过 `onLoad(context)` 获得以下字段；这是当前接口全集，不含私有 HTTP 地址、状态修订号或拓展元数据：
 
@@ -59,12 +60,12 @@ HTML 是 body 片段；CSS 和 JS 由宿主注入。页面及规则脚本按普�
 
 三态布局、访谈及编辑白名单只见 [UI 设计](ui-design.md)；本节仅定义页面可用数据与权限。
 
-| UI | 应实现的行为 |
-| --- | --- |
-| 练习作答 | 恢复`answer`；按 `canSave/canSubmit` 开放输入、草稿保存和提交；提交前不展示私有标准答案。 |
-| 考试 | `mode:"exam"`；考试中 `canSave:true/canSubmit:false`，保持输入和自动保存，隐藏单题提交；交卷后 `canSave:false`，锁定答案，允许按能力补评分。计时和整卷交卷由宿主负责。 |
-| 提交后结果/评分 | 展示服务器`result` 和提交后投影；锁定作答输入；仅按 `canRetry/canReview/canAiGrade` 显示重做、人工评分和 AI 操作。待评分 `score:null` 不可显示为 0 分。 |
-| 题目编辑 | 使用独立 editor 页面与`QF.editor.register`；编辑私有原题、标准答案、解析等；由宿主读取文档并落盘。 |
+| UI              | 应实现的行为                                                                                                                                                                 |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 练习作答        | 恢复`answer`；按 `canSave/canSubmit` 开放输入、草稿保存和提交；提交前不展示私有标准答案。                                                                                |
+| 考试            | `mode:"exam"`；考试中 `canSave:true/canSubmit:false`，保持输入和自动保存，隐藏单题提交；交卷后 `canSave:false`，锁定答案，允许按能力补评分。计时和整卷交卷由宿主负责。 |
+| 提交后结果/评分 | 展示服务器`result` 和提交后投影；锁定作答输入；仅按 `canRetry/canReview/canAiGrade` 显示重做、人工评分和 AI 操作。待评分 `score:null` 不可显示为 0 分。                |
+| 题目编辑        | 使用独立 editor 页面与`QF.editor.register`；编辑私有原题、标准答案、解析等；由宿主读取文档并落盘。                                                                         |
 
 `mode:"example"` 是拓展示例练习，使用独立示例状态；不要把示例写入题库。`mode:"history"` 复用练习页面展示冻结快照：所有上述 capabilities 为 `false`，`aiTask:null`，必须纯只读；不保存、不上传、不启动 AI 或轮询、不尝试由当前题库补全旧内容。历史只能读取图片及已声明 SDK；`QF.requestAction` 也会被拒绝，历史切题由宿主负责。
 
@@ -88,7 +89,7 @@ QF.page.register({
 
 `onLoad` 必须提供；`onFlush/onDispose` 可选。`register()` 返回 Promise，首次 `onLoad` 完成后才宣告就绪。宿主状态变化会在**同一页面再次调用 `onLoad`**；不要重复注册、重复绑定事件或无条件覆盖正在输入的内容。异步渲染/轮询用题目 ID、epoch 或 disposed 标记阻止过期回调。
 
-宿主切题、切标签或退出前调用 `onFlush`，等待页面协议中已发出的请求；未触发的 debounce、编辑器上传和自建 Promise 队列需由拓展自己 flush。保存失败应抛错并保留当前输入，不能吞错后宣称保存成功。`onDispose` 不会被 await，不能在其中启动最后一次异步保存。
+宿主切题、切换题库或退出前调用 `onFlush`，等待页面协议中已发出的请求；未触发的 debounce、编辑器上传和自建 Promise 队列需由拓展自己 flush。保存失败应抛错并保留当前输入，不能吞错后宣称保存成功。`onDispose` 不会被 await，不能在其中启动最后一次异步保存。
 
 编辑页面注册一次，必需 `onLoad/getDocument`：
 
@@ -126,32 +127,48 @@ if (!reply?.ok) throw new Error(reply?.error?.message || "保存失败");
 // 成功形如 {ok:true,data:{status,result}}；失败 {ok:false,error:{code,message}}。
 ```
 
-| 调用 | 参数与作用 |
-| --- | --- |
-| `QF.save({purpose:"draft",data:{answer}})` | 保存完整答案草稿，答案必须通过 answer schema/规则校验。 |
-| `QF.save({purpose:"submit",data:{answer}})` | 提交完整答案，由后端`grade` 评分。 |
+| 调用                                              | 参数与作用                                                               |
+| ------------------------------------------------- | ------------------------------------------------------------------------ |
+| `QF.save({purpose:"draft",data:{answer}})`      | 保存完整答案草稿，答案必须通过 answer schema/规则校验。                  |
+| `QF.page.reportAnswerState({status,targetId?})` | API 1.3 单项作答状态上报；需声明 answer-state 能力，不评分。详情见下文。 |
+| `QF.save({purpose:"submit",data:{answer}})`     | 提交完整答案，由后端`grade` 评分。                                     |
+
 | `QF.save({purpose:"review",data:{review}})` | 人工评分；`review` 至少包含有限数值 `score`，额外字段由本题型 `review` 校验。 |
 | `QF.requestAction({action:"retry"})` | 由宿主重置当前题作答状态。 |
 | `QF.requestAction({action:"previous"})` / `({action:"next"})` | 练习切题；最后一题 next 打开汇总。 |
 | `QF.requestAction({action:"goToQuestion",params:{questionId}})` | 跳到本集合中存在的题目。 |
 | `QF.ui.resize()` | 请求宿主按 body 高度调整 iframe；不接收布局参数。 |
 
+API 1.3 的 answer-state 要求 Manifest 声明 requiresApi.minMinor:3。输入时每次上报一个目标：targetId 为当前大纲小题 ID，省略表示当前大题；仅允许 unanswered/draft，其他小题不变，初始缺省为 unanswered，清空已有答案必须上报 unanswered。宿主不猜私有答案结构。上报与保存须关联**同一份答案快照**，处理 envelope 错误，并在 onFlush 等待最终保存：
+
+```js
+const snapshot = structuredClone(answer);
+const report = await QF.page.reportAnswerState({targetId:changedPartId, status:'draft'});
+if (!report.ok) throw new Error(report.error.message);
+const saved = await QF.save({purpose:"draft", data:{answer:snapshot}, answerStateId:report.data.stateId});
+if (!saved.ok) throw new Error(saved.error.message);
+```
+
+普通题使用 {status:'draft'}，清空传 unanswered。请求严格仅有 status、可选 targetId；返回 {ok:true,data:{status:'reported',stateId}}。连续输入可 debounce 保存，但每个快照必须保留自己的 stateId，不能给旧答案用新编号。宿主先更新大纲，再随关联答案保存状态快照，重载直接恢复，不靠 getScore 推断已作答；只有服务器确认才更新“已保存”、revision 和历史。未保存报告不进入计分或历史。宿主最多保留 256 个未确认快照，失效编号拒绝保存；批量初始化时应及时保存或分批刷新，不应先积累所有报告。不得上报正确/错误或把上报当保存成功。考试交卷后与历史只读；API 1.0–1.2 页面没有此方法。保存期间是否禁用拓展自己的提交按钮由拓展负责，宿主不会绕过其 onFlush。
+
 不支持自定义 action、跨题库跳转、任意后端调用、修改题型绑定或直接写练习状态。页面不能伪造评分结果；提交参数是 `answer`，不是 `result`。历史和编辑模式拒绝上述 save/action。
 
 AI 仅在当前已提交题目且 `canAiGrade===true` 时开放；人工改分与 AI 结果保存仍受 `canReview` 限制：
 
-| 调用 | 说明 |
-| --- | --- |
-| `QF.ai.grade({force:false,targetId?})` | 发起/复用当前题评分任务；省略 targetId 为整题，传入稳定小题 ID 为该小题；`force:true` 只重评同一目标。 |
-| `QF.ai.getTask({})` | 返回 envelope，其`data` 为 `{task: 任务或null}`。 |
-| `QF.ai.getTask({taskId})` | 返回 envelope，其`data` 为该任务。 |
-| `QF.ai.getTask({targetId})` | 返回该小题当前的 `{task:任务或null}`，可在重新打开页面后恢复进度；省略 targetId 查询整题。 |
-| `QF.ai.retry({taskId})` | 重试任务，返回任务。 |
-| `QF.ai.confirm({taskId,candidateVersion,score})` | 保留的兼容/幂等接口；已确认任务可重读正式结果。传候选 `version` 防止使用过期结果；score 可省略。新页面无需提供确认按钮。 |
+| 调用                                               | 说明                                                                                                                      |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `QF.ai.grade({force:false,targetId?})`           | 发起/复用当前题评分任务；省略 targetId 为整题，传入稳定小题 ID 为该小题；`force:true` 只重评同一目标。                  |
+| `QF.ai.getTask({})`                              | 返回 envelope，其`data` 为 `{task: 任务或null}`。                                                                     |
+| `QF.ai.getTask({taskId})`                        | 返回 envelope，其`data` 为该任务。                                                                                      |
+| `QF.ai.getTask({targetId})`                      | 返回该小题当前的`{task:任务或null}`，可在重新打开页面后恢复进度；省略 targetId 查询整题。                               |
+| `QF.ai.retry({taskId})`                          | 重试任务，返回任务。                                                                                                      |
+| `QF.ai.confirm({taskId,candidateVersion,score})` | 保留的兼容/幂等接口；已确认任务可重读正式结果。传候选`version` 防止使用过期结果；score 可省略。新页面无需提供确认按钮。 |
 
 任务状态包括 `queued/running/succeeded/failed/superseded/confirmed`；校验结果在 `task.candidate`，包含 `version/score/feedback`。通过校验且仍对应当前答案的 AI 结果，由宿主自动调用拓展 review 并原子保存正式分数与反馈，任务进入 confirmed，无需用户再次确认。返回均需检查 `ok`。宿主绑定当前题目、答案和版本并提供请求 ID；页面不得提交自己的评分输入、provider 配置或凭据。评分进度与失败可重试提示保留，失败/过期结果不能改动已有分数。轮询必须在离开题目和 `onDispose` 时停止。
 
 小题评分的 `targetId` 在当前大题内唯一、稳定，推荐复用小题大纲 ID，不用显示题号或数组下标；为 1–128 字符的无首尾空白纯文本，不含控制字符或 `< >`。它由宿主随任务保存并返回，不放入 AI 材料对象、不要求模型输出。不同目标独立绑定、重试和过期；可以同时发起，宿主通过有界队列依次调用模型。同一目标的 force/人工改分只影响该目标；整题任务和小题任务互相替换，整题改分或重新提交使全部小题任务失效。retry/confirm 只传 taskId，目标从已保存任务恢复。
+
+同一目标已有 `queued`／`running` 任务且输入仍有效时，即使传 `force:true` 也复用原任务，不重复排队。拓展页面应在该目标排队或评分中禁用评分／重评按钮，通过 `getTask` 恢复进度；任务结束后再允许重评。其他小题不受该按钮状态影响。
 
 新版简答 1.3.0 提交时保存默认 0 分，人工滑条以拓展规定步长（简答为 0.5）调用既有 `QF.save({purpose:"review",...})`，调整后自动保存，不另设“确认评分”步骤；已发布旧包保留原 UI。连续调整应合并或串行保存，处理返回错误并在 onFlush 等待最后一次保存；不得把尚未成功保存的本地分数当作已确认结果。人工/AI 的正式反馈使用实际最终得分，人工改分应保留原 AI 理由。
 
@@ -179,15 +196,15 @@ prepareAiGrading(data, answer, context) {
 
 `rules.js` 必须调用一次 `QF.defineType({...})`，独立规则进程只提供这个 QF 接口，没有页面的 `QF.save/content/resources`。所有方法必须**同步返回可 JSON 编码的值**，不能返回 Promise，也不能使用 DOM、网络、文件系统、动态编译或依赖外部进程状态。
 
-| 方法 | 契约 |
-| --- | --- |
-| `validateQuestion(data)` | 可选；question schema 先执行，再执行此方法；返回`false` 拒绝题目。跨字段条件在此校验。 |
-| `validateAnswer(answer,data)` | 可选；answer schema 先执行；返回`false` 拒绝。草稿和提交均受校验。 |
-| `project(data,state)` | 必需；返回公开`question.data`。正常投影 state 为 `{submitted:boolean,result}`。提交前主动构造不含标准答案/评分细则的对象，禁止简单展开私有 data。 |
-| `grade(data,answer)` | 必需；返回正式 graded 结果或 pending 待评结果。不能让页面承担判题。 |
-| `review(data,answer,review,context)` | 可选；将人工调整或 AI 自动保存的 score 转为 graded 整题结果；验证范围、步长、额外字段。`review.targetId` 可选，`context.state` 是保存前最新状态，含 result；小题评分据此保留其他小题并重新汇总。不可返回 pending。 |
-| `getScore(data,state)` | 新题型应实现；返回`{score,maxScore,outlineStates?:[{id,status}]}`，不重判题。批量评分的 state 含 `status/answer/result/revision` 及派生 `submitted`。未提交返回 0 分；pending 返回 null；graded 返回保存的正式分数。 |
-| `prepareAiGrading(data,answer,context)` | 可选；从私有题目与已提交答案构造下述 AI 输入，`context.targetId` 可选，`context.state` 为当前提交状态；自动提交评分时 `context.automatic` 为 true，可返回小题材料清单。仅提供输入，不调用模型。 |
+| 方法                                      | 契约                                                                                                                                                                                                                       |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `validateQuestion(data)`                | 可选；question schema 先执行，再执行此方法；返回`false` 拒绝题目。跨字段条件在此校验。                                                                                                                                   |
+| `validateAnswer(answer,data)`           | 可选；answer schema 先执行；返回`false` 拒绝。草稿和提交均受校验。                                                                                                                                                       |
+| `project(data,state)`                   | 必需；返回公开`question.data`。正常投影 state 为 `{submitted:boolean,result}`。提交前主动构造不含标准答案/评分细则的对象，禁止简单展开私有 data。                                                                      |
+| `grade(data,answer)`                    | 必需；返回正式 graded 结果或 pending 待评结果。不能让页面承担判题。                                                                                                                                                        |
+| `review(data,answer,review,context)`    | 可选；将人工调整或 AI 自动保存的 score 转为 graded 整题结果；验证范围、步长、额外字段。`review.targetId` 可选，`context.state` 是保存前最新状态，含 result；小题评分据此保留其他小题并重新汇总。不可返回 pending。     |
+| `getScore(data,state)`                  | 新题型应实现；返回`{score,maxScore,outlineStates?:[{id,status}]}`，不重判题。批量评分的 state 含 `status/answer/result/revision` 及派生 `submitted`。未提交返回 0 分；pending 返回 null；graded 返回保存的正式分数。 |
+| `prepareAiGrading(data,answer,context)` | 可选；从私有题目与已提交答案构造下述 AI 输入，`context.targetId` 可选，`context.state` 为当前提交状态；自动提交评分时 `context.automatic` 为 true，可返回小题材料清单。仅提供输入，不调用模型。                      |
 
 支持小题评分的规则必须校验 targetId 是否属于当前题目，按目标提取题干、回答、参考答案和满分；未知 ID 应拒绝，不能退回整题评分。review 收到 `{score,feedback,targetId}` 后，只替换该小题结果，再从 `context.state.result` 合并其他小题、返回完整整题成绩。宿主在 `result.aiAssessments[targetId]` 保存各小题 AI 元数据，整题原有 `result.aiAssessment` 保持原用法；小题分数结构与大纲状态仍由拓展自己维护。旧规则可忽略新增参数，无需修改。
 
@@ -200,7 +217,7 @@ prepareAiGrading(data, answer, context) {
 {gradingStatus:"pending", score:null, maxScore:5, correct:null, feedback:null}
 ```
 
-`maxScore` 是有限非负数；graded 的 `score` 是有限数；宿主不限制其范围，由拓展决定是否允许扣分或额外得分，`correct` 为 boolean。`correct` 的含义由拓展决定。`getScore` 在 pending 时必须 `score:null`，其他状态分数有限且合法；保存 AI 结果时的 getScore 必须与正式 result 的 score/maxScore 相同，如果返回 gradingStatus 也必须一致。大纲采用精简的满分判定：未填写为 unanswered，已填写未提交为紫色 draft，提交后满分为 correct，低于满分或仍 pending 为 incorrect；pending 仍是 null 分，保留评分进度/错误说明。小题通过 getScore.outlineStates 按稳定小题 ID 提供同样四种显示状态（含练习及考试），宿主不猜测私有小题分数。类型自己的分值、部分得分、解释和人工评分校验全部留在拓展规则；宿主只做通用持久化、调用、验证和汇总。
+maxScore 是有限非负数；graded 的 score 是有限数，宿主不限制得分范围，扣分或额外得分由拓展决定，correct 为 boolean。getScore 在 pending 时必须 score:null，其他状态分数有限；AI 保存时 getScore 与正式 result 的 score/maxScore 一致，如果返回 gradingStatus 也必须一致。大纲的填写进度为 unanswered/draft，新拓展主动上报并随答案保存；getScore 仅提供已提交小题的 unanswered/correct/incorrect。旧拓展的四状态查询作为兼容路径保留。宿主不猜私有小题答案或分数；分值、部分得分、解释和人工评分校验留在拓展，宿主负责持久化、调用、通用校验和汇总。
 
 `getScore` 在 AI 结果保存校验路径可能只获得 `{submitted:true,result}`，因此不能要求 status/answer/revision 必然存在。需要人工/AI 评分的题型必须显式返回 `gradingStatus:"pending"` 或 `"graded"`；宿主据此识别可复评结果，仅注册 review 不会让省略 gradingStatus 的自动判分结果开放复评。
 
@@ -228,15 +245,15 @@ AI 输入协议（参考答案与评分依据合并）：
 
 只有声明 `requiresRichText` 或旧式富文本依赖后才能访问 `QF.content`。静态渲染包随页面加载；编辑包在首次 `createEditor` 时由宿主延迟加载同一已选择的实现。`QF.content.api` 提供公共接口、文档格式、配置与能力的元数据；依照声明和配置使用功能，不检测供应包版本或依赖 Tiptap 内部对象。直接使用以下公开 API，不调用 `_createEditor`、自行 configure 宿主资源桥或复制修改 shared SDK。
 
-| API | 参数及返回 |
-| --- | --- |
-| `QF.content.render(container,doc,options={})` | container 为 DOM 元素，doc 为下述 JSON 文档；options 仅支持`resources` 覆盖，通常省略。返回 `{ready:Promise<void>,destroy()}`；ready 等待图片处理。 |
+| API                                               | 参数及返回                                                                                                                                                |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `QF.content.render(container,doc,options={})`   | container 为 DOM 元素，doc 为下述 JSON 文档；options 仅支持`resources` 覆盖，通常省略。返回 `{ready:Promise<void>,destroy()}`；ready 等待图片处理。   |
 | `QF.content.createEditor(container,options={})` | options：`doc`、`onChange(doc)`、`placeholder`、`contentWidth`；高级集成还接受 `resources/setExpanded`，通常保留宿主默认桥接。返回下述 editor。 |
-| `validateDocument(doc,{requireContent:false})` | 返回 boolean；`requireContent:true` 要求存在非空文字、图片或公式。 |
-| `cloneDocument(doc)` | 验证并深拷贝；无效文档抛错。 |
-| `isEmpty(doc)` | 空或无效文档返回 true。 |
-| `fromEditorDocument(doc)` | 清理编辑器 JSON attrs 后验证/拷贝；不是 HTML、Markdown 或 Office 转换器。 |
-| `EMPTY_DOCUMENT` | `{type:"doc",content:[{type:"paragraph"}]}`；使用 cloneDocument 获得自己的副本。 |
+| `validateDocument(doc,{requireContent:false})`  | 返回 boolean；`requireContent:true` 要求存在非空文字、图片或公式。                                                                                      |
+| `cloneDocument(doc)`                            | 验证并深拷贝；无效文档抛错。                                                                                                                              |
+| `isEmpty(doc)`                                  | 空或无效文档返回 true。                                                                                                                                   |
+| `fromEditorDocument(doc)`                       | 清理编辑器 JSON attrs 后验证/拷贝；不是 HTML、Markdown 或 Office 转换器。                                                                                 |
+| `EMPTY_DOCUMENT`                                | `{type:"doc",content:[{type:"paragraph"}]}`；使用 cloneDocument 获得自己的副本。                                                                        |
 
 editor 方法：`ready`、`getDocument()`、`setDocument(doc)`、`focus()`、`flush()`、`isUploading()`、`destroy()`；`advanced-v1` 另提供 `setAdvanced(boolean)`、`isAdvanced()`，API 1.1 的 `camera-capture` 能力另提供 `capturePhoto()`。`ready` 和 `flush/setAdvanced` 为 Promise；setDocument 不发 onChange。保存/切字段前 `await editor.flush()`，再取 getDocument，处理上传失败。每个 iframe **只允许一个活动富文本 editor**；创建第二个前先 flush 并 destroy 第一个，其他字段用静态 render。销毁后不要使用；每次重绘先 destroy 旧 renderer/editor。
 
@@ -250,7 +267,7 @@ await editor.ready;
 // 离开前 await editor.flush(); 保存成功后才能销毁。
 ```
 
-拍照优先使用编辑器自带的“拍照”按钮，不重复添加入口。确需自定义时，在 `await editor.ready` 后绑定 `photoButton.onclick = () => editor.capturePhoto()`，直接同步调用以保留用户操作权限。返回 true 表示已请求选择器，处理／上传中返回 false，未就绪或销毁后抛错。手机请求后置摄像头，实际选择界面由浏览器／系统决定；桌面通常选择文件。取消不修改答案。最多 20 MiB／4000 万像素，大照片缩到最长边 2560px 并压成 4 MiB 内 JPEG；格式须能被浏览器解码。处理和上传均计入 `flush/isUploading`，失败需提示并允许重试。照片经 onChange 成为普通 image／assetId，原答案结构、资源、历史与 AI 转换通道不变。详见 [富文本服务的拍照接口](../../../core/docs/RICHTEXT_SERVICE.md#拍照作为答案图片)。
+拍照优先使用编辑器自带的“拍照”按钮，不重复添加入口。确需自定义时，在 `await editor.ready` 后绑定 `photoButton.onclick = () => editor.capturePhoto()`，直接同步调用以保留用户操作权限。返回 true 表示已请求选择器，处理／上传中返回 false，未就绪或销毁后抛错。手机请求后置摄像头，实际选择界面由浏览器／系统决定；桌面通常选择文件。取消不修改答案。最多 20 MiB／4000 万像素，大照片缩到最长边 2560px 并压成 4 MiB 内 JPEG；格式须能被浏览器解码。处理和上传均计入 `flush/isUploading`，失败需提示并允许重试。照片经 onChange 成为普通 image／assetId，原答案结构、资源、历史与 AI 转换通道不变。详见 [富文本服务的拍照接口](../../../core/docs/reference/RICHTEXT_SERVICE.md#拍照作为答案图片)。
 
 富文本是带白名单节点/属性的 JSON，不是任意 HTML：
 
@@ -272,17 +289,17 @@ await editor.ready;
 
 iframe 不允许外网 fetch、脚本/CDN、外部图片、表单提交或访问宿主 DOM；仅 `sandbox="allow-scripts"`，图片允许 data/blob。规则执行环境也没有网络/文件 API，不能获取凭据。不要用 localStorage/父窗口内部对象作为保存通道，也不要自行组装宿主 postMessage 私有协议。
 
-宿主桌面练习世界宽 760px，手机阅读为流式宽度；现有简答卡片为 `width:100%;max-width:704px`。新 UI 使用响应式宽度、`min-width:0`、一致的正文 padding，避免固定最小宽度或大量横向溢出。练习、结果、题目编辑的正文宽度保持一致；`createEditor({contentWidth})` 指**正文内容宽度**，可省略交由组件测量，高级模式会保留此宽度。`setAdvanced(true)` 展开当前同一编辑器，由宿主提供全屏布局，不创建另一套 editor；不要误用不存在的 `QF.ui.expand/setWidth`。
+普通练习使用整个中间视口的 CSS 宽度，拓展自行控制内容最大宽度与留白，宿主不再固定为 760px；笔迹只在草稿模式显示。草稿使用首次保存的 layout 宽度，题目与笔迹一起缩放、平移，窗口或侧栏变化不重新排版；无 layout 的旧草稿仍按 760px、左右 26px、顶部 34px 的旧坐标读取，见 [草稿布局](../../../core/docs/reference/COMPATIBILITY.md#草稿布局)。新 UI 使用响应式宽度、`min-width:0`、一致的正文 padding，避免固定最小宽度或大量横向溢出。练习、结果、题目编辑的正文宽度保持一致；`createEditor({contentWidth})` 指**正文内容宽度**，可省略交由组件测量，高级模式会保留此宽度。`setAdvanced(true)` 展开当前同一编辑器，由宿主提供全屏布局，不创建另一套 editor；不要误用不存在的 `QF.ui.expand/setWidth`。
 
 资源限制：manifest/editor.json 最多 256 KiB；声明的页面 HTML、JS、CSS、rules、schema 各最多 1 MiB；examples 和单份题库最多 8 MiB。规则输入最多 8 MiB、输出最多 2 MiB、单次 VM 执行限 650ms，子进程堆限 96 MiB，宿主总执行期限 8 秒。编写线性、纯同步规则，不用大规模枚举/递归或在投影中返回重复大资源。
 
-宿主只保留当前活动 iframe/白板/编辑器；切标签时旧页面会被 flush、销毁，恢复时重新构造，因此不依赖后台隐藏页面运行。题型在 onDispose 清理自建 timer、监听器、observer、renderer、editor、Object URL；异步回调检查 disposed/epoch。宿主会释放 `QF.resources.get` 创建的 URL，单 iframe 读取图片累计限 16 MiB；拓展自建 URL 仍需自行 revoke。
+宿主只保留当前活动 iframe/白板/编辑器；切换题库时旧页面会被 flush、销毁，恢复时重新构造，因此不依赖后台隐藏页面运行。题型在 onDispose 清理自建 timer、监听器、observer、renderer、editor、Object URL；异步回调检查 disposed/epoch。宿主会释放 `QF.resources.get` 创建的 URL，单 iframe 读取图片累计限 16 MiB；拓展自建 URL 仍需自行 revoke。
 
 宿主 JSON 缓存已受 LRU 数量、字节及 5 分钟空闲期限制：题目 12 条/16 MiB、页面 4 条/4 MiB、SDK 4 条/8 MiB。拓展不扩容、不建立绕过这些限制的全局长期缓存、不改宿主清理逻辑。
 
 ## 版本与历史兼容
 
-当前支持 API 1.0／1.1／1.2，缺 requiresApi 按 1.0 读。显式声明只允许 major、minMinor、capabilities：前两项是整数，当前 major=1、minMinor 为 0–2；capabilities 可省略，不重复、不含空字符串。能力为 practice、editor、editor-drafts、score、manual-review、ai-grading、resources、richtext、navigation、lifecycle，子题定位另用 outline-items（minMinor>=1），子题状态用已有 score（minMinor>=2），见 [子题接口](#子题导航与状态)。未知版本／能力在执行规则前拒绝，不能只提高声明假装实现 API v2。
+当前支持 API 1.0／1.1／1.2／1.3，缺 requiresApi 按 1.0 读。显式声明只允许 major、minMinor、capabilities：前两项是整数，当前 major=1、minMinor 为 0–3；capabilities 可省略，不重复、不含空字符串。能力为 practice、editor、editor-drafts、score、manual-review、ai-grading、resources、richtext、navigation、lifecycle，子题定位另用 outline-items（minMinor>=1），评分后的子题状态用已有 score（minMinor>=2），输入当下的主动上报用 answer-state（minMinor>=3）。见 [子题接口](#子题导航与状态) 和 [作答协议](#作答协议)。未知版本／能力在执行规则前拒绝，不能只提高声明假装实现 API v2。
 
 requiresRichText 独立声明公共服务 API、文档格式、配置与实际能力；与应用、拓展和 Tiptap 版本分别独立。富文本声明细则见 [清单](#清单与公共服务声明)。
 
@@ -318,7 +335,7 @@ QF.page.register({
 
 ### 小题对错状态
 
-依赖小题状态时 minMinor=2，仍用 score／outline-items，无新方法或保存端点：
+提交评分后的正式小题状态使用 API 1.2 的 score／outline-items 和原有 getScore 返回值，无需新保存端点。需要输入当下即更新大纲时，另按作答协议接入 API 1.3 的主动上报：
 
 ```js
 // getScore 的返回值；score/maxScore 仍是整道父题
@@ -328,12 +345,14 @@ return {score, maxScore, outlineStates:[
 ]};
 ```
 
-outlineStates 每项严格只有 id/status，最多 100 项、父题内 ID 唯一并遵守目录 ID 的纯文本限制；按稳定 ID 匹配，不按 label，多余 ID 不着色。未提交只能 unanswered/draft；根据保存的 state.answer 判断每个小题是否已填写，有填写才返回 draft，不能让其他空白小题一起变紫。提交后不能返回 draft，小题得满分为 correct，部分分／零分／仍待评分为 incorrect。pending 正式分数仍为 null，不因错误色伪造零分。省略细节的小题中性，不能套父题对错或从人工总分猜小题分数。
+outlineStates 每项严格只有 id/status，最多 100 项、父题内 ID 唯一；按稳定 ID 匹配，不按 label，多余 ID 不着色。接入 answer-state 的新拓展，getScore 未提交时只取分值，不返回已作答状态；宿主保存和重载直接读取主动报告的快照，汇总读取满分时忽略未提交 outlineStates。提交后可返回 unanswered/correct/incorrect，不能返回 draft。小题状态由拓展按自身评分规则给出；pending 分数仍为 null，不因按钮颜色伪造零分。省略已提交细节时保持中性，不能从父题结果猜测哪些小题已答或对错。未声明 answer-state 的 API 1.0–1.2 旧拓展保留原 getScore 查询作答进度的兼容路径。
 
 grade/review 把逐小题细节保存在正式 result 的自有 feedback 结构，getScore 读取已保存结果并输出状态，不重新判分；AI 校验可能只给 submitted/result，不依赖 answer／revision。此接口当前不接收小题数值 score/maxScore，不能往 outlineStates 塞额外字段；宿主总分只累加父题输出。
 
-宿主在答案／评分变化时刷新并缓存，白板不触发重算；历史冻结当轮状态，不调用当前规则补判，旧记录缺字段时保持中性。实际测试跨父题进入、同父题连续定位、编辑未保存内容、历史定位、已填写草稿紫色且空白小题中性（含考试）、评分／重做着色及不同父题相同小题 ID 的隔离。缺能力则说明限制并给题卡内导航替代，不改宿主。
+主动报告快照随答案保存，评分后的细节单独缓存，白板不触发重算；历史冻结当轮已保存状态，不调用当前规则补判，旧记录缺字段时保持中性。实际测试单项更新、清空、旧保存确认不覆盖新报告、重载恢复、跨父题进入、历史定位、考试作答与交卷后状态及同名小题 ID 的父题隔离。缺能力则说明限制并给题卡内导航替代，不改宿主。
 
 ## 核对源码入口
 
-页面协议：`core/web/frame.js`、`core/web/extension-requests.js`、`core/web/practice-context.js`、`core/web/ai-client.js`。规则与 AI 输入校验：`core/server/rules-runner.cjs`、`core/src/main/java/io/quizforge/web/AiGradingProtocol.java`。富文本服务选择：`core/shared/richtext/service.json`；配置实现：该文件指定的 `core/shared/richtext/<provider.version>/src/{static,document,render,editor}.js`。完整现行富文本/AI 示例：`extensions/基础题型/short-answer-1.3.0/{editor.js,practice-ai.js,src/rules.js,src/ai-document.js}`。基础自动判分示例：`extensions/基础题型/single-choice/`。这些核心入口仅供只读核对；没有 `core/` 的旧平铺 fixture 对应根层路径。
+正式接口规范见 [API 文档](../../../core/docs/reference/API.md)。页面协议：`core/web/bridge/frame.js`、`core/web/bridge/extension-requests.js`、`core/web/practice/practice-context.js`、`core/web/ai/ai-client.js`。规则执行与 AI 校验：`core/server/rules-runner.cjs`、`core/server/host/ai/ai-protocol.js`。富文本服务选择：`core/shared/richtext/service.json`，实现源码按其 provider.version 读取。
+
+基础页面、编辑器、Schema、规则及数据样例直接查看 [单选题](../../../extensions/基础题型/single-choice-richtext-dev) 与 [简答题](../../../extensions/基础题型/short-answer-richtext-dev) 目录的 manifest 声明文件。当前基础规则明确报告未实现业务，不能当作完整自动判分或 AI 示例。以上核心文件仅供只读核对；旧平铺 fixture 对应根层路径。

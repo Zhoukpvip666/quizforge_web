@@ -1,5 +1,5 @@
 (() => {
-  // quizforge_web/core/shared/richtext/1.1.2/src/document.js
+  // authorized:C:\Users\wangg\OneDrive\Desktop\QuizForge\quizforge_web\core\shared\richtext\1.1.2\src\document.js
   var FONT_FAMILIES = ["Arial", "Verdana", "Georgia", "Times New Roman", "Consolas", "Microsoft YaHei", "SimSun", "sans-serif", "serif", "monospace"];
   var FONT_SIZES = ["10px", "12px", "14px", "15px", "16px", "18px", "20px", "24px", "28px", "32px", "40px", "48px"];
   var LINE_HEIGHTS = ["1", "1.2", "1.5", "1.8", "2", "2.5", "3"];
@@ -93,7 +93,7 @@
     }
   }
 
-  // quizforge_web/extensions/考研英语/reading-gap-2026-dev/rules-source.js
+  // authorized:C:\Users\wangg\OneDrive\Desktop\QuizForge\quizforge_web\extensions\考研英语\reading-gap-2026-dev\rules-source.js
   var object2 = (v) => v && typeof v === "object" && !Array.isArray(v);
   var half = (v) => Number.isFinite(v) && Number.isInteger(v * 2);
   var submitted = (s) => s?.submitted || s?.status === "submitted";
@@ -120,7 +120,9 @@
       return { gradingStatus: "graded", score, maxScore: d.maxScore, correct: score === d.maxScore, feedback: null };
     },
     getScore(d, s) {
-      return { score: submitted(s) ? s.result.score : 0, maxScore: d.maxScore, outlineStates: d.parts.map((p) => ({ id: p.id, status: !submitted(s) ? s.answer?.responses?.[p.id]?.trim() ? "draft" : "unanswered" : s.answer?.responses?.[p.id] === d.slots.find((x) => x.id === p.slotId).correctParagraphId ? "correct" : "incorrect" })) };
+      const value = { score: submitted(s) ? s.result?.score ?? null : 0, maxScore: d.maxScore };
+      if (submitted(s) && s.answer?.responses) value.outlineStates = d.parts.map((p) => ({ id: p.id, status: !s.answer.responses[p.id]?.trim() ? "unanswered" : s.answer.responses[p.id] === d.slots.find((x) => x.id === p.slotId).correctParagraphId ? "correct" : "incorrect" }));
+      return value;
     }
   });
 })();

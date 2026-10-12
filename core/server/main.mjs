@@ -1,5 +1,5 @@
-import { QuizForgeServer } from './host/server.js';
-import { upgradeShortAnswerBanks } from './host/short-answer-upgrade.js';
+import { QuizForgeServer } from './host/http/server.js';
+import { upgradeShortAnswerBanks } from './host/practice/short-answer-upgrade.js';
 
 const options = { root: '.', host: '127.0.0.1', port: 8080, token: null, node: process.execPath };
 let upgrade = false, upgradeAutomatic = false, only = false, service;

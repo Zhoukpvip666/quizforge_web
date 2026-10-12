@@ -1,5 +1,5 @@
 (() => {
-  // quizforge_web/core/shared/richtext/1.1.2/src/document.js
+  // authorized:C:\Users\wangg\OneDrive\Desktop\QuizForge\quizforge_web\core\shared\richtext\1.1.2\src\document.js
   var FONT_FAMILIES = ["Arial", "Verdana", "Georgia", "Times New Roman", "Consolas", "Microsoft YaHei", "SimSun", "sans-serif", "serif", "monospace"];
   var FONT_SIZES = ["10px", "12px", "14px", "15px", "16px", "18px", "20px", "24px", "28px", "32px", "40px", "48px"];
   var LINE_HEIGHTS = ["1", "1.2", "1.5", "1.8", "2", "2.5", "3"];
@@ -93,7 +93,7 @@
     }
   }
 
-  // quizforge_web/extensions/考研英语/english-writing-2026-dev/ai-document.js
+  // authorized:C:\Users\wangg\OneDrive\Desktop\QuizForge\quizforge_web\extensions\考研英语\english-writing-2026-dev\ai-document.js
   function toAiBlocks(doc) {
     if (!validateDocument(doc, { requireContent: true })) throw new Error("\u8BC4\u5206\u5185\u5BB9\u4E0D\u662F\u6709\u6548\u7684\u5BCC\u6587\u672C\u6587\u6863\u3002");
     const blocks2 = [];
@@ -182,7 +182,7 @@ ${(node.content || []).map(inline).join("")}
     return { protocolVersion: 1, question: toAiBlocks(data.stem), answer: toAiBlocks(answer.document), referenceAnswer: [{ type: "text", text: "\u53C2\u8003\u8303\u6587\uFF1A" }, ...reference, { type: "text", text: "\u8BC4\u5206\u4F9D\u636E\uFF1A" }, ...rubric], maxScore: data.maxScore, scoreStep: 0.5 };
   }
 
-  // quizforge_web/extensions/考研英语/english-writing-2026-dev/rules-source.js
+  // authorized:C:\Users\wangg\OneDrive\Desktop\QuizForge\quizforge_web\extensions\考研英语\english-writing-2026-dev\rules-source.js
   var object2 = (v) => v && typeof v === "object" && !Array.isArray(v);
   var half = (v) => Number.isFinite(v) && Number.isInteger(v * 2);
   var submitted = (s) => s?.submitted || s?.status === "submitted";
@@ -206,7 +206,7 @@ ${(node.content || []).map(inline).join("")}
       return { gradingStatus: "graded", score: r.score, maxScore: d.maxScore, correct: r.score === d.maxScore, feedback: r.feedback ?? null };
     },
     getScore(d, s) {
-      return { score: submitted(s) ? s.result.score : 0, maxScore: d.maxScore };
+      return { score: submitted(s) ? s.result?.score ?? null : 0, maxScore: d.maxScore };
     }
   });
 })();

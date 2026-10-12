@@ -9,7 +9,7 @@ import {spawn} from 'node:child_process';
 
 const MiB=1024*1024, ID=/^[A-Za-z0-9][A-Za-z0-9._-]{0,119}$/, ASSET_ID=/^[a-f0-9]{64}$/;
 const FIELDS=['entry','script','style','rules','questionSchema','answerSchema','examples'];
-const API={major:1,minor:2,capabilities:new Set(['practice','editor','editor-drafts','score','manual-review','ai-grading','resources','richtext','navigation','lifecycle','outline-items'])};
+const API={major:1,minor:3,capabilities:new Set(['practice','editor','editor-drafts','score','manual-review','ai-grading','resources','richtext','navigation','lifecycle','outline-items','answer-state'])};
 const STRUCTURAL_KEYS=new Set(['stem','referenceAnswer','rubric','document','content','attrs','marks','type','text','assetId','options','answer','feedback']);
 const report={ok:false,summary:{questions:0,questionTypes:0,images:0,referencedImages:0,ruleBatches:0,exampleQuestions:0,exampleRuleBatches:0,outlineItems:0,outlineRuleBatches:0,outlineBytes:0,exampleOutlineItems:0,exampleOutlineRuleBatches:0,maxScore:0},errors:[],warnings:[]};
 class Invalid extends Error {constructor(location,code){super(code);this.location=location;this.code=code;}}
@@ -102,6 +102,7 @@ function apiRequirements(manifest,location){
     if(typeof name!=='string'||!name.trim()||seen.has(name))fail(where+'/capabilities/'+i,'INVALID_API_REQUIREMENT');seen.add(name);
     if(!API.capabilities.has(name))fail(where+'/capabilities/'+i,'UNSUPPORTED_API_CAPABILITY');
     if(name==='outline-items'&&value.minMinor<1)fail(where,'INVALID_API_REQUIREMENT');
+    if(name==='answer-state'&&value.minMinor<3)fail(where,'INVALID_API_REQUIREMENT');
   }
 }
 
@@ -334,7 +335,7 @@ function checkExplicitOutlines(extension,items,examples,budget){
     if(row.outline.level==='parts')report.summary[examples?'exampleOutlineItems':'outlineItems']+=row.outline.items.length;
   }
 }
-function runnerRequest(extension,operation,questions){return {op:operation,apiVersion:{major:extension.manifest.requiresApi?.major??1,minor:extension.manifest.requiresApi?.minMinor??0},outlineItemsDeclared:outlineDeclared(extension.manifest),withCapabilities:operation==='validateBank',questions,rules:extension.files.rules,questionSchema:extension.files.questionSchema,answerSchema:extension.files.answerSchema};}
+function runnerRequest(extension,operation,questions){return {op:operation,apiVersion:{major:extension.manifest.requiresApi?.major??1,minor:extension.manifest.requiresApi?.minMinor??0},outlineItemsDeclared:outlineDeclared(extension.manifest),answerStateDeclared:extension.manifest.requiresApi?.minMinor>=3&&extension.manifest.requiresApi?.capabilities?.includes('answer-state')===true,withCapabilities:operation==='validateBank',questions,rules:extension.files.rules,questionSchema:extension.files.questionSchema,answerSchema:extension.files.answerSchema};}
 async function runRules(coreRoot,extension,operation,questions){
   const runner=path.join(coreRoot,'server','rules-runner.cjs'),input=Buffer.from(JSON.stringify(runnerRequest(extension,operation,questions)));if(input.length>8*MiB)return {ok:false,code:'RULE_INPUT_LIMIT'};
   const args=['--max-old-space-size=96','--disable-proto=throw','--permission'];

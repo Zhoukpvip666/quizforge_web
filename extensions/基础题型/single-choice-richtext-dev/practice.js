@@ -1,102 +1,42 @@
-(function () {
+(function(){
   'use strict';
-  const $ = id => document.getElementById(id);
-  const content = QF.content;
-  // UI-only fixtures for these examples. Remove before real functionality is implemented.
-  const previewFixtures = /* PREVIEW_FIXTURES */ {"sample-text":{"correctOptionId":"choice-6","answerAndExplanation":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"6 是偶数。","marks":[{"type":"bold"}]}]},{"type":"paragraph","content":[{"type":"text","text":"偶数能被 2 整除。6 ÷ 2 = 3，其余三个数除以 2 都有余数。"}]}]}},"sample-image-math":{"correctOptionId":"length-5","answerAndExplanation":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"斜边长为 "},{"type":"inlineMath","attrs":{"latex":"5\\,\\mathrm{cm}"}},{"type":"text","text":"。"}]},{"type":"paragraph","content":[{"type":"text","text":"根据勾股定理："}]},{"type":"blockMath","attrs":{"latex":"c=\\sqrt{3^2+4^2}=\\sqrt{25}=5"}}]}},"sample-table-options":{"correctOptionId":"table-2","answerAndExplanation":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"第二张表正确。分别代入三个值："}]},{"type":"blockMath","attrs":{"latex":"(-1)^2=1,\\quad 0^2=0,\\quad 1^2=1"}},{"type":"paragraph","content":[{"type":"text","text":"因此对应的 y 值依次为 1、0、1。"}]}]}}};
-  let context, selectedId = null, demoSubmitted = false, disposed = false, epoch = 0;
-  const views = new Map();
-  const resize = () => {if (!disposed) QF.ui.resize();};
-  function showError(error) {if (disposed) return; $('error').textContent = error.message || String(error); $('error').hidden = false; resize();}
-  function destroyViews() {views.forEach(view => view.destroy()); views.clear();}
-  function renderDoc(key, host, doc) {
-    const view = content.render(host, doc);
-    views.set(key, view);
-    const token = epoch;
-    view.ready.then(() => {if (token === epoch) resize();}).catch(error => {if (token === epoch) showError(error);});
+  const KIND=/* KIND */ 'single',fixtures=/* FIXTURES */ {"sample-text":{"formatVersion":1,"stem":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"下列哪一个数是"},{"type":"text","text":"偶数","marks":[{"type":"bold"}]},{"type":"text","text":"？"}]}]},"options":[{"id":"choice-3","content":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"3"}]}]}},{"id":"choice-6","content":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"6"}]}]}},{"id":"choice-7","content":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"7"}]}]}},{"id":"choice-9","content":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"9"}]}]}}],"correctOptionId":"choice-6","answerAndExplanation":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"6 是偶数。","marks":[{"type":"bold"}]}]},{"type":"paragraph","content":[{"type":"text","text":"偶数能被 2 整除。6 ÷ 2 = 3，其余三个数除以 2 都有余数。"}]}]},"maxScore":2},"single-sample-text":{"formatVersion":1,"stem":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"下列哪一个数是"},{"type":"text","text":"偶数","marks":[{"type":"bold"}]},{"type":"text","text":"？"}]}]},"options":[{"id":"choice-3","content":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"3"}]}]}},{"id":"choice-6","content":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"6"}]}]}},{"id":"choice-7","content":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"7"}]}]}},{"id":"choice-9","content":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"9"}]}]}}],"correctOptionId":"choice-6","answerAndExplanation":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"6 是偶数。","marks":[{"type":"bold"}]}]},{"type":"paragraph","content":[{"type":"text","text":"偶数能被 2 整除。6 ÷ 2 = 3，其余三个数除以 2 都有余数。"}]}]},"maxScore":2},"sample-image-math":{"formatVersion":1,"stem":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"如图，直角三角形的两条直角边分别为 "},{"type":"inlineMath","attrs":{"latex":"3\\,\\mathrm{cm}"}},{"type":"text","text":" 和 "},{"type":"inlineMath","attrs":{"latex":"4\\,\\mathrm{cm}"}},{"type":"text","text":"，斜边的长度是多少？"}]},{"type":"image","attrs":{"assetId":"96fbe7bbe9e76622b6236d0d0fbfddb92f022249ac38bdbbd908efd3bf3791a8","alt":"直角三角形，两条直角边分别长3厘米和4厘米，斜边长度未知","width":360,"align":"left"}}]},"options":[{"id":"length-4","content":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"inlineMath","attrs":{"latex":"4\\,\\mathrm{cm}"}}]}]}},{"id":"length-5","content":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"inlineMath","attrs":{"latex":"5\\,\\mathrm{cm}"}}]}]}},{"id":"length-6","content":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"inlineMath","attrs":{"latex":"6\\,\\mathrm{cm}"}}]}]}},{"id":"length-7","content":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"inlineMath","attrs":{"latex":"7\\,\\mathrm{cm}"}}]}]}}],"correctOptionId":"length-5","answerAndExplanation":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"斜边长为 "},{"type":"inlineMath","attrs":{"latex":"5\\,\\mathrm{cm}"}},{"type":"text","text":"。"}]},{"type":"paragraph","content":[{"type":"text","text":"根据勾股定理："}]},{"type":"blockMath","attrs":{"latex":"c=\\sqrt{3^2+4^2}=\\sqrt{25}=5"}}]},"maxScore":2},"single-sample-image-math":{"formatVersion":1,"stem":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"如图，直角三角形的两条直角边分别为 "},{"type":"inlineMath","attrs":{"latex":"3\\,\\mathrm{cm}"}},{"type":"text","text":" 和 "},{"type":"inlineMath","attrs":{"latex":"4\\,\\mathrm{cm}"}},{"type":"text","text":"，斜边的长度是多少？"}]},{"type":"image","attrs":{"assetId":"96fbe7bbe9e76622b6236d0d0fbfddb92f022249ac38bdbbd908efd3bf3791a8","alt":"直角三角形，两条直角边分别长3厘米和4厘米，斜边长度未知","width":360,"align":"left"}}]},"options":[{"id":"length-4","content":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"inlineMath","attrs":{"latex":"4\\,\\mathrm{cm}"}}]}]}},{"id":"length-5","content":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"inlineMath","attrs":{"latex":"5\\,\\mathrm{cm}"}}]}]}},{"id":"length-6","content":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"inlineMath","attrs":{"latex":"6\\,\\mathrm{cm}"}}]}]}},{"id":"length-7","content":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"inlineMath","attrs":{"latex":"7\\,\\mathrm{cm}"}}]}]}}],"correctOptionId":"length-5","answerAndExplanation":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"斜边长为 "},{"type":"inlineMath","attrs":{"latex":"5\\,\\mathrm{cm}"}},{"type":"text","text":"。"}]},{"type":"paragraph","content":[{"type":"text","text":"根据勾股定理："}]},{"type":"blockMath","attrs":{"latex":"c=\\sqrt{3^2+4^2}=\\sqrt{25}=5"}}]},"maxScore":2},"sample-table-options":{"formatVersion":1,"stem":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"已知 "},{"type":"inlineMath","attrs":{"latex":"y=x^2"}},{"type":"text","text":"。下列哪张表中的对应关系全部正确？"}]}]},"options":[{"id":"table-1","content":{"type":"doc","content":[{"type":"table","content":[{"type":"tableRow","content":[{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"x"}]}]},{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"-1"}]}]},{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"0"}]}]},{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"1"}]}]}]},{"type":"tableRow","content":[{"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"y"}]}]},{"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"-1"}]}]},{"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"0"}]}]},{"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"1"}]}]}]}]}]}},{"id":"table-2","content":{"type":"doc","content":[{"type":"table","content":[{"type":"tableRow","content":[{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"x"}]}]},{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"-1"}]}]},{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"0"}]}]},{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"1"}]}]}]},{"type":"tableRow","content":[{"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"y"}]}]},{"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"1"}]}]},{"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"0"}]}]},{"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"1"}]}]}]}]}]}},{"id":"table-3","content":{"type":"doc","content":[{"type":"table","content":[{"type":"tableRow","content":[{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"x"}]}]},{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"-1"}]}]},{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"0"}]}]},{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"1"}]}]}]},{"type":"tableRow","content":[{"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"y"}]}]},{"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"1"}]}]},{"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"1"}]}]},{"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"1"}]}]}]}]}]}},{"id":"table-4","content":{"type":"doc","content":[{"type":"table","content":[{"type":"tableRow","content":[{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"x"}]}]},{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"-1"}]}]},{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"0"}]}]},{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"1"}]}]}]},{"type":"tableRow","content":[{"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"y"}]}]},{"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"-1"}]}]},{"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"0"}]}]},{"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"-1"}]}]}]}]}]}}],"correctOptionId":"table-2","answerAndExplanation":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"第二张表正确。分别代入三个值："}]},{"type":"blockMath","attrs":{"latex":"(-1)^2=1,\\quad 0^2=0,\\quad 1^2=1"}},{"type":"paragraph","content":[{"type":"text","text":"因此对应的 y 值依次为 1、0、1。"}]}]},"maxScore":2},"single-sample-table-options":{"formatVersion":1,"stem":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"已知 "},{"type":"inlineMath","attrs":{"latex":"y=x^2"}},{"type":"text","text":"。下列哪张表中的对应关系全部正确？"}]}]},"options":[{"id":"table-1","content":{"type":"doc","content":[{"type":"table","content":[{"type":"tableRow","content":[{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"x"}]}]},{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"-1"}]}]},{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"0"}]}]},{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"1"}]}]}]},{"type":"tableRow","content":[{"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"y"}]}]},{"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"-1"}]}]},{"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"0"}]}]},{"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"1"}]}]}]}]}]}},{"id":"table-2","content":{"type":"doc","content":[{"type":"table","content":[{"type":"tableRow","content":[{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"x"}]}]},{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"-1"}]}]},{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"0"}]}]},{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"1"}]}]}]},{"type":"tableRow","content":[{"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"y"}]}]},{"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"1"}]}]},{"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"0"}]}]},{"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"1"}]}]}]}]}]}},{"id":"table-3","content":{"type":"doc","content":[{"type":"table","content":[{"type":"tableRow","content":[{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"x"}]}]},{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"-1"}]}]},{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"0"}]}]},{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"1"}]}]}]},{"type":"tableRow","content":[{"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"y"}]}]},{"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"1"}]}]},{"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"1"}]}]},{"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"1"}]}]}]}]}]}},{"id":"table-4","content":{"type":"doc","content":[{"type":"table","content":[{"type":"tableRow","content":[{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"x"}]}]},{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"-1"}]}]},{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"0"}]}]},{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"1"}]}]}]},{"type":"tableRow","content":[{"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"y"}]}]},{"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"-1"}]}]},{"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"0"}]}]},{"type":"tableCell","content":[{"type":"paragraph","content":[{"type":"text","text":"-1"}]}]}]}]}]}}],"correctOptionId":"table-2","answerAndExplanation":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"第二张表正确。分别代入三个值："}]},{"type":"blockMath","attrs":{"latex":"(-1)^2=1,\\quad 0^2=0,\\quad 1^2=1"}},{"type":"paragraph","content":[{"type":"text","text":"因此对应的 y 值依次为 1、0、1。"}]}]},"maxScore":2}};
+  const $=id=>document.getElementById(id),content=QF.content,views=new Map(),selected=new Set(),reported=new Map();
+  let context,submitted=false,disposed=false,epoch=0,reportQueue=Promise.resolve();
+  const options=data=>KIND==='true-false'?[{id:'true',content:word('正确')},{id:'false',content:word('错误')}]:data.options;
+  const word=text=>({type:'doc',content:[{type:'paragraph',content:[{type:'text',text}]}]});
+  const resize=()=>{if(!disposed)QF.ui.resize();};
+  const locked=()=>submitted||context.mode==='history'||context.status==='submitted'||context.capabilities.canSave!==true;
+  function showError(error){if(disposed)return;$('error').hidden=false;$('error').textContent=error.message||String(error);resize();}
+  function render(key,host,doc){views.get(key)?.destroy();const view=content.render(host,doc);views.set(key,view);const token=epoch;view.ready.then(()=>{if(!disposed&&token===epoch)resize();}).catch(showError);}
+  function reference(){return context.status==='submitted'?context.question.data:submitted?fixtures[context.question.id]:null;}
+  function correctIds(data){if(!data)return[];return KIND==='multiple'?data.correctOptionIds:KIND==='true-false'?[String(data.correctAnswer)]:[data.correctOptionId];}
+  function reportProgress(){
+    if(disposed||locked())return;const status=selected.size?'draft':'unanswered';if(reported.get('parent')===status)return;reported.set('parent',status);const token=epoch;
+    reportQueue=reportQueue.catch(()=>{}).then(async()=>{if(disposed||token!==epoch)return;const reply=await QF.page.reportAnswerState({status});if(!reply?.ok){reported.delete('parent');throw new Error(reply?.error?.message||'作答进度上报失败');}});reportQueue.catch(showError);
   }
-  function locked() {return context.mode === 'history' || context.status === 'submitted' || demoSubmitted || !context.capabilities.canSave;}
-  function answerData() {return context.status === 'submitted' ? context.question.data : demoSubmitted ? previewFixtures[context.question.id] : null;}
-  function updateChoices() {
-    const correctId = answerData()?.correctOptionId;
-    for (const row of $('options').querySelectorAll('.choice')) {
-      const id = row.dataset.id;
-      row.classList.toggle('is-selected', id === selectedId && !correctId);
-      row.classList.toggle('is-correct', Boolean(correctId) && id === correctId);
-      row.classList.toggle('is-incorrect', Boolean(correctId) && id === selectedId && id !== correctId);
-      const radio = row.querySelector('input');
-      radio.checked = id === selectedId;
-      radio.disabled = locked();
-      radio.setAttribute('aria-label', `选项 ${row.dataset.letter}${id === correctId ? '，正确答案' : correctId && id === selectedId ? '，回答错误' : ''}`);
-    }
-    $('submit').hidden = context.capabilities.canSubmit !== true || locked();
-    $('submit').disabled = !selectedId;
-    $('retry').hidden = !demoSubmitted;
+  function update(){
+    const correct=new Set(correctIds(reference()));
+    for(const row of $('options').querySelectorAll('.choice')){const id=row.dataset.id,input=row.querySelector('input');input.checked=selected.has(id);input.disabled=locked();row.classList.toggle('is-selected',!correct.size&&selected.has(id));row.classList.toggle('is-correct',correct.has(id));row.classList.toggle('is-incorrect',correct.size>0&&selected.has(id)&&!correct.has(id));input.setAttribute('aria-label',KIND==='true-false'?(id==='true'?'正确':'错误'):`选项 ${row.dataset.letter}`);}
+    $('submit').hidden=submitted||context.status==='submitted'||context.capabilities.canSubmit!==true;$('submit').disabled=selected.size===0;$('retry').hidden=!submitted||context.capabilities.canSubmit!==true;resize();
   }
-  function choose(event) {
-    if (!event.target.matches('input[type=radio]') || locked()) return;
-    selectedId = event.target.value;
-    updateChoices();
+  function choose(event){if(!event.target.matches('input')||locked())return;const id=event.target.value;if(KIND!=='multiple')selected.clear();if(event.target.checked)selected.add(id);else selected.delete(id);update();reportProgress();}
+  async function submit(){if(locked()||!selected.size||context.capabilities.canSubmit!==true)return;await reportQueue;if(disposed)return;const fixture=fixtures[context.question.id];if(!fixture){showError(new Error('真实提交尚未实现，此题没有演示数据。'));return;}
+    submitted=true;const expected=new Set(correctIds(fixture)),correct=expected.size===selected.size&&[...selected].every(id=>expected.has(id));$('result').hidden=false;$('demo-score').textContent=`${correct?context.question.data.maxScore:0} / ${context.question.data.maxScore} 分 · 演示`;
+    render('assessment',$('answer-and-explanation'),fixture.answerAndExplanation);update();
   }
-  function submitPreview() {
-    if (!selectedId || locked() || context.capabilities.canSubmit !== true) return;
-    const fixture = previewFixtures[context.question.id];
-    if (!fixture) {showError(new Error('此题没有界面演示数据，真实提交尚未实现。')); return;}
-    demoSubmitted = true;
-    updateChoices();
-    $('result').hidden = false;
-    renderDoc('assessment', $('answer-and-explanation'), fixture.answerAndExplanation);
-    resize();
-  }
-  function retryPreview() {
-    if (!demoSubmitted) return;
-    demoSubmitted = false;
-    selectedId = null;
-    views.get('assessment')?.destroy();
-    views.delete('assessment');
-    $('answer-and-explanation').replaceChildren();
-    $('result').hidden = true;
-    updateChoices();
-    resize();
-  }
-  $('options').addEventListener('change', choose);
-  $('submit').addEventListener('click', submitPreview);
-  $('retry').addEventListener('click', retryPreview);
+  function retry(){if(!submitted||context.capabilities.canSubmit!==true||context.mode==='history')return;submitted=false;selected.clear();views.get('assessment')?.destroy();views.delete('assessment');$('answer-and-explanation').replaceChildren();$('result').hidden=true;update();reportProgress();}
+  const submitHandler=()=>submit().catch(showError);$('options').addEventListener('change',choose);$('submit').addEventListener('click',submitHandler);$('retry').addEventListener('click',retry);
   QF.page.register({
-    async onLoad(next) {
-      epoch++;
-      destroyViews();
-      context = next;
-      demoSubmitted = false;
-      selectedId = next.answer?.selectedOptionId ?? null;
-      if (!next.question.data.options.some(option => option.id === selectedId)) selectedId = null;
-      $('error').hidden = true;
-      $('max-score').textContent = `${next.question.data.maxScore} 分`;
-      renderDoc('stem', $('stem'), next.question.data.stem);
-      $('options').replaceChildren();
-      next.question.data.options.forEach((option, index) => {
-        const row = document.createElement('label'); row.className = 'choice'; row.dataset.id = option.id;
-        const letter = String.fromCharCode(65 + index); row.dataset.letter = letter;
-        const radio = document.createElement('input'); radio.type = 'radio'; radio.name = 'selected-option'; radio.value = option.id;
-        const marker = document.createElement('span'); marker.className = 'choice-letter'; marker.textContent = letter;
-        const host = document.createElement('div'); host.className = 'choice-content';
-        row.append(radio, marker, host); $('options').append(row);
-        renderDoc(option.id, host, option.content);
-      });
-      const submitted = next.status === 'submitted';
-      $('result').hidden = !submitted;
-      if (submitted && next.question.data.answerAndExplanation) renderDoc('assessment', $('answer-and-explanation'), next.question.data.answerAndExplanation);
-      else $('answer-and-explanation').replaceChildren();
-      updateChoices();
-      await Promise.all([...views.values()].map(view => view.ready));
-      resize();
+    async onLoad(next){await reportQueue;epoch++;views.forEach(view=>view.destroy());views.clear();reported.clear();context=next;submitted=false;selected.clear();
+      const saved=KIND==='multiple'?next.answer?.selectedOptionIds:KIND==='true-false'?typeof next.answer?.value==='boolean'?[String(next.answer.value)]:[]:next.answer?.selectedOptionId?[next.answer.selectedOptionId]:[];
+      const available=options(next.question.data);for(const id of saved||[])if(available.some(option=>option.id===id))selected.add(id);
+      $('error').hidden=true;$('max-score').textContent=`${next.question.data.maxScore} 分`;render('stem',$('stem'),next.question.data.stem);$('options').replaceChildren();
+      available.forEach((option,index)=>{const row=document.createElement('label');row.className='choice';row.dataset.id=option.id;row.dataset.letter=String.fromCharCode(65+index);const input=document.createElement('input');input.type=KIND==='multiple'?'checkbox':'radio';input.name='answer';input.value=option.id;const host=document.createElement('div');host.className='choice-content';row.append(input);if(KIND!=='true-false'){const letter=document.createElement('span');letter.className='choice-letter';letter.textContent=row.dataset.letter;row.append(letter);}row.append(host);$('options').append(row);render(option.id,host,option.content);});
+      $('result').hidden=next.status!=='submitted';if(next.status==='submitted'&&next.question.data.answerAndExplanation){render('assessment',$('answer-and-explanation'),next.question.data.answerAndExplanation);$('demo-score').textContent=Number.isFinite(next.result?.score)?`${next.result.score} / ${next.question.data.maxScore} 分`:'';}else $('answer-and-explanation').replaceChildren();
+      update();await Promise.all([...views.values()].map(view=>view.ready));resize();
     },
-    onDispose() {
-      disposed = true; epoch++;
-      destroyViews();
-      $('options').removeEventListener('change', choose);
-      $('submit').removeEventListener('click', submitPreview);
-      $('retry').removeEventListener('click', retryPreview);
-    }
+    async onFlush(){await reportQueue;},
+    onDispose(){disposed=true;epoch++;views.forEach(view=>view.destroy());views.clear();$('options').removeEventListener('change',choose);$('submit').removeEventListener('click',submitHandler);$('retry').removeEventListener('click',retry);}
   }).catch(showError);
 })();

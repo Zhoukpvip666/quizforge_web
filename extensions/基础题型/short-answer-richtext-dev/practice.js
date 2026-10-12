@@ -2,9 +2,17 @@
   'use strict';
   const $ = id => document.getElementById(id), content = QF.content;
   const copy = value => JSON.parse(JSON.stringify(value));
-  const previewFixtures = /* PREVIEW_FIXTURES */ {"sample-text":{"parts":{"cache":{"answerAndExplanation":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"参考答案","marks":[{"type":"bold"}]}]},{"type":"paragraph","content":[{"type":"text","text":"缓存将经常使用的数据暂存起来，减少重复计算或读取，从而加快响应速度。使用时需要考虑缓存内容与原始数据的一致性，避免读取过期数据。"}]},{"type":"paragraph","content":[{"type":"text","text":"评分参考：说明缓存的基本作用 3 分；指出一个合理的注意事项并作说明 2 分。"}]}]},"demoScore":4,"demoFeedback":"示例分数展示：说明了缓存的作用，但还可补充数据一致性的具体例子。"}}},"sample-image-math":{"parts":{"area":{"answerAndExplanation":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"三角形面积等于底乘高的一半："}]},{"type":"blockMath","attrs":{"latex":"S=\\frac{1}{2}\\times3\\times4=6\\,\\mathrm{cm}^2"}},{"type":"paragraph","content":[{"type":"text","text":"评分参考：公式与过程正确 3 分；结果及单位正确 2 分。"}]}]},"demoScore":5,"demoFeedback":"示例分数展示：计算过程、结果与单位完整。"}}},"sample-material":{"parts":{"average":{"answerAndExplanation":{"type":"doc","content":[{"type":"blockMath","attrs":{"latex":"\\frac{20+30+25}{3}=25\\text{（本）}"}},{"type":"paragraph","content":[{"type":"text","text":"平均每天借出 25 本书。评分参考：计算式正确 2 分；结果正确 2 分。"}]}]},"demoScore":4,"demoFeedback":"示例分数展示：计算式与结果完整。"},"reasoning":{"answerAndExplanation":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"这份记录不足以证明阅读活动一定有效。周二借阅量最多只是现象，借阅数量还可能受课程安排、图书上新等因素影响。可以补充活动前后或有、无活动时的借阅记录，并尽量保持其他条件一致。"}]},{"type":"paragraph","content":[{"type":"text","text":"评分参考：指出证据不足 2 分；说明其他可能因素 2 分；提出合理的补充证据或比较办法 2 分。"}]}]},"demoScore":4,"demoFeedback":"示例分数展示：指出证据不足并解释可能因素，还可补充如何比较。"}}}};
+  const previewFixtures = /* PREVIEW_FIXTURES */ {"sample-text":{"parts":{"cache":{"answerAndExplanation":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"参考答案","marks":[{"type":"bold"}]}]},{"type":"paragraph","content":[{"type":"text","text":"缓存将经常使用的数据暂存起来，减少重复计算或读取，从而加快响应速度。使用时需要考虑缓存内容与原始数据的一致性，避免读取过期数据。"}]},{"type":"paragraph","content":[{"type":"text","text":"评分参考：说明缓存的基本作用 3 分；指出一个合理的注意事项并作说明 2 分。"}]}]},"demoScore":4,"demoFeedback":"示例分数展示：说明了缓存的作用，但还可补充数据一致性的具体例子。"}}},"sample-image-math":{"parts":{"area":{"answerAndExplanation":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"三角形面积等于底乘高的一半："}]},{"type":"blockMath","attrs":{"latex":"S=\\frac{1}{2}\\times3\\times4=6\\,\\mathrm{cm}^2"}},{"type":"paragraph","content":[{"type":"text","text":"评分参考：公式与过程正确 3 分；结果及单位正确 2 分。"}]}]},"demoScore":5,"demoFeedback":"示例分数展示：计算过程、结果与单位完整。"}}},"sample-material":{"parts":{"average":{"answerAndExplanation":{"type":"doc","content":[{"type":"blockMath","attrs":{"latex":"\\frac{20+30+25}{3}=25\\text{（本）}"}},{"type":"paragraph","content":[{"type":"text","text":"平均每天借出 25 本书。评分参考：计算式正确 2 分；结果正确 2 分。"}]}]},"demoScore":4,"demoFeedback":"示例分数展示：计算式与结果完整。"},"reasoning":{"answerAndExplanation":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"这份记录不足以证明阅读活动一定有效。周二借阅量最多只是现象，借阅数量还可能受课程安排、图书上新等因素影响。可以补充活动前后或有、无活动时的借阅记录，并尽量保持其他条件一致。"}]},{"type":"paragraph","content":[{"type":"text","text":"评分参考：指出证据不足 2 分；说明其他可能因素 2 分；提出合理的补充证据或比较办法 2 分。"}]}]},"demoScore":4,"demoFeedback":"示例分数展示：指出证据不足并解释可能因素，还可补充如何比较。"}}},"short-sample-text":{"parts":{"cache":{"answerAndExplanation":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"参考答案","marks":[{"type":"bold"}]}]},{"type":"paragraph","content":[{"type":"text","text":"缓存将经常使用的数据暂存起来，减少重复计算或读取，从而加快响应速度。使用时需要考虑缓存内容与原始数据的一致性，避免读取过期数据。"}]},{"type":"paragraph","content":[{"type":"text","text":"评分参考：说明缓存的基本作用 3 分；指出一个合理的注意事项并作说明 2 分。"}]}]},"demoScore":4,"demoFeedback":"示例分数展示：说明了缓存的作用，但还可补充数据一致性的具体例子。"}}},"short-sample-image-math":{"parts":{"area":{"answerAndExplanation":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"三角形面积等于底乘高的一半："}]},{"type":"blockMath","attrs":{"latex":"S=\\frac{1}{2}\\times3\\times4=6\\,\\mathrm{cm}^2"}},{"type":"paragraph","content":[{"type":"text","text":"评分参考：公式与过程正确 3 分；结果及单位正确 2 分。"}]}]},"demoScore":5,"demoFeedback":"示例分数展示：计算过程、结果与单位完整。"}}},"short-sample-material":{"parts":{"average":{"answerAndExplanation":{"type":"doc","content":[{"type":"blockMath","attrs":{"latex":"\\frac{20+30+25}{3}=25\\text{（本）}"}},{"type":"paragraph","content":[{"type":"text","text":"平均每天借出 25 本书。评分参考：计算式正确 2 分；结果正确 2 分。"}]}]},"demoScore":4,"demoFeedback":"示例分数展示：计算式与结果完整。"},"reasoning":{"answerAndExplanation":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"这份记录不足以证明阅读活动一定有效。周二借阅量最多只是现象，借阅数量还可能受课程安排、图书上新等因素影响。可以补充活动前后或有、无活动时的借阅记录，并尽量保持其他条件一致。"}]},{"type":"paragraph","content":[{"type":"text","text":"评分参考：指出证据不足 2 分；说明其他可能因素 2 分；提出合理的补充证据或比较办法 2 分。"}]}]},"demoScore":4,"demoFeedback":"示例分数展示：指出证据不足并解释可能因素，还可补充如何比较。"}}}};
   const views = new Map(), targets = new Map(), answers = new Map(), results = new Map(), timers = new Map();
   let context, active = null, editor = null, submitted = false, disposed = false, epoch = 0, switching = Promise.resolve();
+  let reportQueue=Promise.resolve();const reported=new Map();
+  function reportProgress(id){
+    if(disposed||locked())return;
+    const status=content.isEmpty(answers.get(id))?'unanswered':'draft';
+    if(reported.get(id)===status)return;reported.set(id,status);
+    const targetId=context.question.data.parts.length>1?id:undefined,token=epoch;
+    reportQueue=reportQueue.catch(()=>{}).then(async()=>{if(disposed||token!==epoch)return;const reply=await QF.page.reportAnswerState({status,...(targetId?{targetId}:{})});if(!reply?.ok){reported.delete(id);throw new Error(reply?.error?.message||'作答进度上报失败');}});reportQueue.catch(showError);
+  }
   const resize = () => {if (!disposed) QF.ui.resize();};
   function showError(error) {if (disposed) return; $('error').hidden = false; $('error').textContent = error.message || String(error); resize();}
   function renderDoc(key, host, doc) {
@@ -43,7 +51,7 @@
     active=id;
     const candidate=content.createEditor(host,{doc:answers.get(id)||copy(content.EMPTY_DOCUMENT),placeholder:'',
       resources:{get:assetId=>QF.resources.get(assetId),put(){return Promise.reject(Object.assign(new Error('界面原型暂不保存上传图片。'),{code:'DEVELOPMENT_NOT_IMPLEMENTED'}));}},
-      onChange(doc){if(!disposed&&active===id){answers.set(id,copy(doc));updateSubmit();resize();}}});
+      onChange(doc){if(!disposed&&active===id){answers.set(id,copy(doc));updateSubmit();reportProgress(id);resize();}}});
     editor=candidate; await candidate.ready;
     if(disposed||editor!==candidate){candidate.destroy();return;} candidate.focus();resize();
   }
@@ -90,7 +98,7 @@
   }
   async function submitPreview(){
     if(submitted||context.capabilities.canSubmit!==true)return;
-    await switching;await closeEditor();if(disposed)return;
+    await switching;await closeEditor();await reportQueue;if(disposed||submitted)return;
     if(![...answers.values()].some(doc=>!content.isEmpty(doc)))return;
     const fixture=previewFixtures[context.question.id];if(!fixture){showError(new Error('此题没有演示数据，真实提交尚未实现。'));return;}
     submitted=true;$('submit').hidden=true;$('retry').hidden=false;
@@ -101,7 +109,7 @@
   }
   function retryPreview(){
     if(context.status==='submitted'||context.mode==='history')return;
-    clearTimers();epoch++;submitted=false;answers.clear();results.clear();
+    clearTimers();epoch++;submitted=false;answers.clear();results.clear();for(const part of context.question.data.parts)reportProgress(part.id);
     for(const part of context.question.data.parts){views.get('assessment-'+part.id)?.destroy();views.delete('assessment-'+part.id);const target=targets.get(part.id);target.assessment.replaceChildren();target.result.hidden=true;previewAnswer(part.id);}
     $('submit').hidden=context.capabilities.canSubmit!==true;$('retry').hidden=true;updateSubmit();resize();
   }
@@ -112,7 +120,7 @@
   $('submit').addEventListener('click',submitHandler);$('retry').addEventListener('click',retryPreview);
   QF.page.register({
     async onLoad(next){
-      await switching;await closeEditor();epoch++;clearTimers();
+      await switching;await closeEditor();await reportQueue;epoch++;clearTimers();reported.clear();
       views.forEach(view=>view.destroy());views.clear();targets.clear();answers.clear();results.clear();
       context=next;submitted=next.status==='submitted';$('error').hidden=true;
       const data=next.question.data,multiple=data.parts.length>1;
@@ -143,7 +151,7 @@
       $('submit').hidden=submitted||next.capabilities.canSubmit!==true;$('retry').hidden=true;updateSubmit();
       await Promise.all([...views.values()].map(view=>view.ready));resize();
     },
-    async onFlush(){await switching;await editor?.flush();},
+    async onFlush(){await switching;await editor?.flush();await reportQueue;},
     async onOutlineNavigate(id){const target=targets.get(id);if(!target)return false;await switching;await Promise.all([...views.values()].map(view=>view.ready));target.section.scrollIntoView({block:'center',behavior:'auto'});target.answer.focus({preventScroll:true});return true;},
     onDispose(){disposed=true;epoch++;clearTimers();editor?.destroy();editor=null;views.forEach(view=>view.destroy());views.clear();targets.clear();
       $('parts').removeEventListener('click',requestEdit);$('parts').removeEventListener('keydown',requestEdit);$('parts').removeEventListener('input',gradeManually);$('parts').removeEventListener('click',clickActions);$('submit').removeEventListener('click',submitHandler);$('retry').removeEventListener('click',retryPreview);}

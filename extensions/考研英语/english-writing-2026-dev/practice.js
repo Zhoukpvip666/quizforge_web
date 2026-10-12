@@ -1,6 +1,83 @@
+// Public API 1.3 adapter. Reports run immediately, independently of disk saves.
+function createAnswerStateQueue({read,hasAnswer,writable,notice,onSaved=()=>{}}){
+  let epoch=0,version=0,saved=0,latest=null,flight=null,timer=null,disposed=false;
+  const targets=new Map();
+  const check=reply=>{
+    if(!reply?.ok)throw Object.assign(new Error(reply?.error?.message||'答案保存失败。'),{code:reply?.error?.code});
+    return reply.data;
+  };
+  function report(snapshot,targetId){
+    const value={status:hasAnswer(snapshot,targetId)?'draft':'unanswered'};
+    if(targetId!==undefined)value.targetId=targetId;
+    // Capture errors as values; debounce must never leave an unhandled rejection.
+    try{return Promise.resolve(QF.page.reportAnswerState(value)).then(reply=>{
+      const stateId=check(reply)?.stateId;
+      if(typeof stateId!=='string'||!/^\d{1,16}$/.test(stateId))throw new Error('作答状态上报未返回有效编号。');
+      return {stateId};
+    },error=>({error})).catch(error=>({error}));}
+    catch(error){return Promise.resolve({error});}
+  }
+  function changed(targetId){
+    if(disposed||!writable())return;
+    const item={version:++version,snapshot:structuredClone(read()),targetId,failed:false};
+    item.report=report(item.snapshot,targetId); // Never wait for flight here.
+    latest=item;targets.set(targetId,item);notice('');
+    clearTimeout(timer);timer=setTimeout(()=>save().catch(()=>{}),180);
+  }
+  function refresh(){
+    const snapshot=structuredClone(read()),item={version:version,snapshot,failed:false};
+    // Only targets actually changed locally; no bulk initialization.
+    for(const [id,previous] of targets){
+      if(previous.version<=saved)continue;
+      item.targetId=id;item.report=report(snapshot,id);targets.set(id,{...item});
+    }
+    latest=item;
+  }
+  function save(){
+    clearTimeout(timer);timer=null;
+    if(flight)return flight;
+    if(disposed||version<=saved)return Promise.resolve();
+    if(!writable())return Promise.reject(new Error('当前答案不能保存。'));
+    const generation=epoch;
+    const task=(async()=>{
+      while(!disposed&&epoch===generation&&version>saved){
+        if(latest.failed)refresh();
+        const item=latest;
+        try{
+          const reports=await Promise.all([...targets.values()].filter(t=>t.version>saved&&t.version<=item.version).map(t=>t.report));
+          if(disposed||epoch!==generation)return;
+          if(item!==latest)continue;
+          const failed=reports.find(r=>r.error);if(failed)throw failed.error;
+          const reported=await item.report;if(reported.error)throw reported.error;
+          const reply=await QF.save({purpose:'draft',data:{answer:item.snapshot},answerStateId:reported.stateId});
+          if(disposed||epoch!==generation)return;
+          if(!reply?.ok&&reply?.error?.code==='INVALID_ANSWER_STATE'){
+            // An expired old ID must never be paired with a newer answer.
+            // Re-report the current snapshot, and retry once through a fresh pair.
+            if(item.refreshed)throw Object.assign(new Error(reply.error.message),{code:reply.error.code});
+            refresh();latest.refreshed=true;continue;
+          }
+          check(reply);saved=Math.max(saved,item.version);onSaved(saved);
+          for(const [id,t] of targets)if(t.version<=saved)targets.delete(id);
+          if(item===latest)notice('');
+        }catch(error){
+          if(epoch===generation&&!disposed){latest.failed=true;notice(error.message+' 当前输入仍保留，请重试。',true);}
+          throw error;
+        }
+      }
+    })();
+    flight=task;
+    task.then(()=>{if(flight===task)flight=null;},()=>{if(flight===task)flight=null;});
+    return task;
+  }
+  return {changed,save,async flush(){clearTimeout(timer);timer=null;await save();if(version>saved)await save();},
+    reset(){epoch++;version=0;saved=0;latest=null;flight=null;targets.clear();clearTimeout(timer);timer=null;},
+    dispose(){disposed=true;epoch++;clearTimeout(timer);timer=null;targets.clear();}};
+}
+
 (function(){'use strict';
   const $=id=>document.getElementById(id),content=QF.content,empty={type:'doc',content:[{type:'paragraph'}]};
-  let context=null,questionId=null,answer=empty,editor=null,views=[],busy=false,version=0,savedVersion=0,timer=null,saveChain=Promise.resolve(),disposed=false;
+  let context=null,questionId=null,answer=empty,editor=null,views=[],busy=false,version=0,savedVersion=0,disposed=false;
   let aiTask=null,aiBusy=false,aiEpoch=0,pollTimer=null,aiError='',pollFailed=false,currentLoaded=false,resultStamp='';
   let reviewVersion=0,savedReviewVersion=0,reviewScore=0,reviewTimer=null,reviewFlight=null,reviewChain=Promise.resolve(),reviewError='',reviewEpoch=0;
   const copy=value=>JSON.parse(JSON.stringify(value)),caps=()=>context?.capabilities||{},locked=()=>context?.status==='submitted'||context?.mode==='history';
@@ -20,12 +97,10 @@
   }
   function clearViews(){for(const view of views)view.destroy();views=[];}
   function staticView(host,doc){const view=content.render(host,doc);views.push(view);view.ready?.then(resize);return view;}
-  async function saveDraft(){clearTimeout(timer);timer=null;if(disposed||locked()||version<=savedVersion||!caps().canSave)return saveChain;
-    const current=version,data={formatVersion:1,document:copy(answer)};
-    const next=saveChain.catch(()=>{}).then(async()=>{const reply=await QF.save({purpose:'draft',data:{answer:data}});if(!reply?.ok)throw new Error(reply?.error?.message||'答案保存失败。');savedVersion=Math.max(savedVersion,current);if(current===version)notice('');});saveChain=next;next.catch(error=>notice(`${error.message} 当前答案仍保留，请重试。`,true));return next;
-  }
-  async function flush(){clearTimeout(timer);timer=null;clearTimeout(reviewTimer);reviewTimer=null;await editor?.flush();if(editor)answer=editor.getDocument();await saveDraft();await saveChain;await saveReview();await reviewChain;}
-  function changed(doc){answer=copy(doc);version++;controls();notice('');clearTimeout(timer);timer=setTimeout(()=>saveDraft().catch(()=>{}),180);}
+  const drafts=createAnswerStateQueue({read:()=>({formatVersion:1,document:copy(answer)}),hasAnswer:snapshot=>!content.isEmpty(snapshot.document),writable:()=>!disposed&&!locked()&&caps().canSave===true,notice,onSaved:revision=>{savedVersion=Math.max(savedVersion,revision);}});
+  async function saveDraft(){await drafts.save();}
+  async function flush(){clearTimeout(reviewTimer);reviewTimer=null;await editor?.flush();if(editor){const doc=editor.getDocument();if(JSON.stringify(doc)!==JSON.stringify(answer))changed(doc);}await drafts.flush();await saveReview();await reviewChain;}
+  function changed(doc){if(locked()||disposed||!caps().canSave)return;answer=copy(doc);version++;controls();drafts.changed();}
   function resetReview(){clearTimeout(reviewTimer);reviewTimer=null;reviewEpoch++;reviewVersion=0;savedReviewVersion=0;reviewScore=0;reviewError='';reviewFlight=null;reviewChain=Promise.resolve();}
   function saveReview(){
     clearTimeout(reviewTimer);reviewTimer=null;if(reviewFlight)return reviewFlight;if(!reviewChanged())return reviewChain;
@@ -93,7 +168,7 @@
     if(!reviewChanged()){reviewScore=context.result?.score??0;$('review-score').value=String(reviewScore);$('review-value').textContent=`${$('review-score').value} 分`;}
   }
   async function load(next){if(disposed||!next?.question)return;const changedQuestion=questionId!==next.question.id,reset=context?.status==='submitted'&&next.status!=='submitted',wasLocked=locked(),nextResultStamp=JSON.stringify(next.result),resultChanged=nextResultStamp!==resultStamp;context=next;resultStamp=nextResultStamp;
-    if(changedQuestion||reset){resetAi();resetReview();questionId=next.question.id;version=0;savedVersion=0;answer=copy(next.answer?.document||empty);}
+    if(changedQuestion||reset){resetAi();resetReview();questionId=next.question.id;version=0;savedVersion=0;drafts.reset();answer=copy(next.answer?.document||empty);}
     else if(locked()||version<=savedVersion)answer=copy(next.answer?.document||answer);
     if(resultChanged&&next.aiTask===null&&(aiTask||aiBusy)){cancelPoll();aiTask=null;aiBusy=false;aiError='';pollFailed=false;currentLoaded=false;}
     if(next.mode==='history'||next.status!=='submitted'){cancelPoll();aiTask=null;}
@@ -116,5 +191,5 @@
   $('review-score').addEventListener('input',changedReview);
   $('ai-grade').addEventListener('click',()=>startAi('grade'));$('ai-regrade').addEventListener('click',()=>startAi('regrade'));$('ai-retry').addEventListener('click',()=>startAi(pollFailed?'check':'retry'));
   $('retry-button').addEventListener('click',async()=>{if(busy||!caps().canRetry)return;busy=true;controls();try{await flush();const reply=await QF.requestAction({action:'retry'});if(!reply?.ok)throw new Error(reply?.error?.message||'重新作答失败。');}catch(error){notice(error.message,true);}finally{busy=false;controls();}});
-  QF.page.register({onLoad:load,onFlush:flush,onDispose(){disposed=true;cancelPoll();clearTimeout(timer);clearTimeout(reviewTimer);editor?.destroy();editor=null;clearViews();}});
+  QF.page.register({onLoad:load,onFlush:flush,onDispose(){disposed=true;drafts.dispose();cancelPoll();clearTimeout(reviewTimer);editor?.destroy();editor=null;clearViews();}});
 })();

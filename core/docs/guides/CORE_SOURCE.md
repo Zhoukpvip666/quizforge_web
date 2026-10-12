@@ -1,0 +1,65 @@
+# 开发与架构
+
+## 运行与测试
+
+需要 Node.js 24。在产品根目录安装依赖并启动：
+
+```powershell
+npm --prefix core ci
+node core/server/main.mjs --root . --port 8787
+```
+
+Windows 也可运行 `Start-QuizForge-Web.cmd`，自动安装依赖并打开浏览器。`--root` 指向含 `question-banks/`、`extensions/` 的产品根目录；按 Ctrl+C 停止服务。同一数据目录只能运行一个写入服务。
+
+在 `core/` 执行：
+
+| 命令 | 用途 |
+| --- | --- |
+| `npm start` | 使用上一级产品目录启动，默认端口 8080 |
+| `npm test` | 递归运行后端、规则及前端测试 |
+| `npm run test:host` | 后端测试 |
+| `npm run test:rules` | 规则进程测试 |
+| `npm run build:richtext-advanced -- --version <新版本>` | 构建新的高级富文本组件 |
+
+后端测试使用隔离目录与真实 HTTP；`test/fixtures/` 保存旧协议、旧包及旧数据，不参与正式目录扫描。修改公共接口时同时检查旧拓展、混合题库、历史与重启恢复。构建组件不能覆盖已发布的同版本文件。
+
+## 模块职责
+
+目录均相对于 `core/`，完整目录树见 [源码目录](../../README.md)。
+
+| 功能 | 后端 | 浏览器 |
+| --- | --- | --- |
+| 入口与网络 | `server/main.mjs`、`server/host/http/` | `web/app.js`、`web/shell/` |
+| 题库、分组、导入导出 | `server/host/library/` | `web/library/` |
+| 拓展解析与规则执行 | `server/host/extensions/`、`server/rules-runner.cjs` | `web/bridge/`、`web/development/` |
+| 作答、草稿与大纲 | `server/host/practice/` | `web/practice/`、`web/draft/`、`web/outline/` |
+| 冻结历史 | `server/host/history/` | `web/history/` |
+| 考试 | `server/host/exam/` | `web/exam/` |
+| 题目编辑与事务 | `server/host/editor/` | `web/editor/` |
+| 图片与富文本 | `server/host/resources/`、`shared/richtext/` | 富文本公共 SDK |
+| AI 评分 | `server/host/ai/` | `web/ai/` |
+| 文件、缓存与事务工具 | `server/host/platform/` | `web/shared/` |
+
+宿主管理权限、数据保存、历史、考试、AI 通信和分值汇总；拓展拥有题型数据、题目投影、答案校验、评分规则及页面。宿主不解释拓展私有答案，也不按选项数量推算分数。
+
+## 加载与保存
+
+目录列表只读取元数据。打开题库时才校验该库及其关联拓展，生成投影与大纲；首题页面就绪前显示加载提示，失败时保留原页面。规则按拓展身份分组、有界批处理，再恢复原题序。手动刷新目录及当前开发版的热刷新保留独立检查路径。
+
+成功校验缓存绑定题库内容、拓展身份与规则运行环境；失败结果不缓存。后端集合、状态缓存与浏览器题目缓存分开管理，上限见 [宿主说明](../../server/README.md)。这些缓存的编码大小预算不等于完整堆内存占用。
+
+作答先留在拓展页面内存。API 1.3 的 `reportAnswerState` 先反馈大纲，随后关联的 `QF.save` 原子保存答案与进度；保存成功才更新 revision 和已保存标记。提交、切题、汇总和交卷前通过 `onFlush` 排空待保存输入与上传，失败则保留输入及恢复入口。接口见 [大纲与作答状态](../reference/SUBQUESTION_OUTLINE.md)。
+
+状态写入采用临时文件、刷盘和原子替换，并检查 revision、内容版本及幂等 requestId。题目编辑通过可恢复事务同时更新题库与状态，只重置内容变化题目的当前作答；历史不变。`features.history:false` 时练习数据仅存在当前页面会话，题目编辑仍可持久保存。
+
+## 页面与规则边界
+
+浏览器只保留一个活动拓展 iframe。桥接层校验来源、会话、请求及权限；练习、编辑、考试、历史采用各自的 context 能力。规则在独立、限时的 Node 子进程运行，同步读取 JSON 并返回 JSON；文件权限限制不能替代完整的恶意代码隔离。
+
+普通练习提供整个中间视口宽度，拓展自行排版；笔迹只在草稿模式显示。草稿固定初次布局宽度，题目与笔迹一起缩放和平移，窗口变化不重新排版。布局持久化及旧坐标兼容见 [兼容说明](../reference/COMPATIBILITY.md#草稿布局)。
+
+## 评分、考试与历史
+
+`grade/review/getScore` 由拓展实现，宿主保存结果并汇总父题分值。AI 流程为：拓展 `prepareAiGrading` 提供材料 → 宿主请求模型并校验输出 → 拓展 `review` 合并结果 → 宿主保存。可选 `targetId` 路由小题任务，自动评分可返回多个目标；完整参数见 [API 文档](../reference/API.md)。
+
+考试开始时冻结整库和页面，交卷后锁定答案再统一评分，详见 [考试模式](../reference/EXAM_MODE.md)。历史冻结题目、投影、页面、答案、分数、大纲、笔迹及实际组件版本，读取时不调用当前规则补数据。应用更新与数据升级边界见 [兼容说明](../reference/COMPATIBILITY.md)。

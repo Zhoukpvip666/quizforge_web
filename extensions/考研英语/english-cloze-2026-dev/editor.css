@@ -39,7 +39,7 @@ select:focus-visible {
 
 .question-card {
   width: 100%;
-  max-width: 704px;
+  max-width:800px;
   margin: auto;
   padding: 24px;
   background: #fff;
@@ -718,3 +718,26 @@ select:focus-visible {
   font-size: 14pt;
   line-height: 1.8;
 }
+/* Match the practice card and keep scoring in its header. */
+.question-card { width:100%; max-width:800px; padding:24px; }
+.card-head { align-items:flex-start; flex-wrap:wrap; }
+.card-head .inline-score { margin:0 0 0 auto; gap:6px; justify-content:flex-end; font-size:13px; }
+.card-head .inline-score input { width:3ch; min-width:30px; }
+.card-head .inline-score span { font-size:12px; }
+@media(max-width:560px) { .question-card { padding:16px; } }
+
+/* Underlined fields share the same text style as their option letters. */
+.edit-part .edit-option { display:grid; grid-template-columns:max-content minmax(0,1fr) 16px; align-items:start; gap:5px; }
+.edit-part .edit-option .option-letter,
+.question-card .edit-part .edit-option .edit-text { font:14pt/1.5 "Times New Roman","Microsoft YaHei",serif; color:#303044; }
+.edit-part .edit-option .option-letter { margin:0; padding-top:5px; }
+.edit-part .edit-option .edit-text { border:0; border-bottom:1px solid #d7cce3; border-radius:0; background:transparent; padding:5px 0; min-height:38px; box-shadow:none; }
+.edit-part .edit-option .edit-text:focus { border-bottom-color:#8060aa; }
+.edit-part .edit-option .edit-text:focus-visible { outline:none; border-bottom:2px solid #8060aa; }
+.edit-part .icon-button { margin:5px 0 0; padding:2px 0; width:16px; }
+.edit-part .small-button { border:0; background:transparent; padding:4px; }
+
+.edit-part { grid-template-columns:24px minmax(0,1fr) 22px; gap:8px; margin:8px 0; }
+.edit-number { padding-top:5px; font:600 14pt/1.5 "Times New Roman","Microsoft YaHei",serif; }
+.edit-options-grid { grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+@media(max-width:620px) { .edit-options-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }

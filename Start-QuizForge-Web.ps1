@@ -53,7 +53,7 @@ function Open-ExistingQuizForge($running) {
   Write-Host "QuizForge 已在运行，复用当前服务：$existingUrl" -ForegroundColor Green
   if ($running.Port -ne $Port) { Write-Host '如需更换端口，请先关闭原来的启动窗口。' }
   if (-not $NoBrowser) {
-    & (Join-Path $coreRoot 'scripts/Open-QuizForge-WhenReady.ps1') -Port $running.Port -LauncherPid $PID -AllowLogin
+    & (Join-Path $coreRoot 'scripts/launcher/Open-QuizForge-WhenReady.ps1') -Port $running.Port -LauncherPid $PID -AllowLogin
   }
 }
 
@@ -151,7 +151,7 @@ try {
   }
   if ($AccessToken) { $serverArguments += @('--token', $AccessToken) }
   if (-not $NoBrowser) {
-    $helperPath = (Join-Path $coreRoot 'scripts/Open-QuizForge-WhenReady.ps1').Replace("'", "''")
+    $helperPath = (Join-Path $coreRoot 'scripts/launcher/Open-QuizForge-WhenReady.ps1').Replace("'", "''")
     $helperToken = $AccessToken.Replace("'", "''")
     $helperCommand = "& '$helperPath' -Port $Port -LauncherPid $PID -AccessToken '$helperToken'"
     $encodedHelper = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($helperCommand))

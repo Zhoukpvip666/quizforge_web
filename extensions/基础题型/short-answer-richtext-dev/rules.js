@@ -3,10 +3,6 @@
   const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
   const document = value => object(value) && value.type === 'doc' && Array.isArray(value.content) && value.content.length > 0;
   const total = data => data.parts.reduce((sum, part) => sum + part.maxScore, 0);
-  const meaningful = node => object(node) && ((node.type === 'text' && typeof node.text === 'string' && node.text.trim() !== '')
-    || (node.type === 'image' && typeof node.attrs?.assetId === 'string' && /^[a-f0-9]{64}$/.test(node.attrs.assetId))
-    || (['inlineMath','blockMath'].includes(node.type) && typeof node.attrs?.latex === 'string' && node.attrs.latex.trim() !== '')
-    || (Array.isArray(node.content) && node.content.some(meaningful)));
   function unavailable() {const error = new Error('简答题目前为界面原型，真实保存、判分与 AI 评分尚未实现。'); error.code = 'DEVELOPMENT_NOT_IMPLEMENTED'; throw error;}
   QF.defineType({
     validateQuestion(data) {
@@ -23,8 +19,7 @@
     getScore(data, state) {
       const maxScore = total(data);
       if (!state?.submitted && state?.status !== 'submitted') {
-        const filled = doc => document(doc) && meaningful(doc);
-        return {score:0,maxScore,outlineStates:data.parts.map(part => ({id:part.id,status:filled(state?.answer?.responses?.[part.id]) ? 'draft' : 'unanswered'}))};
+        return {score:0,maxScore};
       }
       if (!state.result) return unavailable();
       if (state.result.gradingStatus === 'pending') return {score:null,maxScore,gradingStatus:'pending',outlineStates:data.parts.map(part => ({id:part.id,status:'incorrect'}))};

@@ -15,3 +15,9 @@ node_modules/
 *.pfx
 .DS_Store
 Thumbs.db
+
+# 本地维护资料
+/DEVELOPMENT_LOG.md
+/QuizForge预览版人工测试清单.xlsx
+/测试/
+/test/

@@ -8,12 +8,12 @@ const LIMIT = 8 * 1024 * 1024;
 // Public rule contracts evolve independently of application releases. Retain
 // this v1 registration when a later major adds a separate implementation.
 const ruleApis = new Map([[1, {
-  minor: 2,
+  minor: 3,
   register(run, development = false) {
     run(`globalThis.__type = null; globalThis.QF = Object.freeze({
-      api:Object.freeze({major:1,minor:2,capabilities:Object.freeze([
+      api:Object.freeze({major:1,minor:3,capabilities:Object.freeze([
         'practice','editor','editor-drafts','score','manual-review','ai-grading',
-        'resources','richtext','navigation','lifecycle','outline-items'
+        'resources','richtext','navigation','lifecycle','outline-items','answer-state'
       ])}),
       defineType(type) {
         if (__type || !type || typeof type !== 'object' || Array.isArray(type) || (${development ? 'false' : "typeof type.project !== 'function' || typeof type.grade !== 'function'"})) throw Error('Invalid rule registration');
@@ -33,7 +33,7 @@ function selectRuleApi(value) {
   }
   const api = ruleApis.get(value.major);
   if (!api || value.minor > api.minor) {
-    const error = new Error('Unsupported rule API version; this runner supports v1.2, v1.1 and v1.0'); error.code = 'UNSUPPORTED_API_VERSION'; throw error;
+    const error = new Error('Unsupported rule API version; this runner supports v1.3, v1.2, v1.1 and v1.0'); error.code = 'UNSUPPORTED_API_VERSION'; throw error;
   }
   return api;
 }
@@ -172,7 +172,8 @@ process.stdin.on('end', () => {
           const error = new Error('Extension must provide finite score and maxScore through getScore'); error.code = 'SCORE_UNAVAILABLE'; throw error;
         }
         const value = { score: score.score, maxScore: score.maxScore, gradingStatus };
-        if (Object.hasOwn(score, 'outlineStates')) value.outlineStates = validateOutlineStates(score.outlineStates, state.submitted);
+        // Active reporting replaces pre-submit outline polling for API 1.3 types.
+        if (Object.hasOwn(score, 'outlineStates') && (state.submitted || request.answerStateDeclared !== true)) value.outlineStates = validateOutlineStates(score.outlineStates, state.submitted);
         scores.push(value);
       }
       output = { scores };
@@ -229,6 +230,26 @@ process.stdin.on('end', () => {
           validateQ(request.data);
           set({ data: request.data, state: { submitted: false, result: null } });
           output.projected = project('__type.project(__input.data, __input.state)');
+        }
+        if (request.outlineAfterValidation === true && request.answerStateDeclared !== true) try {
+          // Preserve the fresh scoring VM used by scoreBatch while sharing the
+          // Node/AJV startup with draft validation and public projection.
+          resetContext();
+          validateQ(request.data);
+          set({ data: request.data, state: { status: 'draft', submitted: false, ...(request.outlineRevision===undefined?{}:{revision:request.outlineRevision}), answer: request.answer, result: null } });
+          const score = run('typeof __type.getScore === "function"')
+            ? invoke('__type.getScore(__input.data, __input.state)')
+            : { score: 0, maxScore: project('__type.project(__input.data, {submitted:false,result:null})')?.maxScore };
+          if (!score || typeof score !== 'object' || Array.isArray(score) || !Number.isFinite(score.maxScore) || score.maxScore < 0 || !Number.isFinite(score.score)) {
+            if (development && !run('typeof __type.getScore === "function"')) notImplemented('getScore');
+            const error = new Error('Extension must provide finite score and maxScore through getScore'); error.code = 'SCORE_UNAVAILABLE'; throw error;
+          }
+          output.outlineScore = { score: score.score, maxScore: score.maxScore, gradingStatus: 'unsubmitted' };
+          if (Object.hasOwn(score, 'outlineStates')) output.outlineScore.outlineStates = validateOutlineStates(score.outlineStates, false);
+        } catch (error) {
+          // Partial development types could already save an answer without a
+          // working score hook. Keep that behavior; never invent child states.
+          if (!development || error.code !== 'DEVELOPMENT_NOT_IMPLEMENTED') throw error;
         }
       }
       else throw new Error('Unknown rule operation');

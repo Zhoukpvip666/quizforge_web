@@ -1,7 +1,0 @@
-{
-  "type": "object",
-  "additionalProperties": false,
-  "properties": {
-    "selectedOptionId": {"type": ["string", "null"], "maxLength": 64}
-  }
-}

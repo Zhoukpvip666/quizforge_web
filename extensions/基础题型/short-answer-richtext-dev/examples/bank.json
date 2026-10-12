@@ -184,8 +184,17 @@
       "id": "sample-material",
       "title": "共享材料：两个小问",
       "outline": {
-        "level": "question",
-        "label": "3"
+        "level": "parts",
+        "items": [
+          {
+            "id": "average",
+            "label": "3.1"
+          },
+          {
+            "id": "reasoning",
+            "label": "3.2"
+          }
+        ]
       },
       "data": {
         "formatVersion": 1,

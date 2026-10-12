@@ -8,5 +8,5 @@ project(data,state){const projected={};["stem", "pointsPerItem", "maxScore"].for
 validateQuestion(d){return uniform(d)&&d.parts.every(p=>new Set(p.options.map(o=>o.id)).size===p.options.length&&p.options.some(o=>o.id===p.correctOptionId));},
 validateAnswer(a,d){return validResponses(a,d,(v,p)=>v===''||p.options.some(o=>o.id===v));},
 grade(d,a){if(!hasAnswer(a))throw new Error('请先作答。');const score=d.parts.reduce((s,p)=>s+(a.responses[p.id]===p.correctOptionId?d.pointsPerItem:0),0);return {gradingStatus:'graded',score,maxScore:d.maxScore,correct:score===d.maxScore,feedback:null};},
-getScore(d,s){return {score:submitted(s)?s.result.score:0,maxScore:d.maxScore,outlineStates:d.parts.map(p=>({id:p.id,status:!submitted(s)?(s.answer?.responses?.[p.id]?.trim()?'draft':'unanswered'):s.answer?.responses?.[p.id]===p.correctOptionId?'correct':'incorrect'}))};}
+getScore(d,s){const value={score:submitted(s)?s.result?.score??null:0,maxScore:d.maxScore};if(submitted(s)&&s.answer?.responses)value.outlineStates=d.parts.map(p=>({id:p.id,status:!s.answer.responses[p.id]?.trim()?'unanswered':s.answer.responses[p.id]===p.correctOptionId?'correct':'incorrect'}));return value;}
 });

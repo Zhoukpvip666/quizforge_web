@@ -1,0 +1,298 @@
+import http from 'node:http';
+import fs from 'node:fs';
+import path from 'node:path';
+import net from 'node:net';
+import { lookup } from 'node:dns/promises';
+import { randomUUID, timingSafeEqual } from 'node:crypto';
+import { pipeline } from 'node:stream/promises';
+import { ApiError, bad, routeId, text } from '../platform/errors.js';
+import { jsonBytes, parseJson, hash } from '../platform/json.js';
+import { checkPath, exists, readBytes, readJson, resolveLayout, safeDirectory, safeFile } from '../platform/files.js';
+import { RuleEngine } from '../extensions/rule-engine.js';
+import { Library } from '../library/library.js';
+import { StateStore } from '../practice/state-store.js';
+import { ResourceStore, MAX_IMAGE_BYTES } from '../resources/resources.js';
+import { EditorDraftStore } from '../editor/editor-drafts.js';
+import { DevelopmentSettings } from '../extensions/development-settings.js';
+import { NetworkSettings } from './network-settings.js';
+import { AiSettings } from '../ai/ai-settings.js';
+import { OpenAiCompatibleProvider, AiProviderError } from '../ai/ai-provider.js';
+import { AiGradingService } from '../ai/ai-grading-service.js';
+import { CollectionRoutes } from '../practice/collection-routes.js';
+import { PracticeSessions } from '../practice/practice-sessions.js';
+import { ExamSessions } from '../exam/exam-sessions.js';
+import { MIME as archiveMime } from '../library/library-archive.js';
+import { hostKey, sameHost, url as addressUrl, privateAddress, ipv6Bytes, sameIpv6Subnet, interfaceAddresses, ipv6Available,displayAdapterMetadata,recommendedAddresses } from './network-addresses.js';
+
+const loopback = host => hostKey(host) === hostKey('::1') || hostKey(host)?.startsWith('127.');
+const equal = (left, right) => typeof left === 'string' && typeof right === 'string' && Buffer.byteLength(left) === Buffer.byteLength(right) && timingSafeEqual(Buffer.from(left), Buffer.from(right));
+const forwarded = request => Object.keys(request.headers).some(name => name === 'forwarded' || name.startsWith('x-forwarded-'));
+const mime = file => ({ '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon', '.woff2': 'font/woff2' })[path.extname(file).toLowerCase()];
+const csp = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; frame-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; object-src 'none'";
+export function queryValue(context, name) {
+  const values = context.url.searchParams.getAll(name); if (values.length > 1) throw bad('Invalid query');
+  if (!values.length) return null;
+  for (const item of context.url.search.slice(1).split('&')) if (decodeURIComponent(item.split('=')[0].replaceAll('+', ' ')) === name && !item.includes('=')) throw bad('Invalid query');
+  return values[0];
+}
+function authority(value) {
+  try {
+    if (typeof value !== 'string' || /[\s\\/?#@]/.test(value)) throw new Error();
+    const uri = new URL('http://' + value); if (!hostKey(uri.hostname) || uri.username || uri.password) throw new Error();
+    return uri;
+  } catch { throw new ApiError(403, 'HOST_REJECTED', 'Use an enabled connection address'); }
+}
+const listen = (server, port, host) => new Promise((resolve, reject) => {
+  const fail = error => { server.off('listening', ready); reject(error); };
+  const ready = () => { server.off('error', fail); resolve(server); };
+  server.once('error', fail); server.once('listening', ready); server.listen({ port, host, backlog: 64, ipv6Only: false });
+});
+const closeServer = server => new Promise(resolve => { if (!server?.listening) return resolve(); server.close(() => resolve()); server.closeAllConnections(); });
+
+export class QuizForgeServer {
+  static async create({ root = '.', host = '127.0.0.1', port = 8080, token = null, node = process.execPath, codeRoot = null } = {}) {
+    if (token !== null && !/^[A-Za-z0-9._~-]{16,256}$/.test(token)) throw new Error('Token must contain 16..256 URL-safe characters');
+    if (!Number.isInteger(port) || port < 0 || port > 65535) throw new Error('Invalid port');
+    const layout = resolveLayout(root), service = new QuizForgeServer();
+    Object.assign(service, layout, { root: layout.dataRoot, codeRoot: codeRoot ?? layout.codeRoot, host, token, active: 0, ready: false, closed: false });
+    service.server = service.newListener(false);
+    try {
+      // Reserve the port and data directory before any state recovery or upgrade.
+      await listen(service.server, port, host); service.claimRoot();
+      service.ipv6Supported = await ipv6Available();
+      service.engine = await RuleEngine.create(service.codeRoot, { node });
+      service.developmentSettings = new DevelopmentSettings(service.root);
+      service.library = new Library(service.root, service.codeRoot, service.engine, service.developmentSettings);
+      service.states = new StateStore(service.root, service.engine); service.resources = new ResourceStore(service.root); service.editorDrafts = new EditorDraftStore(service.root);
+      service.aiSettings = new AiSettings(service.root); service.aiGateway = new OpenAiCompatibleProvider(service.aiSettings, service.resources);
+      service.ai = new AiGradingService(service.root, service.states, service.library, service.aiGateway);
+      service.writes = { read: context => service.writeRequest(context), validateOrigin: context => service.validateOrigin(context) };
+      service.automaticAi = () => service.aiSettings.profile.enabled && service.aiSettings.profile.autoGrade;
+      service.routes = new CollectionRoutes(service.library, service.states, service.ai, service.writes, service.automaticAi);
+      const developmentRoot = safeDirectory(path.join(service.root, '.development'), true);
+      service.developmentStates = new StateStore(service.root, service.engine, { stateRoot: developmentRoot });
+      service.developmentResources = new ResourceStore(developmentRoot); service.developmentEditorDrafts = new EditorDraftStore(developmentRoot);
+      service.developmentAi = new AiGradingService(developmentRoot, service.developmentStates, service.library, new OpenAiCompatibleProvider(service.aiSettings, service.developmentResources));
+      service.developmentRoutes = new CollectionRoutes(service.library, service.developmentStates, service.developmentAi, service.writes, service.automaticAi);
+      service.practiceSessions = new PracticeSessions(() => service.createPracticeSession());
+      service.exams = new ExamSessions(service.root, service.library, service.states, service.ai, service.routes, service.writes, service.automaticAi, { resourceGateway: images => new OpenAiCompatibleProvider(service.aiSettings, images) });
+      service.allowedHosts = new Set(['localhost', '127.0.0.1', hostKey('::1')]);
+      const bound = service.server.address().address;
+      if (bound === '0.0.0.0' || bound === '::') for (const local of interfaceAddresses()) service.allowedHosts.add(hostKey(local.address.split('%')[0]));
+      else service.allowedHosts.add(hostKey(bound));
+      service.networkSettings = new NetworkSettings(service.root, Math.max(1024, service.port() === 65535 ? 8788 : service.port() + 1));
+      service.refreshAddresses(); return service;
+    } catch (error) { await service.close(); throw error; }
+  }
+  newListener(remote) {
+    this.handlers ??= new Set();
+    const server = http.createServer({ maxHeaderSize: 16 * 1024, requestTimeout: 120000, headersTimeout: 15000 }, (request, response) => {
+      const operation = this.handle({ request, response, remote }); this.handlers.add(operation);
+      operation.finally(() => this.handlers.delete(operation)).catch(() => {});
+    });
+    server.on('clientError', (_error, socket) => socket.end('HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\n')); return server;
+  }
+  claimRoot() {
+    const directory = safeDirectory(path.join(this.root, '.state'), true); this.lockFile = path.join(directory, 'host.lock');
+    for (let attempt = 0; attempt < 2; attempt++) {
+      if (exists(this.lockFile)) {
+        checkPath(this.lockFile, { directory: false }); const previous = readJson(this.lockFile, 4096);
+        if (!Number.isInteger(previous.pid) || previous.pid <= 0 || typeof previous.nonce !== 'string') throw new Error('Host lock is invalid; preserve it for inspection');
+        let alive = true; try { process.kill(previous.pid, 0); } catch (error) { if (error.code === 'ESRCH') alive = false; }
+        if (alive) throw new Error('This QuizForge data directory is already open by another host');
+        fs.unlinkSync(this.lockFile);
+      }
+      this.lockNonce = randomUUID();
+      try { fs.writeFileSync(this.lockFile, jsonBytes({ pid: process.pid, nonce: this.lockNonce }), { flag: 'wx' }); this.ownsLock = true; return; }
+      catch (error) { if (error.code !== 'EEXIST' || attempt) throw error; }
+    }
+  }
+  port() { return this.server.address().port; }
+  async start() {
+    if (this.started || this.closed) return; this.started = true;
+    if (loopback(this.server.address().address) && this.networkSettings.config.remoteEnabled) try { this.networkServer = await listen(this.newListener(true), this.networkSettings.config.port, this.ipv6Supported ? '::' : '0.0.0.0'); } catch { this.networkError = 'Saved connection port is unavailable; select another port in settings'; }
+    this.ready = true;
+    let ticking = false; this.timer = setInterval(async () => { if (ticking || this.closed) return; ticking = true; try { await this.exams.tick(); } finally { ticking = false; } }, 1000); this.timer.unref();
+    // Metadata is listed immediately; collections validate only when opened.
+  }
+  async close() {
+    if (this.closed) return; this.closed = true; this.ready = false; clearInterval(this.timer);
+    this.library?.close(); this.exams?.close(); this.practiceSessions?.close(); this.ai?.close(); this.developmentAi?.close(); this.networkSettings?.invalidateSessions(); this.engine?.close();
+    await Promise.all([closeServer(this.server), closeServer(this.networkServer)]);
+    await Promise.allSettled([...this.handlers ?? [], this.states?.transactions.drain(), this.developmentStates?.transactions.drain(), this.exams?.transactions.drain(), this.library?.managementTransactions.drain()]);
+    if (this.ownsLock && exists(this.lockFile)) { checkPath(this.lockFile); if (readJson(this.lockFile, 4096).nonce === this.lockNonce) fs.unlinkSync(this.lockFile); this.ownsLock = false; }
+  }
+  createPracticeSession() {
+    const states = StateStore.memory(this.root, this.engine), resources = new ResourceStore(this.root, { memory: true, fallback: this.resources }), developmentResources = new ResourceStore(path.join(this.root, '.development'), { memory: true, fallback: this.developmentResources });
+    const ai = AiGradingService.memory(this.root, states, this.library, new OpenAiCompatibleProvider(this.aiSettings, resources)), developmentAi = AiGradingService.memory(path.join(this.root, '.development'), states, this.library, new OpenAiCompatibleProvider(this.aiSettings, developmentResources));
+    return { states, resources, developmentResources, ai, developmentAi, routes: new CollectionRoutes(this.library, states, ai, this.writes, this.automaticAi), developmentRoutes: new CollectionRoutes(this.library, states, developmentAi, this.writes, this.automaticAi), bytes: () => states.memoryBytes() + resources.memoryBytes() + developmentResources.memoryBytes() + ai.memoryBytes() + developmentAi.memoryBytes(), close: () => { ai.close(); developmentAi.close(); states.clearMemory(); } };
+  }
+  lease(context, create, writing) { return this.practiceSessions.acquire(context.request.headers['x-quizforge-practice-session'], create, writing); }
+  canManage(context) { return !context.remote && !forwarded(context.request) && loopback(this.server.address().address) && loopback(context.request.socket.remoteAddress) && ['localhost', '127.0.0.1', hostKey('::1')].includes(hostKey(context.authority.hostname)); }
+  requireLocal(context, message = '题库导入导出和设置只能在主机本机地址操作') { if (!this.canManage(context)) throw new ApiError(403, 'LOCAL_SETTINGS_ONLY', message); }
+  refreshAddresses() {
+    this.lanHosts = new Set(['localhost', '127.0.0.1']); this.lanUrls = new Set(); this.publicIpv6Hosts = new Set(); this.subnets = [];
+    if (this.ipv6Supported) this.lanHosts.add(hostKey('::1'));
+    for (const entry of interfaceAddresses()) {
+      const host = entry.address.split('%')[0], bytes = ipv6Bytes(host);
+      if (entry.internal || (!this.ipv6Supported && bytes) || host.startsWith('169.254.') || bytes && (bytes[0] === 0xff || bytes[0] === 0xfe && (bytes[1] & 0xc0) === 0x80)) continue;
+      this.lanHosts.add(hostKey(host)); this.lanUrls.add(host);
+      if (bytes && (bytes[0] & 0xe0) === 0x20) { this.publicIpv6Hosts.add(host); const prefix = Number(entry.cidr?.split('/')[1]); if (prefix >= 64 && prefix <= 128) this.subnets.push({ host, prefix }); }
+    }
+  }
+  publicHost(uri) { const settings = this.networkSettings.config; if (!settings.publicEnabled) return false; const target = new URL(settings.publicUrl); return sameHost(uri.hostname, target.hostname) && (uri.port || '80') === (target.port || (target.protocol === 'https:' ? '443' : '80')); }
+  validateHost(context) {
+    const uri = authority(context.request.headers.host); context.authority = uri; let accepted;
+    if (context.remote) {
+      if (this.publicHost(uri)) return;
+      const peer = context.request.socket.remoteAddress, settings = this.networkSettings.config;
+      accepted = settings.enabled && (privateAddress(peer) || this.subnets.some(subnet => sameIpv6Subnet(subnet.host, peer, subnet.prefix))) && this.lanHosts.has(hostKey(uri.hostname));
+    } else accepted = this.allowedHosts.has(hostKey(uri.hostname)) && !(loopback(this.server.address().address) && forwarded(context.request));
+    if (!accepted || Number(uri.port || 80) !== context.request.socket.localPort) throw new ApiError(403, 'HOST_REJECTED', 'Use an enabled connection address');
+  }
+  validateOrigin(context) {
+    const site = context.request.headers['sec-fetch-site'], origin = context.request.headers.origin;
+    if (site !== undefined && !['same-origin', 'none'].includes(site)) throw new ApiError(403, 'ORIGIN_REJECTED', 'Writes require the same origin');
+    if (origin === undefined) return;
+    try {
+      if (typeof origin !== 'string' || !/^https?:\/\/[^/?#\\]+$/.test(origin)) throw new Error();
+      const given = new URL(origin), expected = context.remote && this.publicHost(context.authority) ? new URL(this.networkSettings.config.publicUrl) : context.authority;
+      if (given.protocol !== expected.protocol || !sameHost(given.hostname, expected.hostname) || given.port !== expected.port || given.username || given.password) throw new Error();
+    } catch { throw new ApiError(403, 'ORIGIN_REJECTED', 'Writes require the same origin'); }
+  }
+  authenticate(context) {
+    const candidate = context.request.headers['x-quizforge-token'];
+    if (context.remote) { if (!this.networkSettings.authenticated(candidate)) throw new ApiError(401, 'PASSWORD_REQUIRED', 'Enter the connection password'); }
+    else if (this.token !== null && !equal(candidate, this.token)) throw new ApiError(401, 'TOKEN_REQUIRED', 'Enter a valid access token to use this server');
+  }
+  async writeRequest(context, resource = false) {
+    this.validateOrigin(context);
+    if (context.request.headers['content-type']?.split(';')[0].trim().toLowerCase() !== 'application/json') throw new ApiError(415, 'JSON_REQUIRED', 'Content-Type must be application/json');
+    if (Object.hasOwn(context, 'body')) return context.body;
+    let size = 0; const chunks = [];
+    for await (const chunk of context.request) { size += chunk.length; if (size > 8 * 1024 * 1024) throw new ApiError(413, 'BODY_TOO_LARGE', 'Request exceeds the size limit'); chunks.push(chunk); }
+    try { context.body = parseJson(Buffer.concat(chunks), { maxStringLength: resource ? Math.ceil(MAX_IMAGE_BYTES / 3) * 4 : 2 * 1024 * 1024 }); return context.body; } catch { throw bad('Malformed JSON'); }
+  }
+  networkStatus(canManage) {
+    this.refreshAddresses(); const settings = this.networkSettings.config;
+    const display=recommendedAddresses(interfaceAddresses(),this.displayAdapters).map(entry=>entry.address).filter(host=>this.lanUrls.has(host));
+    return { canManage, enabled: !!this.networkServer && settings.enabled, publicEnabled: !!this.networkServer && settings.publicEnabled, publicUrl: settings.publicUrl, port: settings.port, passwordConfigured: settings.passwordConfigured, ipv6Supported: this.ipv6Supported, urls: this.networkServer && settings.enabled ? display.map(host=>addressUrl(host,settings.port)) : [], publicIpv6Urls: display.filter(host=>this.publicIpv6Hosts.has(host)).map(host=>addressUrl(host,settings.port)), ...(!canManage ? { error: 'Network settings can only be changed through the local-only server' } : this.networkError ? { error: this.networkError } : {}) };
+  }
+  updateNetwork(request) {
+    return this.networkSettings.transactions.run(async () => {
+      const replacement = await this.networkSettings.candidate(request, this.port()), previous = this.networkServer; let candidate = previous;
+      try {
+        if (replacement.remoteEnabled && (!previous || previous.address().port !== replacement.port)) { this.refreshAddresses(); candidate = await listen(this.newListener(true), replacement.port, this.ipv6Supported ? '::' : '0.0.0.0'); }
+        this.networkSettings.save(replacement);
+      } catch { if (candidate && candidate !== previous) await closeServer(candidate); throw new ApiError(409, 'LAN_SETTINGS_UNAVAILABLE', 'Could not save connection settings or open this port; current settings remain active'); }
+      this.networkServer = replacement.remoteEnabled ? candidate : null; if (previous && previous !== this.networkServer) await closeServer(previous);
+      this.networkError = null; return this.networkStatus(true);
+    });
+  }
+  async uploadResource(context, development) {
+    const flag = context.request.headers['x-quizforge-transient-resource']; if (flag !== undefined && flag !== 'true') throw bad('Invalid temporary resource flag');
+    if (flag === undefined) return (development ? this.developmentResources : this.resources).upload(await this.writeRequest(context, true));
+    const lease = await this.lease(context, true, true); try { return (development ? lease.session.developmentResources : lease.session.resources).upload(await this.writeRequest(context, true)); } finally { lease.close(); }
+  }
+  rejectTypeQuery(context) { if (context.url.searchParams.has('typeId')) throw bad('typeId routes are unsupported; each extension provides one question type'); }
+  namespaceTransaction(callback) { return this.states.transactions.run(() => this.developmentStates.transactions.run(() => { this.states.recover(); this.developmentStates.recover(); return callback(); })); }
+  async api(context, pathname) {
+    const method = context.request.method, parts = pathname.slice(1).split('/'), session = context.request.headers['x-quizforge-practice-session'];
+    if (pathname === '/api/auth/login' && method === 'POST') { const password = text(await this.writeRequest(context), 'password', 256); if (context.remote) return { token: await this.networkSettings.login(password, context.request.socket.remoteAddress) }; this.networkSettings.limitLogin(context.request.socket.remoteAddress); if (this.token === null || !equal(password, this.token)) throw new ApiError(401, 'PASSWORD_REQUIRED', 'Incorrect access password'); return { token: this.token }; }
+    if (pathname === '/api/settings/network') {
+      if (context.remote || !loopback(this.server.address().address) && !loopback(context.request.socket.remoteAddress)) throw new ApiError(403, 'LOCAL_SETTINGS_ONLY', 'Open settings on the host computer using its local address');
+      if (method === 'GET') {this.refreshAddresses();this.displayAdapters=await displayAdapterMetadata();return this.networkStatus(this.canManage(context));}
+      if (method === 'PUT') { this.requireLocal(context); return this.updateNetwork(await this.writeRequest(context)); }
+    }
+    if (pathname === '/api/settings/ai' || pathname === '/api/settings/ai/test' || pathname === '/api/settings/ai/credential') {
+      if (pathname === '/api/settings/ai' && method === 'GET') return { ...this.aiSettings.status(), canManage: this.canManage(context) };
+      this.requireLocal(context);
+      if (pathname.endsWith('/credential') && method === 'GET') return this.aiSettings.credential();
+      if (pathname === '/api/settings/ai' && method === 'PUT') return { ...await this.aiSettings.update(await this.writeRequest(context)), canManage: true };
+      if (pathname.endsWith('/test') && method === 'POST') { await this.writeRequest(context); return this.aiGateway.testConnection(); }
+    }
+    if (pathname === '/api/settings/development') { if (method === 'GET') return this.developmentSettings.status(this.canManage(context)); if (method === 'PUT') { this.requireLocal(context); return this.developmentSettings.update(await this.writeRequest(context)); } }
+    if (parts[1] === 'development') {
+      this.developmentSettings.requireEnabled(); this.rejectTypeQuery(context);
+      if (parts.length === 3 && parts[2] === 'resources' && method === 'POST') return this.uploadResource(context, true);
+      if (parts.length === 5 && parts[2] === 'editor-drafts') {
+        const bank = routeId(parts[3]), question = routeId(parts[4]), kind = queryValue(context, 'kind') ?? 'development-bank';
+        if (!['development-bank', 'development'].includes(kind)) throw bad('Invalid editor draft collection kind');
+        const collection = await this.library.collection(kind, bank); collection.question(question); collection.features.requireEditing(); collection.features.requireHistory();
+        const scope = 'development-' + hash(Buffer.from((kind === 'development' ? 'sample:' : '') + bank + ':' + collection.extensionFingerprint));
+        return this.editorDraft(context, this.developmentEditorDrafts, scope, question);
+      }
+      if (parts.length >= 4 && parts[2] === 'extensions') {
+        const folder = routeId(parts[3]);
+        if (parts.length === 4 && method === 'GET') return { ...await this.library.development(folder), canPublish: this.canManage(context) };
+        if (parts.length === 5 && parts[4] === 'revision' && method === 'GET') return this.library.developmentRevision(folder);
+        if (parts.length === 5 && parts[4] === 'page' && method === 'GET') return (await this.library.development(folder)).page;
+        if (parts.length === 5 && parts[4] === 'publish') { this.requireLocal(context); if (method === 'GET') return this.library.developmentPublishPlan(folder); if (method === 'POST') return this.library.publishDevelopment(folder, await this.writeRequest(context)); }
+      }
+      if (parts.length >= 4 && parts[2] === 'banks') { const bank = routeId(parts[3]); if (parts.length === 4 && method === 'GET') return this.library.developmentBank(bank); if (parts.length === 5 && parts[4] === 'revision' && method === 'GET') return this.library.developmentBankRevision(bank); }
+    }
+    if (pathname === '/api/health' && method === 'GET') return { ok: true };
+    if (pathname === '/api/resources' && method === 'POST') return this.uploadResource(context, false);
+    if (parts[1] === 'sdk' && method === 'GET') { if (parts.length === 4) return this.library.sdk(routeId(parts[2]), routeId(parts[3])); if (parts.length === 5 && parts[4] === 'editor') return this.library.sdk(routeId(parts[2]), routeId(parts[3]), true); }
+    if (parts.length === 4 && parts[1] === 'editor-drafts') {
+      const bank = routeId(parts[2]), question = routeId(parts[3]), kind = queryValue(context, 'kind') ?? 'bank'; if (!['bank', 'extension'].includes(kind)) throw bad('Invalid editor draft collection kind');
+      try { const collection = await this.library.collection(kind, bank); collection.features.requireEditing(); collection.features.requireHistory(); if (kind === 'extension') collection.question(question); } catch (error) { if (kind !== 'bank' || error.code !== 'COLLECTION_NOT_FOUND') throw error; }
+      return this.editorDraft(context, this.editorDrafts, kind === 'bank' ? bank : 'sample-' + hash(Buffer.from(bank)), question);
+    }
+    if (parts[1] === 'extensions') this.rejectTypeQuery(context);
+    if (pathname === '/api/library/index' && method === 'GET') return { ...this.library.index(), canManage: this.canManage(context) };
+    if (pathname === '/api/catalog' && method === 'GET') { this.states.recover(); return { ...await this.library.catalog(), canManage: this.canManage(context) }; }
+    if (pathname === '/api/library/import' && method === 'POST') { this.requireLocal(context); this.validateOrigin(context); if (context.request.headers['content-type']?.split(';')[0].trim().toLowerCase() !== archiveMime) throw new ApiError(415, 'QBANK_REQUIRED', '请上传 QuizForge .qbank 文件'); return this.namespaceTransaction(() => this.library.importPackage(context.request)); }
+    if (pathname === '/api/library/manage' && method === 'POST') { this.requireLocal(context); const body = await this.writeRequest(context); if (body.kind === 'extension') this.developmentSettings.requireEnabled(); return this.namespaceTransaction(() => this.library.manage(body)); }
+    if (parts.length === 5 && parts[1] === 'extensions' && parts[4] === 'page' && method === 'GET') return this.library.page(routeId(parts[2]), routeId(parts[3]));
+    if (parts.length >= 4 && parts[1] === 'collections') {
+      const kind = parts[2], bank = routeId(parts[3]); if (kind === 'exam') return this.exams.route(context, method, parts);
+      if (parts.length === 5 && parts[4] === 'exams') { if (method === 'GET') return this.exams.list(kind, bank, session); if (method === 'POST') return this.exams.start(await this.library.collection(kind, bank), await this.writeRequest(context), session); }
+      const development = kind.startsWith('development'); if (development) this.developmentSettings.requireEnabled(); const routes = development ? this.developmentRoutes : this.routes, isBank = ['bank', 'development-bank'].includes(kind);
+      if (parts[4] === 'history') {
+        if (isBank && parts.length === 6 && ExamSessions.isHistoryId(parts[5]) && ['GET', 'DELETE'].includes(method)) { try { (await this.library.collection(kind, bank)).features.requireHistory(); } catch (error) { if (error.code !== 'COLLECTION_NOT_FOUND') throw error; } if (method === 'DELETE') this.validateOrigin(context); return this.exams.history(kind, bank, parts[5], method === 'DELETE'); }
+        const history = await routes.route(context, method, parts); return isBank && parts.length === 5 && method === 'GET' ? this.exams.appendHistory(kind, bank, history) : history;
+      }
+      const collection = await this.library.readCollection(kind, bank); if (collection.features.history) return routes.route(context, method, parts);
+      const lease = await this.lease(context, true, method !== 'GET'); try { return (development ? lease.session.developmentRoutes : lease.session.routes).route(context, method, parts); } finally { lease.close(); }
+    }
+    if (!['GET', 'POST'].includes(method)) throw new ApiError(405, 'METHOD_NOT_ALLOWED', 'Method is not supported');
+    throw new ApiError(404, 'NOT_FOUND', 'Endpoint not found');
+  }
+  async editorDraft(context, store, scope, question) { if (context.request.method === 'GET') return store.get(scope, question); if (context.request.method === 'PUT') return store.put(scope, question, await this.writeRequest(context)); if (context.request.method === 'DELETE') { this.validateOrigin(context); return store.delete(scope, question); } throw new ApiError(405, 'METHOD_NOT_ALLOWED', 'Method is not supported'); }
+  send(response, status, type, bytes) { if (response.destroyed || response.headersSent) return; response.writeHead(status, { 'Content-Type': type, 'Content-Length': bytes.length }); response.end(bytes); }
+  async handle(context) {
+    const { request, response } = context; let acquired = false;
+    response.setHeader('X-Content-Type-Options', 'nosniff'); response.setHeader('Referrer-Policy', 'no-referrer'); response.setHeader('Cache-Control', 'no-store');
+    try {
+      if (!this.ready || this.active >= 8) throw new ApiError(503, 'SERVER_BUSY', 'Server is busy; try again'); this.active++; acquired = true; this.validateHost(context);
+      // Decode without URL dot-segment normalization, preserving traversal rejection.
+      const [rawPath] = request.url.split('?'); let pathname; try { pathname = decodeURIComponent(rawPath); } catch { throw bad('Invalid path'); }
+      if (!pathname.startsWith('/') || /[\\\0]/.test(pathname) || pathname.includes('//')) throw bad('Invalid path');
+      context.url = new URL(request.url, context.authority); if (/%(?![a-f0-9]{2})/i.test(context.url.search)) throw bad('Invalid query');
+      if (pathname.startsWith('/api/')) {
+        if (pathname !== '/api/auth/login') this.authenticate(context);
+        const development = pathname.startsWith('/api/development/resources/');
+        if ((pathname.startsWith('/api/resources/') || development) && request.method === 'GET') {
+          if (development) this.developmentSettings.requireEnabled(); const resourceId = pathname.slice((development ? '/api/development/resources/' : '/api/resources/').length), lease = await this.lease(context, false, false);
+          try { const store = lease ? development ? lease.session.developmentResources : lease.session.resources : development ? this.developmentResources : this.resources, resource = store.read(resourceId); this.send(response, 200, resource.mime, resource.bytes); } finally { lease?.close(); }
+        } else if (pathname === '/api/library/export' && request.method === 'POST') {
+          this.requireLocal(context); const group = text(await this.writeRequest(context), 'group', 120), download = await this.namespaceTransaction(() => this.library.exportGroup(group));
+          try { response.writeHead(200, { 'Content-Type': archiveMime, 'Content-Length': fs.statSync(download.file).size, 'Content-Disposition': "attachment; filename=quizforge-group.qbank; filename*=UTF-8''" + encodeURIComponent(group + '.qbank') }); await pipeline(fs.createReadStream(download.file), response); } finally { download.close(); }
+        } else this.send(response, 200, 'application/json; charset=utf-8', jsonBytes(await this.api(context, pathname)));
+      } else {
+        if (request.method !== 'GET') throw new ApiError(405, 'METHOD_NOT_ALLOWED', 'Only GET is supported for pages');
+        let file = pathname === '/' ? 'index.html' : pathname.slice(1); if (file.startsWith('web/')) file = file.slice(4); const type = mime(file);
+        if (!type) throw new ApiError(404, 'NOT_FOUND', 'Page not found'); let asset;
+        try { asset = safeFile(path.join(this.codeRoot, 'web'), file); } catch { throw new ApiError(404, 'NOT_FOUND', 'Page not found'); }
+        if (fs.statSync(asset).size > 4 * 1024 * 1024) throw new ApiError(413, 'ASSET_SIZE_LIMIT', 'Page asset exceeds the size limit');
+        response.setHeader('Content-Security-Policy', csp); this.send(response, 200, type, readBytes(asset, 4 * 1024 * 1024));
+      }
+    } catch (error) {
+      const status = error instanceof ApiError ? error.status : error instanceof AiProviderError ? error.retryable ? 503 : 422 : 500;
+      if (status === 500) process.stderr.write('Request failed: ' + error.constructor.name + '\n');
+      this.send(response, status, 'application/json; charset=utf-8', jsonBytes({ error: { code: error.code && status !== 500 ? error.code : 'INTERNAL_ERROR', message: status === 500 ? 'Request could not be completed' : error.message } }));
+      if (response.headersSent && !response.writableEnded) response.destroy();
+    } finally { if (acquired) this.active--; if (!request.complete) request.resume(); }
+  }
+}

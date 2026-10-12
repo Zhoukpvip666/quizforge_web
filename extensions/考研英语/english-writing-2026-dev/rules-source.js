@@ -10,5 +10,5 @@ validateAnswer(a){return a?.formatVersion===1&&validateDocument(a.document);},
 project(d,s){return {formatVersion:1,stem:d.stem,wordCount:d.wordCount,maxScore:d.maxScore,...(submitted(s)?{referenceAnswer:d.referenceAnswer,rubric:d.rubric}:{})};},
 grade(d,a){if(!validateDocument(a.document,{requireContent:true}))throw new Error('请先填写作文。');return {gradingStatus:'pending',score:null,maxScore:d.maxScore,correct:null,feedback:null};},
 review(d,a,r){if(!object(r)||!half(r.score)||r.score<0||r.score>d.maxScore||Object.keys(r).some(k=>!['score','feedback'].includes(k))||r.feedback!==undefined&&(typeof r.feedback!=='string'||r.feedback.length>20000))throw new Error('评分须在0至满分之间，以0.5为步长。');return {gradingStatus:'graded',score:r.score,maxScore:d.maxScore,correct:r.score===d.maxScore,feedback:r.feedback??null};},
-getScore(d,s){return {score:submitted(s)?s.result.score:0,maxScore:d.maxScore};}
+getScore(d,s){return {score:submitted(s)?s.result?.score??null:0,maxScore:d.maxScore};}
 });

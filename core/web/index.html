@@ -8,16 +8,16 @@
   <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48">
   <link rel="icon" type="image/svg+xml" href="/assets/quizforge-icon.svg" sizes="any">
   <link rel="apple-touch-icon" href="/assets/quizforge-touch-icon.png">
-  <link rel="stylesheet" href="/app.css">
-  <link rel="stylesheet" href="/whiteboard.css">
-  <link rel="stylesheet" href="/camera.css">
-  <link rel="stylesheet" href="/refinements.css">
-  <link rel="stylesheet" href="/practice-summary.css">
-  <link rel="stylesheet" href="/network-settings.css">
-  <link rel="stylesheet" href="/ai-settings.css">
-  <link rel="stylesheet" href="/development.css">
-  <link rel="stylesheet" href="/library-management.css">
-  <link rel="stylesheet" href="/exam-mode.css">
+  <link rel="stylesheet" href="/shell/app.css">
+  <link rel="stylesheet" href="/draft/whiteboard.css">
+  <link rel="stylesheet" href="/draft/camera.css">
+  <link rel="stylesheet" href="/shell/refinements.css">
+  <link rel="stylesheet" href="/practice/practice-summary.css">
+  <link rel="stylesheet" href="/shell/network-settings.css">
+  <link rel="stylesheet" href="/ai/ai-settings.css">
+  <link rel="stylesheet" href="/development/development.css">
+  <link rel="stylesheet" href="/library/library-management.css">
+  <link rel="stylesheet" href="/exam/exam-mode.css">
 </head>
 
 <body>
@@ -85,6 +85,12 @@
         <div><button id="retry-save">重试保存</button><button id="load-saved">读取服务器状态</button></div>
       </div>
       <div id="panes" class="panes">
+        <div id="collection-loading" class="collection-loading" role="status" aria-live="polite" aria-atomic="true" hidden>
+          <span class="collection-loading-spinner" aria-hidden="true"></span>
+          <strong>加载中…</strong>
+          <span class="collection-loading-title"></span>
+          <small class="collection-loading-detail"></small>
+        </div>
         <div id="welcome" class="welcome"><span class="welcome-icon">▤</span>
           <h2>从一道题开始</h2>
           <p>选择左侧题库，开始练习。</p>
@@ -186,11 +192,11 @@
         <p id="network-settings-password-hint" class="network-settings-hint"></p>
         <p id="network-settings-ipv6-status" class="network-settings-hint" role="status"></p>
         <section id="network-settings-addresses" class="network-settings-addresses" hidden>
-          <h4>连接地址</h4>
+          <h4>推荐连接地址</h4>
           <div id="network-settings-urls"></div>
-          <p>其他设备打开对应地址，输入共用连接密码。本机仍使用原来的本机地址。</p>
+          <p>优先显示正在使用的物理网卡地址。同一网络的设备打开对应地址，输入共用密码；公网使用配置的公网地址。</p>
         </section>
-        <p class="network-settings-firewall">此设置不会自动修改 Windows 防火墙。连接不上时，请允许 Java 的专用网络访问，或放行上方端口。</p>
+        <p class="network-settings-firewall">此设置不会自动修改 Windows 防火墙。连接不上时，请允许 Node.js 的专用网络访问，或放行上方端口。</p>
       </div>
       <p id="network-settings-error" class="network-settings-error" role="alert" hidden></p>
       <div class="dialog-actions"><button id="network-settings-cancel" type="button">关闭</button><button

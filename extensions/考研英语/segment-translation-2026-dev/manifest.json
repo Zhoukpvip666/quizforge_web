@@ -5,7 +5,7 @@
   "description": "富文本编辑、真实作答保存与提交；开发版功能验收中。",
   "requiresApi": {
     "major": 1,
-    "minMinor": 2,
+    "minMinor": 3,
     "capabilities": [
       "practice",
       "editor",
@@ -16,7 +16,8 @@
       "manual-review",
       "richtext",
       "resources",
-      "ai-grading"
+      "ai-grading",
+      "answer-state"
     ]
   },
   "entry": "practice.html",

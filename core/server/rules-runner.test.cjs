@@ -13,6 +13,30 @@ function fixture(t, rules) {
   fs.writeFileSync(files.rules,rules); fs.writeFileSync(files.questionSchema,JSON.stringify({type:'object',required:['secret'],additionalProperties:false,properties:{secret:{type:'string'}}})); fs.writeFileSync(files.answerSchema,JSON.stringify({type:'string',minLength:1})); return files;
 }
 const normal = `QF.defineType({project(data,state){return state.submitted?{reveal:data.secret}:{prompt:'public'};},validateAnswer(answer){return answer!=='bad';},grade(data,answer){return {score:answer===data.secret?1:0,maxScore:1,correct:answer===data.secret,feedback:'graded'};}});`;
+test('answer-state types skip draft getScore and omit draft details when retrieving summary maxima',t=>{
+ const files=fixture(t,`QF.defineType({project(){return {maxScore:1};},grade(){return {score:0,maxScore:1,correct:false};},getScore(){throw Error('Draft must not score');}});`);
+ const draft=call(files,{op:'validateAnswer',data:{secret:'a'},answer:'a',answerStateDeclared:true,projectAfterValidation:true,outlineAfterValidation:true}).body;
+ assert.equal(draft.ok,true);assert.equal(draft.data.outlineScore,undefined);
+ fs.writeFileSync(files.rules,`QF.defineType({project(){return {};},grade(){return {};},getScore(data,state){return {score:0,maxScore:1,outlineStates:[{id:'a',status:state.submitted?'incorrect':'draft'}]};}});`);
+ const result=call(files,{op:'scoreBatch',answerStateDeclared:true,questions:[{data:{secret:'a'},state:{status:'draft',answer:'a',result:null}},{data:{secret:'a'},state:{status:'submitted',result:{score:0,maxScore:1,correct:false,feedback:null}}}]}).body;
+ assert.equal(result.ok,true);assert.equal(result.data.scores[0].outlineStates,undefined);assert.deepEqual(result.data.scores[1].outlineStates,[{id:'a',status:'incorrect'}]);
+});
+
+test('draft validation, projection and child feedback share startup but keep separate rule contexts',t=>{
+ const files=fixture(t,`let dirty=false;QF.defineType({validateAnswer(){dirty=true;return true;},project(){dirty=true;return {maxScore:2};},grade(){return {score:0,maxScore:2};},getScore(data,state){if(dirty)throw Error('context leaked');return {score:0,maxScore:2,outlineStates:[{id:'a',status:state.answer?'draft':'unanswered'}]};}});`);
+ const draft=call(files,{op:'validateAnswer',data:{secret:'yes'},answer:'yes',projectAfterValidation:true,outlineAfterValidation:true}).body;
+ const scored=call(files,{op:'scoreBatch',questions:[{data:{secret:'yes'},state:{status:'draft',submitted:false,answer:'yes',result:null}}]}).body;
+ assert.equal(draft.ok,true);assert.deepEqual(draft.data.projected,{maxScore:2});assert.deepEqual(draft.data.outlineScore,scored.data.scores[0]);
+ fs.writeFileSync(files.rules,`QF.defineType({project(){return {maxScore:2};},grade(){return {score:0,maxScore:2};},getScore(){return {score:0,maxScore:2,outlineStates:[{id:'a',status:'correct'}]};}});`);
+ const invalid=call(files,{op:'validateAnswer',data:{secret:'yes'},answer:'yes',outlineAfterValidation:true}).body;
+ assert.equal(invalid.code,'INVALID_OUTLINE_STATES');
+});
+
+test('partial development scoring does not prevent a previously valid draft save',t=>{
+ const files=fixture(t,`QF.defineType({project(){return {prompt:'unfinished'};}});`);
+ const result=call(files,{op:'validateAnswer',development:true,data:{secret:'yes'},answer:'yes',projectAfterValidation:true,outlineAfterValidation:true}).body;
+ assert.equal(result.ok,true);assert.equal(Object.hasOwn(result.data,'outlineScore'),false);assert.deepEqual(result.data.projected,{prompt:'unfinished'});
+});
 function call(files, payload, extra=[]) {
   const args=['--permission','--max-old-space-size=96',`--allow-fs-read=${runner}`,`--allow-fs-read=${modules}`,...Object.values(files).map(file=>`--allow-fs-read=${file}`),...extra,runner];
   const result=spawnSync(process.execPath,args,{input:JSON.stringify({...files,...payload}),encoding:'utf8',timeout:4000,maxBuffer:3*1024*1024,env:{SystemRoot:process.env.SystemRoot}});
@@ -133,14 +157,14 @@ test('legacy rules and explicit v1 rules share an immutable host contract withou
   const request={op:'project',data:{secret:'yes'},state:{submitted:false,result:null}};
   const legacy=call(files,request).body,declared=call(files,{...request,apiVersion:{major:1,minor:0,description:'v1'}}).body;
   assert.deepEqual(legacy,declared);
-  assert.deepEqual(legacy.data.projected,{major:1,minor:2,protectedMetadata:true,frozen:true,canReview:true,reveal:null});
+  assert.deepEqual(legacy.data.projected,{major:1,minor:3,protectedMetadata:true,frozen:true,canReview:true,reveal:null});
   const submitted=call(files,{op:'submit',data:{secret:'yes'},answer:'yes',apiVersion:{major:1,minor:0}}).body;
   assert.equal(submitted.data.result.score,1);assert.equal(submitted.data.projected.reveal,'yes');
 });
 
 test('invalid and future rule API versions are rejected before reading extension code',t=>{
   const files=fixture(t,normal);
-  for(const apiVersion of [{major:2,minor:0},{major:1,minor:3}]){
+  for(const apiVersion of [{major:2,minor:0},{major:1,minor:4}]){
     const result=call(files,{rules:path.join(path.dirname(files.rules),'missing.js'),op:'capabilities',apiVersion}).body;
     assert.equal(result.ok,false);assert.equal(result.code,'UNSUPPORTED_API_VERSION');
   }

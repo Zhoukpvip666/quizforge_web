@@ -25,9 +25,15 @@ extensions/
 
 正式绑定为精确 `{id,version}`，开发测试绑定 `{development:"全局唯一叶名"}`；不写组路径或 `extensionGroup`。移动完整叶而保持正式身份／开发叶名不变，不改变绑定。普通题库可混用同组或跨组叶，分组仅管理目录和列表，不决定题型或大纲分类。相关新拓展可放入与题库分组同名的组，复用现有叶不要求搬组；整组交付规则见 [题库分组与交付](bank-format.md#题库分组与交付)。
 
+## 基础题型与已有样例
+
+源码和已有样例统一在产品的 [单选题](../../../extensions/基础题型/single-choice-richtext-dev) 与 [简答题](../../../extensions/基础题型/short-answer-richtext-dev) 基础拓展中。先读 manifest/schema/rules 及声明的 examples，不再维护技能内 scaffold 或最小混合题库。基础叶的开发标记和未实现错误须保留，不能因复制就声称功能完整。
+
+复用现有叶不新建样例；确需新题型且已获许可时复制合适叶到授权目录，赋予独立身份，维护复制过来的 examples 并改为新叶精确自绑定。不得让新叶跨目录引用参考样例或修改原基础叶。
+
 ## 从 UI 到真实功能
 
-完成 SKILL.md 的设计许可和 [UI 访谈概要确认](ui-design.md) 后才复制模板／写显示骨架；始终在同一个获准的 `extensions/<开发叶>/` 内迭代。开发版共用正式 QF 管线，列表切换、热刷新和测试隔离，不新增 ui/runtime 模式或 `QF_PREVIEW`。用户通过本机开发者设置开启显示，正常启动；Agent 不改设置。
+完成 SKILL.md 的设计许可和 [UI 访谈概要确认](ui-design.md) 后才参考或复制合适的基础题型叶／写显示骨架；始终在同一个获准的 `extensions/<开发叶>/` 内迭代。开发版共用正式 QF 管线，列表切换、热刷新和测试隔离，不新增 ui/runtime 模式或 `QF_PREVIEW`。用户通过本机开发者设置开启显示，正常启动；Agent 不改设置。
 
 新叶写 `development.json:{}`，从普通 manifest、`QF.page.register`、公开 `project`、`getScore` 返回的真实 `maxScore` 及少量代表题开始。manifest 计划 ID／版本和文件声明见 [API](extension-api.md#清单与公共服务声明)。未完成规则／Schema可做显示预览，但真实提交、评分、保存、编辑必须显式报 `DEVELOPMENT_NOT_IMPLEMENTED`，不能伪造成功；本地演示按 UI 文档标注。UI 获准后补齐同叶规则、Schema、编辑器及公共接口，处理 flush/dispose 和失败。
 
