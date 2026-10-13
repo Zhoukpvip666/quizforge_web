@@ -6,21 +6,21 @@ export function bindDevelopmentSettings({request,beforeSave,onSaved,document=glo
   const listeners=[];let value=null,busy=false,epoch=0,saving=null;
   const listen=(node,event,handler)=>{node.addEventListener(event,handler);listeners.push(()=>node.removeEventListener(event,handler));};
   function lock(){enabled.disabled=busy||!value||value.canManage===false;form.setAttribute('aria-busy',String(busy));}
-  function render(next){value=next;enabled.checked=Boolean(next.enabled);status.hidden=next.canManage!==false;status.textContent=next.canManage===false?'开发者模式只能在运行 QuizForge 的电脑上修改。':'';lock();}
+  function render(next){value=next;enabled.checked=Boolean(next.enabled);status.hidden=next.canManage!==false;status.textContent=next.canManage===false?'拓展管理入口只能在运行 QuizForge 的电脑上修改。':'';lock();}
   function showError(cause){
     if(cause?.code==='NOT_FOUND'){
-      status.textContent='当前服务尚未提供开发者接口。';
+      status.textContent='当前服务尚未提供拓展管理设置接口。';
       status.hidden=false;
       error.textContent='请先保存作答，关闭原启动窗口后重新启动 QuizForge，再刷新页面。';
     }else{
-      if(!value){status.textContent='读取开发者设置失败。';status.hidden=false;}
-      error.textContent=cause?.code==='LOCAL_SETTINGS_ONLY'?'请在运行 QuizForge 的电脑上修改开发者设置。':cause?.message||'开发者设置操作失败，请重试。';
+      if(!value){status.textContent='读取拓展管理设置失败。';status.hidden=false;}
+      error.textContent=cause?.code==='LOCAL_SETTINGS_ONLY'?'请在运行 QuizForge 的电脑上修改拓展管理设置。':cause?.message||'拓展管理设置操作失败，请重试。';
     }
     error.hidden=false;
   }
   async function open(){
     const token=++epoch;panels.forEach(node=>{node.hidden=node!==panel;});tabs.forEach(node=>node.setAttribute('aria-selected',String(node===tab)));
-    value=null;busy=true;error.hidden=true;status.hidden=false;status.textContent='正在读取开发者设置…';lock();
+    value=null;busy=true;error.hidden=true;status.hidden=false;status.textContent='正在读取拓展管理设置…';lock();
     try{await saving;const next=await request('/api/settings/development');if(token===epoch&&dialog.open)render(next);}
     catch(cause){if(token===epoch&&dialog.open)showError(cause);}
     finally{if(token===epoch){busy=false;lock();}}

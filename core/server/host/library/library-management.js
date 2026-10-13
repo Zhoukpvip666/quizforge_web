@@ -28,7 +28,7 @@ export class LibraryManagement {
       const result = cloneJson(source), labels = this.labels();
       result.groups = { banks: this.groups('bank').map(item => relative(this.base('bank'), item)), extensions: this.groups('extension').map(item => relative(this.base('extension'), item)) };
       for (const row of result.extensions ?? []) {
-        const label = labels[labelKey(row)];
+        const label = labels[labelKey(row)] ?? labels['development:' + row.legacyFolder];
         if (typeof label === 'string') { row.name = label; row.displayName = label; if (Object.hasOwn(row, 'title')) row.title = label; }
       }
       return result;
@@ -43,8 +43,8 @@ export class LibraryManagement {
   requireUnused(removed) {
     const formal = new Set(), development = new Set();
     for (const extension of scanExtensions(this.base('extension')).filter(directory => within(removed, directory))) {
-      if (markedDevelopment(extension)) development.add(path.basename(extension));
-      else { const manifest = readJson(safeFile(extension, 'manifest.json'), 256 * 1024); formal.add(manifest.id + '@' + manifest.version); }
+      development.add(path.basename(extension));
+      { const manifest = readJson(safeFile(extension, 'manifest.json'), 256 * 1024); formal.add(manifest.id + '@' + manifest.version); }
     }
     const used = [];
     const matches = reference => reference && (formal.has(reference.id + '@' + reference.version) || development.has(reference.development));

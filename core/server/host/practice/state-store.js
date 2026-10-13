@@ -25,7 +25,7 @@ export function questionState(persisted, collection, question) { return Object.h
 export function unsubmittedState(state) { const value = cloneJson(state); if (state.status === 'submitted') delete value.answerState; value.status = value.answer === null ? 'unanswered' : 'draft'; value.result = null; delete value.outlineStates; return value; }
 export function activeRound(persisted) { const last = persisted.historyRounds?.at(-1); return last?.status === 'in-progress' ? last : null; }
 export function interruptRound(persisted, reason) { const active = activeRound(persisted); if (active) Object.assign(active, { status: 'interrupted', interruptionReason: reason, closedAt: new Date().toISOString() }); }
-export function roundCompatible(round, collection) { return round.extensionFingerprint === collection.extensionFingerprint && round.questions.length === collection.questions.length && collection.questions.every((question, index) => round.questions[index].payload.question.id === question.id && round.fingerprints[question.id] === question.fingerprint); }
+export function roundCompatible(round, collection) { return (round.extensionFingerprint === collection.extensionFingerprint && round.questions.length === collection.questions.length && collection.questions.every((question, index) => round.questions[index].payload.question.id === question.id && round.fingerprints[question.id] === question.fingerprint)) || !!collection.legacyCollection && roundCompatible(round, collection.legacyCollection); }
 const manualResult = state => ['pending', 'graded'].includes(state.result?.gradingStatus);
 function historyFailure(error) { return ['INVALID_HISTORY_API', 'UNSUPPORTED_HISTORY_API'].includes(error.code); }
 function validateLegacy(record) {
@@ -68,7 +68,7 @@ export class StateStore {
     this.root = root; this.directory = path.join(stateRoot, '.state'); this.rules = rules; this.memoryOnly = memoryOnly;
     this.edits = new EditJournal(root, stateRoot); this.cache = new Map(); this.cachedBytes = 0; this.aiSupport = new Map(); this.outlineCache = new Map(); this.outlineCachedBytes = 0; this.stampKey = randomBytes(32); this.transactions = new SerialTransactions();
     if (!memoryOnly) safeDirectory(this.directory, true);
-    for (const name of ['overview', 'stamp', 'question', 'summary', 'finish', 'restart', 'editor', 'edit', 'history', 'deleteHistory', 'act', 'prepareAiGrading', 'prepareAutomaticAiGrading', 'bindAiTask', 'aiCurrent', 'confirmAi', 'confirmedAiReceipt', 'currentAiTaskId', 'currentAiTaskIds']) {
+    for (const name of ['overview', 'stamp', 'question', 'summary', 'submitSaved', 'completionResult', 'saveCompletionResult', 'finish', 'restart', 'editor', 'edit', 'history', 'deleteHistory', 'act', 'prepareAiGrading', 'prepareAutomaticAiGrading', 'bindAiTask', 'aiCurrent', 'confirmAi', 'confirmedAiReceipt', 'currentAiTaskId', 'currentAiTaskIds']) {
       const method = this[name]; if (method) this[name] = (...args) => this.transactions.run(() => method.apply(this, args));
     }
   }
@@ -89,6 +89,21 @@ export class StateStore {
     try {
       const fresh = { schemaVersion: 1, collection: key, extensionFingerprint: collection.extensionFingerprint, questions: {} }, file = this.file(collection);
       let value = this.memoryOnly || !exists(file) ? fresh : readJson(file, 32 * 1024 * 1024);
+      if (!this.memoryOnly && !exists(file) && collection.legacyCollection) {
+        const legacy = collection.legacyCollection, oldFile = path.join(this.root, '.development', '.state', hash(Buffer.from(legacy.stateKey())) + '.json');
+        if (exists(oldFile)) {
+          const old = readJson(oldFile, 32 * 1024 * 1024); validateSaved(old, legacy.stateKey());
+          // Preserve the original file and frozen history; migrate only current
+          // identities whose old content signature still matches.
+          value = cloneJson(old); value.collection = key; value.extensionFingerprint = collection.extensionFingerprint;
+          for (const question of collection.questions) {
+            const saved = value.questions[question.id], previous = legacy.question(question.id);
+            if (saved && saved.fingerprint === previous.fingerprint) saved.fingerprint = question.fingerprint;
+          }
+          replaceFile(oldFile + '.pre-unified.bak', jsonBytes(old));
+          this.persist(collection, value);
+        }
+      }
       validateSaved(value, key); value = this.adaptDevelopmentState(value, collection); this.verifyCompatibility(value, collection); this.remember(key, value, jsonBytes(value).length); return value;
     } catch (error) { if (['COLLECTION_CHANGED', 'PRACTICE_SESSION_LIMIT'].includes(error.code) || historyFailure(error)) throw error; throw new ApiError(503, 'STATE_UNAVAILABLE', 'Saved state cannot be read; preserve the state directory for recovery', { cause: error }); }
   }
@@ -100,10 +115,15 @@ export class StateStore {
     for (const question of collection.questions) if (Object.hasOwn(state.questions, question.id) && state.questions[question.id].fingerprint !== question.fingerprint) changed('题库中已有练习的题目内容已更改，原练习数据仍保留。请为修改后的题库使用新的 ID 后重新打开。');
   }
   adaptDevelopmentState(state, collection) {
-    if (!collection.kind.startsWith('development')) return state; let copy = null;
+    if (collection.kind === 'exam') return state; let copy = null;
     for (const question of collection.questions) if (Object.hasOwn(state.questions, question.id) && state.questions[question.id].fingerprint !== question.fingerprint) { copy ??= cloneJson(state); delete copy.questions[question.id]; }
     if (!copy && state.extensionFingerprint === collection.extensionFingerprint) return state;
-    copy ??= cloneJson(state); interruptRound(copy, 'development-content-edited'); for (const key of ['finishReceipts', 'restartReceipts', 'editReceipts']) delete copy[key]; copy.extensionFingerprint = collection.extensionFingerprint;
+    // A source edit invalidates affected current answers, never frozen history.
+    if (!this.memoryOnly && exists(this.file(collection))) {
+      const bytes = jsonBytes(state), first = this.file(collection) + '.before-content-edit.bak';
+      replaceFile(exists(first) ? this.file(collection) + '.before-content-edit-' + hash(bytes) + '.bak' : first, bytes);
+    }
+    copy ??= cloneJson(state); interruptRound(copy, 'content-edited'); for (const key of ['finishReceipts', 'restartReceipts', 'editReceipts', 'completionIntent', 'completionReceipts']) delete copy[key]; copy.extensionFingerprint = collection.extensionFingerprint;
     const bytes = this.persist(collection, copy); this.remember(collection.stateKey(), copy, bytes); return copy;
   }
   checkMemory(key, bytes) {
@@ -239,12 +259,13 @@ export class StateStore {
       const saved = cloneJson(round.summary); saved.gradedCount ??= saved.submittedCount; saved.pendingCount ??= 0; for (const row of saved.questions) row.gradingStatus ??= row.submitted ? 'graded' : 'unsubmitted'; return saved;
     }
     const states = this.summaryStates(persisted, collection, round), scores = await runRuleBatches(this.rules, collection.questions, 'scoreBatch', 'scores', collection.questions.map((question, index) => ({ data: question.data, state: publicState(states[index]) })));
-    const summary = { questionCount: collection.questions.length, submittedCount: 0, finished: false, status: 'in-progress', roundId: round?.id ?? null, questions: [] }, earned = [], maxima = []; let submitted = 0, graded = 0, pending = 0;
+    const summary = { questionCount: collection.questions.length, submittedCount: 0, answeredUnsubmittedCount: 0, finished: false, status: 'in-progress', roundId: round?.id ?? null, questions: [] }, earned = [], maxima = []; let submitted = 0, graded = 0, pending = 0;
     for (let i = 0; i < states.length; i++) {
       const state = states[i], value = scores[i], question = collection.questions[i], answered = state.status === 'submitted', status = answered ? gradingStatus(state.result) : 'unsubmitted';
       if (typeof value?.maxScore !== 'number' || !Number.isFinite(value.maxScore) || value.maxScore < 0 || (answered && status !== 'pending' && (typeof value.score !== 'number' || !Number.isFinite(value.score)))) throw new ApiError(422, 'SCORE_UNAVAILABLE', '题型拓展返回的分值无效。');
       const score = answered && status !== 'pending' ? value.score : 0; earned.push(score); maxima.push(value.maxScore);
       if (answered) { submitted++; if (status === 'pending') pending++; else graded++; }
+      else if (this.hasSavedAnswer(state)) summary.answeredUnsubmittedCount++;
       const row = { id: question.id, maxScore: value.maxScore, submitted: answered, status: state.status, gradingStatus: status, score: status === 'pending' ? null : score };
       if (!answered && collection.extensionFor(question).answerStateDeclared) {
         if (state.answerState) { row.answerState = cloneJson(state.answerState); row.outlineStates = cloneJson(state.answerState.outlineStates); }
@@ -254,6 +275,43 @@ export class StateStore {
     return Object.assign(summary, { score: decimalSum(earned), maxScore: decimalSum(maxima), submittedCount: submitted, gradedCount: graded, pendingCount: pending });
   }
   async summary(collection) { const persisted = this.load(collection), result = await this.scoreSummary(collection, persisted, this.summaryRound(persisted, collection)); result.summaryVersion = this.summaryVersion(collection, persisted, result); return result; }
+  hasSavedAnswer(state) {
+    if (state.status !== 'draft') return false;
+    if (state.answerState) return state.answerState.status === 'draft' || state.answerState.outlineStates?.some(item => item.status === 'draft');
+    // Legacy types have no explicit progress declaration. Their saved draft
+    // answer is submitted as-is; the extension owns empty/partial-answer rules.
+    return state.answer !== null && state.answer !== undefined;
+  }
+  async submitSaved(collection, request) {
+    const key = requestId(request), persisted = this.load(collection);
+    const receipt = receiptResult(persisted.completionReceipts, request);
+    if (receipt) return this.summary(collection);
+    const summary = await this.summary(collection);
+    const intent = persisted.completionIntent;
+    if (!intent || intent.request.requestId !== key) {
+      this.checkSummaryRequest(request, summary, '练习内容已改变，请刷新分值卡后再完成练习。');
+      if (summary.finished) return summary;
+      const next = cloneJson(persisted);
+      next.completionIntent = { request: cloneJson(request), questions: collection.questions.filter(q => this.hasSavedAnswer(questionState(persisted, collection, q))).map(q => q.id) };
+      this.commit(collection, next);
+    } else if (!jsonEqual(intent.request, request)) throw new ApiError(409, 'REQUEST_ID_REUSED', 'Completion request changed');
+    for (const qid of this.load(collection).completionIntent.questions) {
+      const question = collection.question(qid), current = questionState(this.load(collection), collection, question);
+      if (current.status === 'submitted') continue;
+      try { await this.act(collection, question, { requestId: 'complete-' + hash(Buffer.from(key + ':' + qid)), action: 'submit', revision: current.revision, data: { answer: cloneJson(current.answer) } }); }
+      catch (error) { throw new ApiError(error.status ?? 422, error.code ?? 'SUBMISSION_FAILED', `「${question.title}」提交失败：${error.message}。已保存答案保留，请返回题目处理后重试。`, { cause: error }); }
+    }
+    const next = cloneJson(this.load(collection)), result = await this.summary(collection), submittedQuestions = [...next.completionIntent.questions];
+    (next.completionReceipts ??= []).push({ id: key, request: cloneJson(request), response: { submittedQuestions } }); retainReceipts(next.completionReceipts);
+    delete next.completionIntent; this.commit(collection, next); return result;
+  }
+  completionResult(collection, request) { return receiptResult(this.load(collection).completionReceipts, request); }
+  saveCompletionResult(collection, request, response) {
+    const next = cloneJson(this.load(collection));
+    const receipt = next.completionReceipts?.find(row => row.id === request.requestId);
+    if (receipt) { receipt.response = cloneJson(response); this.commit(collection, next); }
+    return response;
+  }
   async finish(collection, request) {
     const key = requestId(request), persisted = this.load(collection), receipt = receiptResult(persisted.finishReceipts, request); if (receipt) return receipt;
     const current = await this.summary(collection); this.checkSummaryRequest(request, current, '练习内容已改变，请刷新分值卡后再完成练习。');

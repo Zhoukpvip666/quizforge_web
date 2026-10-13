@@ -6,8 +6,8 @@ import { lookup } from 'node:dns/promises';
 import { randomUUID, timingSafeEqual } from 'node:crypto';
 import { pipeline } from 'node:stream/promises';
 import { ApiError, bad, routeId, text } from '../platform/errors.js';
-import { jsonBytes, parseJson, hash } from '../platform/json.js';
-import { checkPath, exists, readBytes, readJson, resolveLayout, safeDirectory, safeFile } from '../platform/files.js';
+import { jsonBytes, parseJson, hash, fingerprint } from '../platform/json.js';
+import { checkPath, exists, readBytes, readJson, replaceFile, resolveLayout, safeDirectory, safeFile } from '../platform/files.js';
 import { RuleEngine } from '../extensions/rule-engine.js';
 import { Library } from '../library/library.js';
 import { StateStore } from '../practice/state-store.js';
@@ -63,17 +63,17 @@ export class QuizForgeServer {
       service.engine = await RuleEngine.create(service.codeRoot, { node });
       service.developmentSettings = new DevelopmentSettings(service.root);
       service.library = new Library(service.root, service.codeRoot, service.engine, service.developmentSettings);
-      service.states = new StateStore(service.root, service.engine); service.resources = new ResourceStore(service.root); service.editorDrafts = new EditorDraftStore(service.root);
+      service.states = new StateStore(service.root, service.engine); service.resources = new ResourceStore(service.root, { fallback: new ResourceStore(path.join(service.root, '.development')) }); service.editorDrafts = new EditorDraftStore(service.root);
       service.aiSettings = new AiSettings(service.root); service.aiGateway = new OpenAiCompatibleProvider(service.aiSettings, service.resources);
       service.ai = new AiGradingService(service.root, service.states, service.library, service.aiGateway);
       service.writes = { read: context => service.writeRequest(context), validateOrigin: context => service.validateOrigin(context) };
       service.automaticAi = () => service.aiSettings.profile.enabled && service.aiSettings.profile.autoGrade;
       service.routes = new CollectionRoutes(service.library, service.states, service.ai, service.writes, service.automaticAi);
-      const developmentRoot = safeDirectory(path.join(service.root, '.development'), true);
-      service.developmentStates = new StateStore(service.root, service.engine, { stateRoot: developmentRoot });
-      service.developmentResources = new ResourceStore(developmentRoot); service.developmentEditorDrafts = new EditorDraftStore(developmentRoot);
-      service.developmentAi = new AiGradingService(developmentRoot, service.developmentStates, service.library, new OpenAiCompatibleProvider(service.aiSettings, service.developmentResources));
-      service.developmentRoutes = new CollectionRoutes(service.library, service.developmentStates, service.developmentAi, service.writes, service.automaticAi);
+      const developmentRoot = path.join(service.root, '.development');
+      // Recover old journals, but route all live practice through one store.
+      service.developmentStates = exists(developmentRoot) ? new StateStore(service.root, service.engine, { stateRoot: developmentRoot }) : service.states;
+      service.developmentResources = service.resources; service.developmentEditorDrafts = new EditorDraftStore(developmentRoot);
+      service.developmentAi = service.ai; service.developmentRoutes = service.routes;
       service.practiceSessions = new PracticeSessions(() => service.createPracticeSession());
       service.exams = new ExamSessions(service.root, service.library, service.states, service.ai, service.routes, service.writes, service.automaticAi, { resourceGateway: images => new OpenAiCompatibleProvider(service.aiSettings, images) });
       service.allowedHosts = new Set(['localhost', '127.0.0.1', hostKey('::1')]);
@@ -114,6 +114,9 @@ export class QuizForgeServer {
     this.ready = true;
     let ticking = false; this.timer = setInterval(async () => { if (ticking || this.closed) return; ticking = true; try { await this.exams.tick(); } finally { ticking = false; } }, 1000); this.timer.unref();
     // Metadata is listed immediately; collections validate only when opened.
+    // Warm immutable runtime digests while the browser reads metadata. This
+    // neither opens banks nor retains an unchecked environment across requests.
+    this.runtimeWarmup = this.library.environment().catch(() => {});
   }
   async close() {
     if (this.closed) return; this.closed = true; this.ready = false; clearInterval(this.timer);
@@ -123,9 +126,9 @@ export class QuizForgeServer {
     if (this.ownsLock && exists(this.lockFile)) { checkPath(this.lockFile); if (readJson(this.lockFile, 4096).nonce === this.lockNonce) fs.unlinkSync(this.lockFile); this.ownsLock = false; }
   }
   createPracticeSession() {
-    const states = StateStore.memory(this.root, this.engine), resources = new ResourceStore(this.root, { memory: true, fallback: this.resources }), developmentResources = new ResourceStore(path.join(this.root, '.development'), { memory: true, fallback: this.developmentResources });
-    const ai = AiGradingService.memory(this.root, states, this.library, new OpenAiCompatibleProvider(this.aiSettings, resources)), developmentAi = AiGradingService.memory(path.join(this.root, '.development'), states, this.library, new OpenAiCompatibleProvider(this.aiSettings, developmentResources));
-    return { states, resources, developmentResources, ai, developmentAi, routes: new CollectionRoutes(this.library, states, ai, this.writes, this.automaticAi), developmentRoutes: new CollectionRoutes(this.library, states, developmentAi, this.writes, this.automaticAi), bytes: () => states.memoryBytes() + resources.memoryBytes() + developmentResources.memoryBytes() + ai.memoryBytes() + developmentAi.memoryBytes(), close: () => { ai.close(); developmentAi.close(); states.clearMemory(); } };
+    const states = StateStore.memory(this.root, this.engine), resources = new ResourceStore(this.root, { memory: true, fallback: this.resources });
+    const ai = AiGradingService.memory(this.root, states, this.library, new OpenAiCompatibleProvider(this.aiSettings, resources)), routes = new CollectionRoutes(this.library, states, ai, this.writes, this.automaticAi);
+    return { states, resources, developmentResources: resources, ai, developmentAi: ai, routes, developmentRoutes: routes, bytes: () => states.memoryBytes() + resources.memoryBytes() + ai.memoryBytes(), close: () => { ai.close(); states.clearMemory(); } };
   }
   lease(context, create, writing) { return this.practiceSessions.acquire(context.request.headers['x-quizforge-practice-session'], create, writing); }
   canManage(context) { return !context.remote && !forwarded(context.request) && loopback(this.server.address().address) && loopback(context.request.socket.remoteAddress) && ['localhost', '127.0.0.1', hostKey('::1')].includes(hostKey(context.authority.hostname)); }
@@ -213,7 +216,7 @@ export class QuizForgeServer {
     }
     if (pathname === '/api/settings/development') { if (method === 'GET') return this.developmentSettings.status(this.canManage(context)); if (method === 'PUT') { this.requireLocal(context); return this.developmentSettings.update(await this.writeRequest(context)); } }
     if (parts[1] === 'development') {
-      this.developmentSettings.requireEnabled(); this.rejectTypeQuery(context);
+      this.rejectTypeQuery(context);
       if (parts.length === 3 && parts[2] === 'resources' && method === 'POST') return this.uploadResource(context, true);
       if (parts.length === 5 && parts[2] === 'editor-drafts') {
         const bank = routeId(parts[3]), question = routeId(parts[4]), kind = queryValue(context, 'kind') ?? 'development-bank';
@@ -224,7 +227,7 @@ export class QuizForgeServer {
       }
       if (parts.length >= 4 && parts[2] === 'extensions') {
         const folder = routeId(parts[3]);
-        if (parts.length === 4 && method === 'GET') return { ...await this.library.development(folder), canPublish: this.canManage(context) };
+        if (parts.length === 4 && method === 'GET') return { ...await this.library.development(folder), canPublish: false };
         if (parts.length === 5 && parts[4] === 'revision' && method === 'GET') return this.library.developmentRevision(folder);
         if (parts.length === 5 && parts[4] === 'page' && method === 'GET') return (await this.library.development(folder)).page;
         if (parts.length === 5 && parts[4] === 'publish') { this.requireLocal(context); if (method === 'GET') return this.library.developmentPublishPlan(folder); if (method === 'POST') return this.library.publishDevelopment(folder, await this.writeRequest(context)); }
@@ -236,25 +239,43 @@ export class QuizForgeServer {
     if (parts[1] === 'sdk' && method === 'GET') { if (parts.length === 4) return this.library.sdk(routeId(parts[2]), routeId(parts[3])); if (parts.length === 5 && parts[4] === 'editor') return this.library.sdk(routeId(parts[2]), routeId(parts[3]), true); }
     if (parts.length === 4 && parts[1] === 'editor-drafts') {
       const bank = routeId(parts[2]), question = routeId(parts[3]), kind = queryValue(context, 'kind') ?? 'bank'; if (!['bank', 'extension'].includes(kind)) throw bad('Invalid editor draft collection kind');
-      try { const collection = await this.library.collection(kind, bank); collection.features.requireEditing(); collection.features.requireHistory(); if (kind === 'extension') collection.question(question); } catch (error) { if (kind !== 'bank' || error.code !== 'COLLECTION_NOT_FOUND') throw error; }
-      return this.editorDraft(context, this.editorDrafts, kind === 'bank' ? bank : 'sample-' + hash(Buffer.from(bank)), question);
+      let collection;
+      try { collection = await this.library.collection(kind, bank); collection.features.requireEditing(); collection.features.requireHistory(); if (kind === 'extension') collection.question(question); } catch (error) { if (kind !== 'bank' || error.code !== 'COLLECTION_NOT_FOUND') throw error; }
+      const scope = kind === 'bank' ? bank : 'sample-' + hash(Buffer.from(bank));
+      if (method === 'GET' && collection?.legacyCollection) {
+        const target = this.editorDrafts.file(scope, question, true), marker = target + '.legacy-migrated';
+        if (!exists(target) && !exists(marker)) {
+          const legacy = collection.legacyCollection, oldScope = 'development-' + hash(Buffer.from((legacy.kind === 'development' ? 'sample:' : '') + legacy.id + ':' + legacy.extensionFingerprint)), saved = this.developmentEditorDrafts.get(oldScope, question);
+          if (saved.draft) {
+            const q = collection.question(question), oldQ = legacy.question(question), raw = { id: q.id, title: q.title, data: q.data };
+            const contentVersion = saved.contentVersion === fingerprint(raw, legacy.extensionFor(oldQ).fingerprint) ? fingerprint(raw, collection.extensionFor(q).fingerprint) : saved.contentVersion;
+            this.editorDrafts.put(scope, question, { ...saved, contentVersion }); replaceFile(marker, Buffer.from('migrated\n'));
+          }
+        }
+      }
+      return this.editorDraft(context, this.editorDrafts, scope, question);
     }
     if (parts[1] === 'extensions') this.rejectTypeQuery(context);
     if (pathname === '/api/library/index' && method === 'GET') return { ...this.library.index(), canManage: this.canManage(context) };
     if (pathname === '/api/catalog' && method === 'GET') { this.states.recover(); return { ...await this.library.catalog(), canManage: this.canManage(context) }; }
     if (pathname === '/api/library/import' && method === 'POST') { this.requireLocal(context); this.validateOrigin(context); if (context.request.headers['content-type']?.split(';')[0].trim().toLowerCase() !== archiveMime) throw new ApiError(415, 'QBANK_REQUIRED', '请上传 QuizForge .qbank 文件'); return this.namespaceTransaction(() => this.library.importPackage(context.request)); }
-    if (pathname === '/api/library/manage' && method === 'POST') { this.requireLocal(context); const body = await this.writeRequest(context); if (body.kind === 'extension') this.developmentSettings.requireEnabled(); return this.namespaceTransaction(() => this.library.manage(body)); }
+    if (pathname === '/api/library/manage' && method === 'POST') { this.requireLocal(context); const body = await this.writeRequest(context); return this.namespaceTransaction(() => this.library.manage(body)); }
     if (parts.length === 5 && parts[1] === 'extensions' && parts[4] === 'page' && method === 'GET') return this.library.page(routeId(parts[2]), routeId(parts[3]));
     if (parts.length >= 4 && parts[1] === 'collections') {
       const kind = parts[2], bank = routeId(parts[3]); if (kind === 'exam') return this.exams.route(context, method, parts);
       if (parts.length === 5 && parts[4] === 'exams') { if (method === 'GET') return this.exams.list(kind, bank, session); if (method === 'POST') return this.exams.start(await this.library.collection(kind, bank), await this.writeRequest(context), session); }
-      const development = kind.startsWith('development'); if (development) this.developmentSettings.requireEnabled(); const routes = development ? this.developmentRoutes : this.routes, isBank = ['bank', 'development-bank'].includes(kind);
+      if (kind.startsWith('development')) {
+        const candidate = this.library.candidate(this.library.indexSnapshot(), kind, bank);
+        const canonical = [...parts]; canonical[2] = candidate.kind; canonical[3] = candidate.id;
+        return this.api(context, '/' + canonical.join('/'));
+      }
+      const development = false, routes = this.routes, isBank = kind === 'bank';
       if (parts[4] === 'history') {
         if (isBank && parts.length === 6 && ExamSessions.isHistoryId(parts[5]) && ['GET', 'DELETE'].includes(method)) { try { (await this.library.collection(kind, bank)).features.requireHistory(); } catch (error) { if (error.code !== 'COLLECTION_NOT_FOUND') throw error; } if (method === 'DELETE') this.validateOrigin(context); return this.exams.history(kind, bank, parts[5], method === 'DELETE'); }
         const history = await routes.route(context, method, parts); return isBank && parts.length === 5 && method === 'GET' ? this.exams.appendHistory(kind, bank, history) : history;
       }
-      const collection = await this.library.readCollection(kind, bank); if (collection.features.history) return routes.route(context, method, parts);
-      const lease = await this.lease(context, true, method !== 'GET'); try { return (development ? lease.session.developmentRoutes : lease.session.routes).route(context, method, parts); } finally { lease.close(); }
+      const collection = await this.library.readCollection(kind, bank); if (collection.features.history) return routes.route(context, method, parts, method === 'GET' ? collection : null);
+      const lease = await this.lease(context, true, method !== 'GET'); try { return (development ? lease.session.developmentRoutes : lease.session.routes).route(context, method, parts, method === 'GET' ? collection : null); } finally { lease.close(); }
     }
     if (!['GET', 'POST'].includes(method)) throw new ApiError(405, 'METHOD_NOT_ALLOWED', 'Method is not supported');
     throw new ApiError(404, 'NOT_FOUND', 'Endpoint not found');
@@ -274,7 +295,7 @@ export class QuizForgeServer {
         if (pathname !== '/api/auth/login') this.authenticate(context);
         const development = pathname.startsWith('/api/development/resources/');
         if ((pathname.startsWith('/api/resources/') || development) && request.method === 'GET') {
-          if (development) this.developmentSettings.requireEnabled(); const resourceId = pathname.slice((development ? '/api/development/resources/' : '/api/resources/').length), lease = await this.lease(context, false, false);
+          const resourceId = pathname.slice((development ? '/api/development/resources/' : '/api/resources/').length), lease = await this.lease(context, false, false);
           try { const store = lease ? development ? lease.session.developmentResources : lease.session.resources : development ? this.developmentResources : this.resources, resource = store.read(resourceId); this.send(response, 200, resource.mime, resource.bytes); } finally { lease?.close(); }
         } else if (pathname === '/api/library/export' && request.method === 'POST') {
           this.requireLocal(context); const group = text(await this.writeRequest(context), 'group', 120), download = await this.namespaceTransaction(() => this.library.exportGroup(group));

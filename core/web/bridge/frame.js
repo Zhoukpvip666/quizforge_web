@@ -14,6 +14,8 @@ export function mountExtension(container,assets,context,{onRequest,onError,onDir
   const policy=`default-src 'none'; script-src 'nonce-${nonce}'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'`;
   const captureBoot={session};
   const start=`(${bridge.bootstrap.toString()})(${JSON.stringify(boot).replace(/</g,'\\u003c')});(${installFrameCapture.toString()})(${JSON.stringify(captureBoot).replace(/</g,'\\u003c')});`;
+  // The iframe viewport is the logical card width in draft mode, not the
+  // physical phone width. Responsive practice styles remain inside the frame.
   const phoneStyle=`@media(max-width:600px){html,body{padding:0!important;background:#fff}body>:first-child{border:0!important;border-radius:0!important;box-shadow:none!important}input,textarea,select{font-size:16px!important}}`;
   const examSelectors=['[data-qf-action="submit"]','[data-qf-action="retry"]',...(assets.examActionSelectors||[]).filter(selector=>/^#[a-z][a-z0-9-]*$/.test(selector))];
   const examStyle=context.mode==='exam'?`${examSelectors.join(',')}{display:none!important}`:'';

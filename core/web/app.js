@@ -60,7 +60,7 @@ async function loadQuestion(pane,qid,{fresh=false}={}){
   const key=questionCacheKey(pane,qid);if(fresh)questionsCache.delete(key);
   let cacheHit=false;
   const payload=await questionsCache.load(key,async cached=>{
-    if(cached?.stamp){const stamp=await request(`${questionPath(pane.kind,pane.id,qid)}/stamp`);if(sameQuestionStamp(stamp,cached.stamp)){cacheHit=true;return cached;}}
+    if(cached?.stamp){const value=await request(questionPath(pane.kind,pane.id,qid),{headers:{'X-QuizForge-Question-Stamp':JSON.stringify(cached.stamp)}});if(value.unchanged&&sameQuestionStamp(value.stamp,cached.stamp)){cacheHit=true;return cached;}return value;}
     return request(questionPath(pane.kind,pane.id,qid));
   },{revalidate:true});
   pane.node.dataset.questionSource=cacheHit?'cache':'server';return payload;
@@ -297,12 +297,15 @@ async function showScoreSummary(pane){
   }finally{pane.loading=false;updateChrome();}
 }
 async function finishPractice(pane,summary){
+  if (summary.answeredUnsubmittedCount > 0 && !confirm(`还有 ${summary.answeredUnsubmittedCount} 道已作答题目未提交，完成练习将统一提交评分。是否继续？`)) return summary;
   return transitionTo(async()=>{
     pane.loading=true;pendingWrites++;pane.node.inert=true;updateChrome();saveStatus(collectionFeature(pane,'history')?'保存中…':'当前会话 · 正在完成','saving');
     try{
       if(!pane.finishRequest||pane.finishRequest.summaryVersion!==summary.summaryVersion)pane.finishRequest={requestId:makeRequestId(),roundId:summary.roundId,summaryVersion:summary.summaryVersion};
       const value=await request(`${collectionPath(pane.kind,pane.id)}/finish`,{method:'POST',body:JSON.stringify(pane.finishRequest)});
-      questionsCache.deleteCollection(`${pane.key}:`);pane.scoreSummary=value;pane.historyRecords=[];renderOutline();saveStatus(value.historyId?'练习已完成':'当前会话 · 已完成');return value;
+      questionsCache.deleteCollection(`${pane.key}:`);pane.scoreSummary=value;pane.historyRecords=[];pane.finishRequest=null;
+      pane.collection=await request(collectionPath(pane.kind,pane.id));renderOutline();
+      saveStatus(value.completionPending?'答案已提交，部分题目待评分；可返回题目重试 AI 或人工评分':value.historyId?'练习已完成':'当前会话 · 已完成');return value;
     }catch(error){
       if(error.status===409){
         try{const value=await request(`${collectionPath(pane.kind,pane.id)}/summary`);pane.scoreSummary=value;pane.summaryCard.update(value);pane.finishRequest=null;error.message='练习数据已更新，已刷新分值，请再次确认完成。';}catch{/* Keep the displayed summary until the server can be read. */}
@@ -629,9 +632,11 @@ async function activateReady(key){
   let descriptor=pane.needsRefresh?await request(collectionPath(pane.kind,pane.id)):pane.collection;
   const qid=descriptor.questions.some(row=>row.id===pane.questionId)?pane.questionId:descriptor.questions[0]?.id;
   if(!qid)throw new Error('这个列表还没有题目');
-  const payload=await loadQuestion(pane,qid);
+  const restoring=!pane.plugin&&!pane.needsRefresh;
+  const [payload,restoredDescriptor]=await Promise.all([loadQuestion(pane,qid),restoring?request(collectionPath(pane.kind,pane.id)):null]);
+  if(restoredDescriptor)descriptor=restoredDescriptor;
   if(pane.needsRefresh||!pane.plugin||!sameQuestionStamp(payload.stamp,pane.payload?.stamp)){
-    if(!pane.needsRefresh)descriptor=await request(collectionPath(pane.kind,pane.id));
+    if(!pane.needsRefresh&&!restoredDescriptor)descriptor=await request(collectionPath(pane.kind,pane.id));
     await showQuestion(pane,qid,{payload,collection:descriptor});
   }
 }
@@ -653,7 +658,7 @@ function updateChrome(){
   const pane=active(),view=pane?.view,draft=draftViewActive(pane),draftButton=$('#draft-toggle');draftButton.hidden=!canViewDraft(pane);draftButton.disabled=!!pane?.loading;draftButton.setAttribute('aria-pressed',String(draft));draftButton.replaceChildren(el('span','','✎'),document.createTextNode(draft?(view==='history'?' 返回练习':' 返回作答'):' 草稿'));
   $('#history-open').hidden=!pane?.payload||pane?.exam?.status==='in-progress'||!collectionFeature(pane,'history')||!!pane.summaryShown&&!pane.scoreSummary?.historyId;$('#history-open').disabled=!!pane?.loading;
   $('#edit-open').hidden=!pane?.payload||!canEditCollection(pane)||view!=='practice';$('#edit-open').disabled=!!pane?.loading;
-  $('#development-badge').hidden=!pane?.development;$('#development-badge').textContent=pane?.development?developmentTitle(pane):'';
+  $('#development-badge').hidden=true;
   for(const id of ['development-edit','development-return','development-publish-open'])$(`#${id}`).hidden=true;
   $('#mode-bar').hidden=!pane||['practice','summary'].includes(view);
   $('#history-choose').hidden=!collectionFeature(pane,'history')||!['history','history-deleted'].includes(view);$('#return-practice').hidden=!['history','history-deleted'].includes(view);

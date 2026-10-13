@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
   "id": "examples",
-  "title": "全文翻译 · 英语二代表题",
-  "description": "2010与2026原卷代表题；用于新开发版验收，非整卷题库。",
+  "title": "全文翻译示例",
+  "description": "题型功能示例；完整历年真题位于考研英语题库分组。",
   "features": {
     "editing": true,
     "whiteboard": true,

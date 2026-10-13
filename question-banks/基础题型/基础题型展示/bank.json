@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
-  "id": "basic-types-showcase",
+  "id": "basic-types-showcase-v2",
   "title": "基础题型展示库",
-  "description": "四种基础题型：单选、简答、多选、判断。包含文字、图片、公式、表格及共享材料变体；当前为开发原型，作答和评分仅用于界面演示。",
+  "description": "四种基础题型：单选、简答、多选、判断。包含文字、图片、公式、表格及共享材料示例，支持作答保存、评分、编辑、白板、历史和考试。",
   "features": {
     "editing": true,
     "whiteboard": true,
@@ -148,7 +148,8 @@
         "maxScore": 2
       },
       "extension": {
-        "development": "single-choice-richtext-dev"
+        "id": "quizforge.single-choice",
+        "version": "2.0.0"
       }
     },
     {
@@ -324,7 +325,8 @@
         "maxScore": 2
       },
       "extension": {
-        "development": "single-choice-richtext-dev"
+        "id": "quizforge.single-choice",
+        "version": "2.0.0"
       }
     },
     {
@@ -935,7 +937,8 @@
         "maxScore": 2
       },
       "extension": {
-        "development": "single-choice-richtext-dev"
+        "id": "quizforge.single-choice",
+        "version": "2.0.0"
       }
     },
     {
@@ -1020,7 +1023,8 @@
         ]
       },
       "extension": {
-        "development": "short-answer-richtext-dev"
+        "id": "quizforge.short-answer",
+        "version": "2.0.0"
       }
     },
     {
@@ -1113,7 +1117,8 @@
         ]
       },
       "extension": {
-        "development": "short-answer-richtext-dev"
+        "id": "quizforge.short-answer",
+        "version": "2.0.0"
       }
     },
     {
@@ -1372,7 +1377,8 @@
         ]
       },
       "extension": {
-        "development": "short-answer-richtext-dev"
+        "id": "quizforge.short-answer",
+        "version": "2.0.0"
       }
     },
     {
@@ -1511,7 +1517,8 @@
         "label": "7"
       },
       "extension": {
-        "development": "multiple-choice-richtext-dev"
+        "id": "quizforge.multiple-choice",
+        "version": "2.0.0"
       }
     },
     {
@@ -1920,7 +1927,8 @@
         "label": "8"
       },
       "extension": {
-        "development": "multiple-choice-richtext-dev"
+        "id": "quizforge.multiple-choice",
+        "version": "2.0.0"
       }
     },
     {
@@ -1964,7 +1972,8 @@
         "label": "9"
       },
       "extension": {
-        "development": "true-false-richtext-dev"
+        "id": "quizforge.true-false",
+        "version": "2.0.0"
       }
     },
     {
@@ -2048,7 +2057,8 @@
         "label": "10"
       },
       "extension": {
-        "development": "true-false-richtext-dev"
+        "id": "quizforge.true-false",
+        "version": "2.0.0"
       }
     }
   ]

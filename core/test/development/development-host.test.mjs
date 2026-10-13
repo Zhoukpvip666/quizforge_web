@@ -22,7 +22,7 @@ test('developer tab persists a local toggle and switches within the existing set
   const ai=bindAiSettings({request,document}),dev=bindDevelopmentSettings({request,document});t.after(()=>{ai.destroy();dev.destroy();});
   document.querySelector('#settings-development-tab').click();await settle();assert.equal(document.querySelector('#development-settings-panel').hidden,false);assert.equal(document.querySelector('#network-settings-form').hidden,true);assert.equal(document.querySelector('#ai-settings-panel').hidden,true);
   assert.equal(document.querySelector('#development-settings-save'),null);assert.equal(document.querySelector('#development-settings-status').hidden,true);
-  assert.equal(document.querySelector('#development-settings-enabled').getAttribute('aria-label'),'开发者模式');
+  assert.equal(document.querySelector('#development-settings-enabled').getAttribute('aria-label'),'显示拓展管理');
   document.querySelector('#development-settings-enabled').checked=true;document.querySelector('#development-settings-enabled').dispatchEvent(new dom.window.Event('change'));await settle();assert.deepEqual(JSON.parse(calls.at(-1)[1].body),{enabled:true});
   document.querySelector('#settings-ai-tab').click();await settle();assert.equal(document.querySelector('#development-settings-panel').hidden,true);assert.equal(document.querySelector('#ai-settings-panel').hidden,false);assert.equal(document.querySelector('#settings-development-tab').getAttribute('aria-selected'),'false');
   document.querySelector('#settings-network-tab').click();assert.equal(document.querySelector('#network-settings-form').hidden,false);assert.equal(document.querySelector('#ai-settings-panel').hidden,true);
@@ -65,7 +65,7 @@ test('missing developer endpoint explains restarting the old service and recover
   const dom=new JSDOM(html);t.after(()=>dom.window.close());const document=dom.window.document;document.querySelector('#network-settings-dialog').open=true;let outdated=true;
   const dev=bindDevelopmentSettings({request:async()=>{if(outdated)throw Object.assign(new Error('Endpoint not found'),{code:'NOT_FOUND'});return {enabled:false,canManage:true};},document});t.after(()=>dev.destroy());
   await dev.open();
-  assert.match(document.querySelector('#development-settings-status').textContent,/尚未提供开发者接口/);
+  assert.match(document.querySelector('#development-settings-status').textContent,/尚未提供拓展管理设置接口/);
   assert.match(document.querySelector('#development-settings-error').textContent,/关闭原启动窗口.*重新启动/);
   assert.equal(document.querySelector('#development-settings-error').hidden,false);
   assert.equal(document.querySelector('#development-settings-enabled').disabled,true);

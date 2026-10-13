@@ -90,6 +90,19 @@ test('package-only stamp changes reload a cached question and its page',async()=
   assert.equal(f.requests.filter(value=>value.path==='/api/questions/a').length,1);f.pane.plugin.destroy();
 });
 
+test('an unchanged cached question is restored with one conditional request',async()=>{
+  const previous=payload('a',single,'same page');
+  const f=fixture({requestImpl:async(path,options)=>{
+    assert.equal(path,'/api/questions/a');
+    assert.deepEqual(JSON.parse(options.headers['X-QuizForge-Question-Stamp']),previous.stamp);
+    return {unchanged:true,stamp:previous.stamp};
+  }});
+  f.cache.set('bank:mixed:a',previous);
+  const restored=await f.loadQuestion(f.pane,'a');
+  assert.deepEqual(restored,previous);assert.equal(f.pane.node.dataset.questionSource,'cache');
+  assert.equal(f.requests.length,1);
+});
+
 test('ordinary mixed banks switch independent extensions in one folder without loading all runtimes',async()=>{
   const choice={id:'choice',version:'1.0.0',name:'单选',group:'语言题型'},essay={id:'essay',version:'1.0.0',name:'作文',group:'语言题型'};
   const collection={extension:null,extensions:[choice,essay],questions:[{id:'a',type:choice},{id:'b',type:essay},{id:'c',type:choice}],states:{}};

@@ -1,7 +1,7 @@
 {
   "formatVersion": 1,
   "id": "kaoyan-english1-1997",
-  "title": "1997年考研英语真题（整理版）",
+  "title": "1997年考研英语真题",
   "description": "仅制作所提供PDF收录题目，不补齐缺失部分；按PDF及用户确认分值。",
   "features": {
     "editing": true,
@@ -281,7 +281,7 @@
             "correctOptionId": "D"
           }
         ],
-        "pointsPerItem": 1.0,
+        "pointsPerItem": 1,
         "maxScore": 10,
         "explanation": {
           "type": "doc",
@@ -1437,7 +1437,7 @@
             "segment": "When that happens, it is not a mistake: it is mankind’s instinct for moral reasoning in action, an instinct that should be encouraged rather than laughed at."
           }
         ],
-        "pointsPerItem": 3.0,
+        "pointsPerItem": 3,
         "maxScore": 15,
         "assessment": {
           "type": "doc",

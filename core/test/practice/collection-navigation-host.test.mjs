@@ -71,6 +71,23 @@ test('startup renders a pending bank before its collection request finishes',asy
   release();await start;assert.equal(f.sandbox.activeKey,'bank:bank');assert.equal(f.document.querySelector('#collection-loading').hidden,true);f.host.refreshCatalog.client.stop();
 });
 
+test('returning to a suspended bank reads its question and overview concurrently',async t=>{
+  const f=fixture(t);f.add('first');f.add('second');
+  await f.host.openCollection('bank','first');await f.host.openCollection('bank','second');
+  let releaseQuestion,releaseOverview;
+  const question=new Promise(resolve=>{releaseQuestion=resolve;}),overview=new Promise(resolve=>{releaseOverview=resolve;});
+  const seen=[],request=f.sandbox.request;
+  f.sandbox.loadQuestion=async()=>{seen.push('question');return question;};
+  f.sandbox.request=async path=>{if(path==='bank:first'){seen.push('overview');return overview;}return request(path);};
+  const restoring=f.host.openCollection('bank','first');
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.deepEqual(seen,['question','overview']);
+  releaseQuestion({question:{id:'first'},state:{status:'draft'},stamp:{}});
+  releaseOverview({...f.descriptors.get('bank:first'),states:{first:{status:'draft'}}});
+  await restoring;
+  assert.equal(f.sandbox.activeKey,'bank:first');assert.equal(f.collections.get('bank:first').payload.state.status,'draft');
+});
+
 test('collection loading stays visible until the first question is ready and retains the old frame',async t=>{
   const f=fixture(t);f.add('current');f.add('new');await f.host.openCollection('bank','current');
   const current=f.collections.get('bank:current'),oldFrame=current.plugin,show=f.sandbox.showQuestion;

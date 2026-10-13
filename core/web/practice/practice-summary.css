@@ -1,4 +1,4 @@
-.practice-summary-card{width:100%;border:1px solid #e8e4f1;border-radius:20px;overflow:hidden;background:#fff;color:#302d41;line-height:1.65}
+.practice-summary-card{width:100%;max-width:680px;margin-inline:auto;border:1px solid #e8e4f1;border-radius:20px;overflow:hidden;background:#fff;color:#302d41;line-height:1.65}
 .practice-summary-header{padding:26px 28px 20px;border-bottom:1px solid #f0edf6}
 .practice-summary-badge{display:inline-block;margin-bottom:10px;padding:3px 10px;border-radius:7px;background:#eee8fd;color:#6b46b7;font-size:12px;font-weight:700;letter-spacing:.08em}
 .practice-summary-title{margin:0;color:#302d41;font-size:25px;font-weight:650;line-height:1.45}

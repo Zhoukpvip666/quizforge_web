@@ -83,13 +83,13 @@ test('warm writes check their binding without scanning unrelated banks; changed 
   fs.unlinkSync(file);await assert.rejects(library.writeCollection('bank','focused'),{code:'COLLECTION_NOT_FOUND'});
 });
 
-test('warm writes preserve developer gating, runtime invalidation and closed-library checks',async t=>{
+test('warm writes ignore display settings and preserve runtime invalidation and closed-library checks',async t=>{
   const {root,library,engine}=await fixture(t),source=path.join(root,'extensions','choice');
   const opened=await library.collection('extension','quizforge.single-choice');
   engine.validationEnvironment=async()=>'changed-runtime';assert.notEqual(await library.writeCollection('extension','quizforge.single-choice'),opened);
   fs.writeFileSync(path.join(source,'development.json'),jsonBytes({name:'development'}));library.settings.update({enabled:true});
   await library.collection('development','choice');library.settings.update({enabled:false});
-  await assert.rejects(library.writeCollection('development','choice'),{code:'DEVELOPMENT_DISABLED'});
+  assert.equal((await library.writeCollection('development','choice')).kind,'extension');
   library.close();await assert.rejects(library.writeCollection('extension','quizforge.single-choice'),{code:'LIBRARY_UNAVAILABLE'});
 });
 
@@ -152,16 +152,16 @@ test('warm collection reads revalidate after the rule runtime identity changes',
   assert.notEqual(updated, original); assert.ok(runs > 0);
   assert.equal(updated.extensionFingerprint, original.extensionFingerprint, 'Changing host rules must not change a stored extension identity');
 });
-test('developer mode changes visibility of development banks and leaves', async t => {
+test('management display settings do not hide legacy banks or change collection identity', async t => {
   const { root, library } = await fixture(t, { rules: false });
   const extension = path.join(root, 'extensions', 'choice');
   fs.writeFileSync(path.join(extension, 'development.json'), jsonBytes({ name: 'Choice development' }));
   const samples = readJson(path.join(extension, 'manifest.json')).examples;
   const raw = readJson(path.join(extension, samples)); raw.id = 'dev-bank'; raw.extension = { development: 'choice' };
   fs.writeFileSync(path.join(root, 'question-banks', 'dev-bank.json'), jsonBytes(raw));
-  assert.equal(library.index().extensions.length, 0); assert.equal(library.index().banks.length, 0);
+  assert.equal(library.index().extensions.length, 1); assert.equal(library.index().banks.length, 1);
   library.settings.update({ enabled: true });
-  const index = library.index(); assert.equal(index.extensions[0].kind, 'development'); assert.equal(index.banks[0].kind, 'development-bank');
+  const index = library.index(); assert.equal(index.extensions[0].kind, 'extension'); assert.equal(index.banks[0].kind, 'bank');
 });
 test('group management preserves bank identity and rejects nested groups', async t => {
   const { root, library } = await fixture(t, { rules: false });
@@ -176,21 +176,11 @@ test('group management preserves bank identity and rejects nested groups', async
   await assert.rejects(library.manage({ kind: 'extension', action: 'delete', target: 'item', path: 'choice' }), { code: 'EXTENSION_IN_USE' });
 });
 
-test('development publication freezes the reviewed package and keeps the development source', async t => {
-  const { root, library } = await fixture(t), source = path.join(root, 'extensions', 'choice');
-  fs.writeFileSync(path.join(source, 'development.json'), jsonBytes({ name: 'Development choice' })); library.settings.update({ enabled: true });
-  const plan = await library.developmentPublishPlan('choice'); assert.equal(plan.valid, true);
-  const result = await library.publishDevelopment('choice', { revision: plan.revision }); assert.equal(result.published, true);
-  assert.equal(fs.existsSync(path.join(source, 'development.json')), true);
-  const target = path.join(root, 'extensions', plan.targetFolder); assert.equal(fs.existsSync(path.join(target, 'development.json')), false);
-  assert.equal((await library.collection('extension', 'quizforge.single-choice')).extension.version, '1.0.0');
-  await assert.rejects(library.developmentPublishPlan('choice'), { code: 'EXTENSION_VERSION_EXISTS' });
+test('legacy publication endpoints explicitly reject copying another version', async t => {
+ const {library}=await fixture(t);await assert.rejects(library.developmentPublishPlan('choice'),{code:'PUBLICATION_REMOVED'});await assert.rejects(library.publishDevelopment('choice',{}),{code:'PUBLICATION_REMOVED'});
 });
-
-test('publication refuses edits after review and cleans only its staging directory', async t => {
-  const { root, library } = await fixture(t), source = path.join(root, 'extensions', 'choice');
-  fs.writeFileSync(path.join(source, 'development.json'), jsonBytes({ name: 'Development choice' })); library.settings.update({ enabled: true });
-  const plan = await library.developmentPublishPlan('choice'); fs.appendFileSync(path.join(source, 'practice.css'), '\n/* changed after review */');
-  await assert.rejects(library.publishDevelopment('choice', { revision: plan.revision }), { code: 'DEVELOPMENT_CHANGED' });
-  assert.equal(fs.existsSync(path.join(root, 'extensions', plan.targetFolder)), false);
+test('editing a marked extension uses the same content validation as an ordinary extension', async t => {
+ const {root,library}=await fixture(t),source=path.join(root,'extensions/choice');fs.writeFileSync(path.join(source,'development.json'),'{}');
+ const before=await library.collection('extension','quizforge.single-choice');fs.appendFileSync(path.join(source,'practice.css'),'\n/* edited */');
+ const after=await library.collection('extension','quizforge.single-choice');assert.notEqual(before.extensionFingerprint,after.extensionFingerprint);assert.equal(after.kind,'extension');
 });

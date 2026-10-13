@@ -1,11 +1,9 @@
-# segment-translation-2026-dev
+# 分句翻译
 
-阶段C：已确认界面，接入公开QF保存/提交/重做和编辑导出接口。正式发布和完整题库生成仍需验收确认。
+绑定身份：`quizforge.segment-translation` / `1.0.0`。宿主已统一题库与拓展状态，不需要发布。
 
-规则源为rules-source.js，使用项目已有esbuild打包成manifest声明的rules.js；读取共享富文本文档校验器，未修改core。
+旧目录名 `segment-translation-2026-dev`、`development.json` 及题库叶名引用暂时保留，用于宿主首次迁移尚未打开过的旧作答与冻结历史，不代表新的开发／正式运行区分。完成全部旧记录迁移后再统一目录与绑定，不能仅为清理移除这些兼容信息。
 
-翻译采用待评分提交、逐小题人工评分自动保存。题干保存时要求恰好五段连续下划线，依题序更新待译句，稳定小题ID保留。
+`examples/bank.json` 是本题型必需示例。`rules-source.js` 是规则维护源，`rules.js` 是 manifest 加载的打包产物，两者均保留。
 
-2026-10-10：已接入 QF.ai 的 targetId 小题评分协议。每句独立发起、恢复查询、轮询、失败重试及重新评分。prepareAiGrading 选择共享题干、该句译文及合并编辑区中对应编号的参考译文/评分依据；review 使用最新 state.result 合并单句分数和评语，整题总分由拓展汇总。partScores/partFeedback 保存逐句详情，兼容旧 feedback.scores；不依赖宿主整理后的 feedback 文本。越界及非 0.5 步长建议由拓展拒绝，保留旧分数。
-
-按用户要求没有调用真实模型。34 项小题规则、宿主规则执行及模拟页面交互检查通过；真实模型成功返回和浏览器端到端验收仍未验证。仅支持逐句评分，未提供整题 AI 自动评分转换。
+本次题目数据、稳定ID、评分规则、manifest及运行文件未修改。

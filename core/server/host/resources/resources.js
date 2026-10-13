@@ -78,6 +78,7 @@ export class ResourceStore {
       if (hash(bytes) !== id || detectImageMime(bytes) !== mime) throw new ApiError(503, 'RESOURCE_UNAVAILABLE', 'Stored image checksum or type is invalid');
       return { id, mime, bytes };
     }
+    if (this.fallback) return this.fallback.read(id);
     throw new ApiError(404, 'RESOURCE_NOT_FOUND', 'Image resource does not exist');
   }
   importAssets(directory, staticAssets = [], extension = false) {

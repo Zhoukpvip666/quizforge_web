@@ -9,7 +9,7 @@ import { fingerprint, hash, integralField, jsonBytes, jsonEqual } from '../platf
 import { checkPath, exists, readBytes, readJson, replaceFile, safeDirectory, safeFile, walkFiles, within } from '../platform/files.js';
 import { scanBanks, scanExtensions, bankItem } from './directories.js';
 import { folderName } from './library-management.js';
-import { markedDevelopment } from '../extensions/extension-packages.js';
+import { markedDevelopment, declaration, staticAssets } from '../extensions/extension-packages.js';
 import { ResourceStore, imageReferences } from '../resources/resources.js';
 
 export const MAX_UPLOAD = 64 * 1024 * 1024, MAX_EXPANDED = 128 * 1024 * 1024, MAX_FILE = 8 * 1024 * 1024, MAX_ENTRIES = 10000;
@@ -17,16 +17,29 @@ export const MANIFEST = 'quizforge-package.json', FORMAT = 'quizforge-bank-group
 const invalid = message => new ApiError(422, 'INVALID_LIBRARY_ARCHIVE', message), conflict = message => new ApiError(409, 'LIBRARY_IMPORT_CONFLICT', message), limit = message => new ApiError(413, 'LIBRARY_ARCHIVE_LIMIT', message);
 const relative = (base, file) => path.relative(base, file).replaceAll('\\', '/');
 function privatePath(name) { return name.split('/').some(part => part.startsWith('.') || ['node_modules', 'target'].includes(part)); }
-function binding(reference) { if (Object.hasOwn(reference, 'development')) throw invalid('题库引用开发版拓展，请先完成拓展发布再导出'); return id(reference, 'id') + '@' + id(reference, 'version'); }
+function binding(reference) {
+  if (!reference || typeof reference !== 'object' || Array.isArray(reference) || Object.hasOwn(reference,'typeId') || Object.hasOwn(reference,'development') && Object.keys(reference).length !== 1) throw invalid('题型绑定格式无效');
+  return Object.hasOwn(reference, 'development') ? 'development:' + id(reference, 'development') : id(reference, 'id') + '@' + id(reference, 'version');
+}
+function portableBank(file, installed) {
+  const raw = readJson(file, MAX_FILE);
+  for (const item of [raw, ...(raw.questions ?? [])]) if (item.extension?.development) {
+    const matches = [...installed.values()].filter(source => path.basename(source) === item.extension.development);
+    if (matches.length !== 1) throw invalid('旧题型绑定缺少或重复拓展');
+    const manifest = readJson(path.join(matches[0], 'manifest.json'));
+    item.extension = { id: manifest.id, version: manifest.version };
+  }
+  replaceFile(file, jsonBytes(raw));
+}
 function index(directory, extensions) {
   const result = new Map(); for (const file of extensions ? scanExtensions(directory) : scanBanks(directory).banks) {
-    if (extensions && markedDevelopment(file)) continue; const raw = readJson(extensions ? path.join(file, 'manifest.json') : file, extensions ? 256 * 1024 : MAX_FILE), identity = extensions ? binding(raw) : id(raw, 'id');
+    const raw = readJson(extensions ? path.join(file, 'manifest.json') : file, extensions ? 256 * 1024 : MAX_FILE), identity = extensions ? binding(raw) : id(raw, 'id');
     if (result.has(identity)) throw conflict('有重复题库或拓展 ID：' + identity); result.set(identity, file);
   } return result;
 }
 function declaredPaths(extension) {
-  const result = new Set(), permit = name => { let file = safeFile(extension, name); while (file !== extension) { result.add(relative(extension, file)); file = path.dirname(file); } }, manifest = readJson(safeFile(extension, 'manifest.json'), 256 * 1024);
-  for (const field of ['entry', 'script', 'style', 'rules', 'questionSchema', 'answerSchema', 'examples']) permit(text(manifest, field, 240)); for (const asset of manifest.assets ?? []) { if (typeof asset !== 'string') throw invalid('题库包的拓展文件声明无效'); permit(asset); }
+  const result = new Set(), permit = name => { let file = safeFile(extension, name); while (file !== extension) { result.add(relative(extension, file)); file = path.dirname(file); } }, manifest = declaration(extension);
+  for (const field of ['entry', 'script', 'style', 'rules', 'questionSchema', 'answerSchema', 'examples']) permit(text(manifest, field, 240)); for (const asset of staticAssets(extension, manifest)) { if (typeof asset !== 'string') throw invalid('题库包的拓展文件声明无效'); permit(asset); }
   if (exists(path.join(extension, 'editor.json'))) { const editor = readJson(safeFile(extension, 'editor.json'), 256 * 1024); for (const field of ['entry', 'script', 'style']) permit(text(editor, field, 240)); } return result;
 }
 function signature(directory) { return Object.fromEntries(walkFiles(directory, MAX_ENTRIES + 1).filter(file => fs.statSync(file).isFile()).map(file => [relative(directory, file), file.endsWith('.json') ? fingerprint(readJson(file, MAX_FILE), 'archive-json') : hash(readBytes(file, MAX_FILE))])); }
@@ -47,7 +60,17 @@ export class LibraryArchive {
     for (const id of imageReferences(document)) { const image = this.resources.read(id); if (exists(path.join(directory, 'assets', id + '.' + suffix[image.mime]))) continue; this.copiedBytes += image.bytes.length; if (this.copiedBytes > MAX_EXPANDED || ++this.copiedEntries > MAX_ENTRIES) throw limit('图片及文件超过导出大小或数量上限'); } this.resources.exportReferences(directory, document);
   }
   copyBank(file, destination) { if (path.basename(file) === 'bank.json' && path.dirname(file) !== path.join(this.root, 'question-banks')) this.copyTree(path.dirname(file), destination); else { safeDirectory(destination, true); this.account(file); fs.copyFileSync(file, path.join(destination, 'bank.json'), fs.constants.COPYFILE_EXCL); } this.exportImages(destination, readJson(path.join(destination, 'bank.json'), MAX_FILE)); }
-  copyExtension(source, destination) { this.copyTree(source, destination, declaredPaths(source)); const manifest = readJson(path.join(destination, 'manifest.json'), 256 * 1024), examples = safeFile(destination, text(manifest, 'examples', 240)); this.exportImages(path.dirname(examples), readJson(examples, MAX_FILE)); }
+  copyExtension(source, destination) {
+    this.copyTree(source, destination, declaredPaths(source));
+    const manifest = declaration(source), assets = staticAssets(source, manifest);
+    if (assets.length) manifest.assets = assets;
+    replaceFile(path.join(destination,'manifest.json'),jsonBytes(manifest));
+    const examples = safeFile(destination, text(manifest, 'examples', 240)), raw = readJson(examples, MAX_FILE);
+    for (const item of [raw, ...(raw.questions ?? [])]) if (item.extension?.development === path.basename(source)) item.extension = { id: manifest.id, version: manifest.version };
+    replaceFile(examples, jsonBytes(raw)); this.exportImages(path.dirname(examples), raw);
+    const legacyMarker = path.join(destination, 'development.json');
+    if (exists(legacyMarker)) fs.unlinkSync(legacyMarker);
+  }
   async zip(content, destination) {
     const archive = new yazl.ZipFile(); let total = 0, count = 0; const output = fs.createWriteStream(destination, { flags: 'wx' }); archive.on('error', error => archive.outputStream.destroy(error)); const writing = pipeline(archive.outputStream, output); writing.catch(() => {});
     try {
@@ -60,7 +83,20 @@ export class LibraryArchive {
     try {
       const content = path.join(work, 'content'), banks = path.join(content, 'question-banks', group), extensions = path.join(content, 'extensions', group); safeDirectory(banks, true); safeDirectory(extensions, true); const installed = index(path.join(this.root, 'extensions'), true), required = new Set(), ids = new Set();
       for (const file of scanBanks(bankRoot).banks.filter(file => within(selected, file))) { const raw = readJson(file, MAX_FILE), bankId = id(raw, 'id'); if (ids.has(bankId)) throw invalid('分组内有重复题库 ID：' + bankId); ids.add(bankId); if (Object.hasOwn(raw, 'extension')) required.add(binding(raw.extension)); for (const question of raw.questions ?? []) if (Object.hasOwn(question, 'extension')) required.add(binding(question.extension)); this.copyBank(file, path.join(banks, bankId)); }
-      for (const identity of required) { const source = installed.get(identity); if (!source) throw invalid('缺少正式拓展：' + identity + '；引用开发版的题库需先完成拓展发布'); this.copyExtension(source, path.join(extensions, identity)); }
+      const copied = new Set(), resolved = new Map();
+      for (const identity of required) {
+        const matches = identity.startsWith('development:') ? [...installed.values()].filter(source => path.basename(source) === identity.slice(12)) : [installed.get(identity)].filter(Boolean);
+        if (matches.length !== 1) throw invalid('缺少或重复拓展：' + identity);
+        const source = matches[0], manifest = readJson(path.join(source, 'manifest.json')), canonical = binding(manifest);
+        resolved.set(identity, { id: manifest.id, version: manifest.version });
+        if (!copied.has(canonical)) { this.copyExtension(source, path.join(extensions, canonical)); copied.add(canonical); }
+      }
+      // Export portable ID/version references, independent of source folder names.
+      for (const file of scanBanks(path.join(content, 'question-banks')).banks) {
+        const raw = readJson(file);
+        for (const item of [raw, ...(raw.questions ?? [])]) if (item.extension && Object.hasOwn(item.extension, 'development')) item.extension = resolved.get(binding(item.extension));
+        replaceFile(file, jsonBytes(raw));
+      }
       replaceFile(path.join(content, MANIFEST), jsonBytes({ format: FORMAT, formatVersion: 1, group })); const file = path.join(work, 'group.qbank'); await this.zip(content, file); if (fs.statSync(file).size > MAX_UPLOAD) throw limit('导出的题库包超过 64 MiB，请缩小题库分组'); return { workspace: work, file, close: () => this.removeWorkspace(work) };
     } catch (error) { this.removeWorkspace(work); throw error; }
   }
@@ -101,7 +137,7 @@ export class LibraryArchive {
     try {
       const zip = path.join(work, 'upload.qbank'), staging = path.join(work, 'content'); let uploaded = 0;
       const bound = new Transform({ transform(chunk, encoding, callback) { if ((uploaded += chunk.length) > MAX_UPLOAD) return callback(limit('压缩包超过上传大小上限')); callback(null, chunk); } }); await pipeline(Buffer.isBuffer(input) ? Readable.from([input]) : input, bound, fs.createWriteStream(zip, { flags: 'wx' })); safeDirectory(staging, true); await this.unzip(zip, staging); const group = this.archiveGroup(staging), incomingBanks = scanBanks(path.join(staging, 'question-banks')).banks, incomingExtensions = scanExtensions(path.join(staging, 'extensions'));
-      if (incomingExtensions.some(markedDevelopment)) throw invalid('第一版题库包导入只支持正式拓展，请先完成拓展发布'); try { this.validatePrivatePaths(staging, incomingBanks, incomingExtensions); } catch (error) { if (error instanceof ApiError && error.status !== 400) throw error; throw invalid('题库包的拓展文件声明无效或不完整'); }
+      try { this.validatePrivatePaths(staging, incomingBanks, incomingExtensions); } catch (error) { if (error instanceof ApiError && error.status !== 400) throw error; throw invalid('题库包的拓展文件声明无效或不完整'); }
       await validator(staging); const stagedResources = new ResourceStore(staging);
       for (const file of incomingBanks) stagedResources.exportReferences(path.dirname(file), readJson(file, MAX_FILE));
       for (const extension of incomingExtensions) { const manifest = readJson(path.join(extension, 'manifest.json'), 256 * 1024), file = safeFile(extension, text(manifest, 'examples', 240)); stagedResources.exportReferences(path.dirname(file), readJson(file, MAX_FILE)); }
@@ -109,7 +145,7 @@ export class LibraryArchive {
       const targetBanks = path.join(this.root, 'question-banks', group), targetExtensions = path.join(this.root, 'extensions', group); this.checkGroupDestination('bank', targetBanks); this.checkGroupDestination('extension', targetExtensions);
       for (const [identity, file] of newBanks) {
         const source = bankItem(path.join(staging, 'question-banks'), file), existing = localBanks.get(identity);
-        if (existing) { const normalized = path.join(work, 'compare-bank-' + skippedBanks), candidate = path.join(work, 'incoming-bank-' + skippedBanks); this.copyBank(existing, normalized); new LibraryArchive(staging, stagedResources).copyBank(file, candidate); if (!jsonEqual(signature(normalized), signature(candidate))) throw conflict('题库 ID 相同但内容不同：' + identity); skippedBanks++; continue; }
+        if (existing) { const normalized = path.join(work, 'compare-bank-' + skippedBanks), candidate = path.join(work, 'incoming-bank-' + skippedBanks); this.copyBank(existing, normalized); portableBank(path.join(normalized,'bank.json'),localExtensions); new LibraryArchive(staging, stagedResources).copyBank(file, candidate); if (!jsonEqual(signature(normalized), signature(candidate))) throw conflict('题库 ID 相同但内容不同：' + identity); skippedBanks++; continue; }
         const destination = path.join(targetBanks, path.basename(source)); if (exists(destination)) throw conflict('目标分组已有同名文件或目录：' + path.basename(destination)); moves.push({ source, destination });
       }
       for (const [identity, source] of newExtensions) {

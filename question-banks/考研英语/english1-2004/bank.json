@@ -1,7 +1,7 @@
 {
   "formatVersion": 1,
   "id": "kaoyan-english1-2004",
-  "title": "2004年考研英语真题（整理版）",
+  "title": "2004年考研英语真题",
   "description": "仅制作所提供PDF收录题目，不补齐缺失部分；按PDF及用户确认分值。",
   "features": {
     "editing": true,
@@ -1671,7 +1671,7 @@
             "segment": "Whorf came to believe in a sort of linguistic determinism which, in its strongest form, states that language imprisons the mind, and that the grammatical patterns in a language can produce far-reaching consequences for the culture of a society."
           }
         ],
-        "pointsPerItem": 2.0,
+        "pointsPerItem": 2,
         "maxScore": 10,
         "assessment": {
           "type": "doc",

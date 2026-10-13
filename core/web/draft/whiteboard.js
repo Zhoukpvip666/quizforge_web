@@ -142,14 +142,15 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
     onInteractionChange(active);
   }
   // History navigation has its own camera; the frozen draft never changes.
-  function draftCamera() { return readOnly ? { ...readOnlyCamera } : model.viewport; }
+  let localCamera = model.viewport;
+  function draftCamera() { return { ...(readOnly ? readOnlyCamera : localCamera) }; }
   function setDraftCamera(value) {
-    if (!readOnly) return model.setViewport(value);
-    const next = normalizeViewport(value), previous = readOnlyCamera;
-    readOnlyCamera = next;
+    const next = normalizeViewport(value), previous = draftCamera();
+    if (readOnly) readOnlyCamera = next; else localCamera = next;
     return next.x !== previous.x || next.y !== previous.y || next.zoom !== previous.zoom;
   }
   function emitChange() { updateControls(); if (readOnly) onViewChange(draftCamera()); else onChange(model.getDraft()); }
+  function emitViewChange() { updateControls(); onViewChange(draftCamera()); }
   function updateControls() {
     for (const button of toolButtons) button.hidden = readOnly && !['select', 'pan', 'capture'].includes(button.dataset.tool);
     inkColor.parentElement.hidden = readOnly;
@@ -349,7 +350,7 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
     cameraBefore = null;
     releaseAll();
     syncCamera();
-    if (changed) emitChange();
+    if (changed) { if (['pan','pinch'].includes(active?.kind)) emitViewChange(); else emitChange(); }
     notifyInteraction(false);
     requestPaint();
   }
@@ -509,7 +510,7 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
       changed = setDraftCamera(zoomAt(camera, zoom, cameraPoint({ x: viewWidth / 2, y: viewHeight / 2 })));
     }
     toolbar.inert = !confirmation.hidden;
-    if (changed) emitChange();
+    if (changed) { if (action.startsWith('zoom-')) emitViewChange(); else emitChange(); }
     syncCamera();
     requestPaint();
   }
@@ -526,7 +527,7 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
     finishInteraction();
     const amount = Math.max(-100, Math.min(100, event.deltaY));
     const camera = draftCamera();
-    if (setDraftCamera(zoomAt(camera, camera.zoom * Math.exp(-amount * 0.002), cameraPoint(screenPoint(event))))) emitChange();
+    if (setDraftCamera(zoomAt(camera, camera.zoom * Math.exp(-amount * 0.002), cameraPoint(screenPoint(event))))) emitViewChange();
     syncCamera();
     requestPaint();
   }, { passive: false });
@@ -628,6 +629,7 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
       selectedIds=[];captureGeneration++;closePalette();
       if(capturePreview.open)capturePreview.close();
       model.load(next);
+      localCamera = model.viewport;
       if (readOnly) readOnlyCamera = model.viewport;
       syncCamera();
       confirmation.hidden = true;
@@ -663,7 +665,7 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
       const changed = setDraftCamera(next);
       syncCamera();
       updateControls();
-      if (changed && emit) emitChange();
+      if (changed && emit) emitViewChange();
       requestPaint();
       return changed;
     },

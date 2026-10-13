@@ -11,7 +11,7 @@ const FIELDS = ['entry', 'script', 'style', 'rules', 'questionSchema', 'answerSc
 const MEDIA = new Map([['png', 'image/png'], ['jpg', 'image/jpeg'], ['jpeg', 'image/jpeg'], ['webp', 'image/webp'], ['gif', 'image/gif'], ['svg', 'image/svg+xml'], ['woff', 'font/woff'], ['woff2', 'font/woff2'], ['ttf', 'font/ttf'], ['otf', 'font/otf']]);
 export const markedDevelopment = directory => exists(path.join(directory, 'development.json'));
 export const runtimeId = folder => 'dev.' + (folder.length <= 116 ? folder : hash(Buffer.from(folder)));
-export function declaration(directory, development) {
+export function declaration(directory, development = markedDevelopment(directory)) {
   const file = path.join(directory, 'manifest.json');
   const result = exists(file) ? readJson(file, 256 * 1024) : {};
   requireObject(result, 'Invalid development manifest');
@@ -56,7 +56,9 @@ export function pageAssets(directory, config, media) {
   return result;
 }
 export function snapshotPage(extension) {
-  const config = declaration(extension.directory, extension.development != null), media = staticAssets(extension.directory, config);
+  const config = declaration(extension.directory), media = staticAssets(extension.directory, config);
+  if (!extension.script) delete config.script;
+  if (!extension.style) delete config.style;
   let result;
   if (extension.development) {
     if (!extension.script) delete config.script;
@@ -64,13 +66,13 @@ export function snapshotPage(extension) {
     result = pageAssets(extension.directory, config, media.length ? media : undefined);
     const marker = readJson(safeFile(extension.directory, 'development.json'), 256 * 1024);
     if (marker.mode === 'ui') result.legacyPage = true;
-  } else result = media.length ? pageAssets(extension.directory, config, media) : { html: assetText(extension.entry), script: assetText(extension.script), style: assetText(extension.style) };
+  } else result = pageAssets(extension.directory, config, media.length ? media : undefined);
   if (extension.answerStateDeclared) result.answerStateDeclared = true;
   return withDependencies(result, extension);
 }
 export function editorPage(extension) {
   try {
-    const file = path.join(extension.directory, 'editor.json'), development = extension.development != null;
+    const file = path.join(extension.directory, 'editor.json'), development = markedDevelopment(extension.directory);
     const marker = development ? readJson(safeFile(extension.directory, 'development.json'), 256 * 1024) : null;
     if (!exists(file) && !Object.hasOwn(marker ?? {}, 'editor')) return null;
     const config = exists(file) ? readJson(file, 256 * 1024) : marker.editor;
@@ -124,13 +126,14 @@ export function readDevelopment(directory) {
   return { folder, mode: 'runtime', name, description: optional(marker, 'description', 4000), directory, marker, revision: developmentRevision(directory) };
 }
 export function readExtension(directory, richtext, sdk, developmentPackage = null) {
-  const development = developmentPackage != null, config = declaration(directory, development);
+  // Markers are legacy configuration only, never a runtime or publication state.
+  const development = developmentPackage != null || markedDevelopment(directory), config = declaration(directory, development);
   if (Object.hasOwn(config, 'types') || Object.hasOwn(config, 'packageFormatVersion')) throw bad('Each extension provides one question type; group independent extensions in folders');
   requireManifestApi(config);
   const fields = {};
   for (const field of FIELDS) {
     if (!Object.hasOwn(config, field)) {
-      if (!development || field === 'entry') throw bad(development ? 'Development page requires an entry' : `Invalid ${field}`);
+      if (field === 'entry') throw bad('Extension page requires an entry');
       fields[field] = null; continue;
     }
     const relative = text(config, field, 240), candidate = path.resolve(directory, relative);
@@ -144,10 +147,9 @@ export function readExtension(directory, richtext, sdk, developmentPackage = nul
   const media = staticAssets(directory, config);
   pageAssets(directory, config, media);
   let identity;
-  if (development) identity = fingerprint(config, 'quizforge-development-source-v1');
-  else {
+  {
     const digest = createHash('sha256').update('quizforge-extension-v1');
-    for (const file of [safeFile(directory, 'manifest.json'), ...FIELDS.slice(0, 6).map(field => fields[field]), ...media.map(relative => safeFile(directory, relative))]) {
+    for (const file of [safeFile(directory, 'manifest.json'), ...FIELDS.slice(0, 6).map(field => fields[field]), ...media.map(relative => safeFile(directory, relative))].filter(Boolean)) {
       const bytes = readBytes(file, 8 * 1024 * 1024), length = Buffer.alloc(4); length.writeInt32BE(bytes.length); digest.update(length); digest.update(bytes);
     }
     identity = digest.digest('hex');

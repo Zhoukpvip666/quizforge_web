@@ -25,6 +25,30 @@ async function fixture(t, options = {}) {
   return { root, service, api, raw };
 }
 const rawGet = (port, uri, headers = {}) => new Promise((resolve, reject) => { const request = http.get({ host: '127.0.0.1', port, path: uri, headers }, response => { const bytes = []; response.on('data', chunk => bytes.push(chunk)); response.on('end', () => resolve({ status: response.statusCode, data: Buffer.concat(bytes).toString() })); }); request.on('error', reject); });
+
+test('conditional question reads reuse one checked binding and return updated answers on a stale stamp', async t => {
+  const {api, service, raw} = await fixture(t);
+  const q = '/api/collections/bank/bank1/questions/' + raw.questions[0].id;
+  const original = (await api(q)).data;
+  let scans = 0, projections = 0;
+  const scan = service.library.indexSnapshot.bind(service.library), run = service.engine.run.bind(service.engine);
+  service.library.indexSnapshot = (...args) => { scans++; return scan(...args); };
+  service.engine.run = (extension, input) => { if (input.op === 'project') projections++; return run(extension, input); };
+  const headers = {'X-QuizForge-Question-Stamp': JSON.stringify(original.stamp)};
+  const warm = await api(q, {headers});
+  assert.equal(warm.status, 200); assert.deepEqual(warm.data, {unchanged:true, stamp:original.stamp});
+  assert.equal(scans, 1); assert.equal(projections, 0);
+  scans = 0; await api(q + '/stamp'); assert.equal(scans, 1);
+  scans = 0; await api('/api/collections/bank/bank1'); assert.equal(scans, 1);
+  const answer = {selectedOptionId: raw.questions[0].data.correctOptionId};
+  assert.equal((await api(q + '/actions', {method:'POST', body:{action:'draft', requestId:'conditional-draft', revision:0, data:{answer}}})).status, 200);
+  scans = 0; projections = 0;
+  const changed = await api(q, {headers});
+  assert.equal(changed.data.unchanged, undefined); assert.deepEqual(changed.data.state.answer, answer);
+  assert.equal(changed.data.stamp.revision, 1); assert.equal(scans, 1); assert.equal(projections, 1);
+  assert.equal((await api(q, {headers:{'X-QuizForge-Question-Stamp':'bad'}})).status, 400);
+  assert.equal((await api(q, {headers:{'X-QuizForge-Question-Stamp':JSON.stringify({...changed.data.stamp, packageVersion:'old'})}})).data.unchanged, undefined);
+});
 test('startup and metadata do not validate unopened banks; opening validates only the selected bank', async t => {
   const operations=[];
   const { api, service, root, raw }=await fixture(t,{beforeStart(service){const run=service.engine.run.bind(service.engine);service.engine.run=(extension,input)=>{operations.push(input.op);return run(extension,input);};}});
@@ -44,6 +68,21 @@ test('startup and metadata do not validate unopened banks; opening validates onl
   assert.equal(operations.filter(op=>op==='validateBank').length,validations,'An unchanged warm collection reuses validation');
   assert.equal((await api('/api/collections/bank/bank2')).status,422);
   assert.equal((await api('/api/collections/bank/bank1')).status,200,'An invalid unopened bank cannot block a healthy bank');
+});
+
+test('runtime digest warmup overlaps metadata reads without opening any bank', async t => {
+  let release, started = false;
+  const gate = new Promise(resolve => {release = resolve;});
+  const {api, service} = await fixture(t, {beforeStart(service) {
+    service.engine.validationEnvironment = async () => {started = true; await gate; return 'warm-runtime';};
+    service.engine.run = () => {throw new Error('Startup must not execute bank rules');};
+  }});
+  try {
+    assert.equal(started, true);
+    assert.equal((await api('/api/library/index')).status, 200);
+    assert.equal(service.library.loaded.size, 0);
+    release(); await service.runtimeWarmup;
+  } finally {release();}
 });
 test('native HTTP serves existing pages and isolates administrator routes', async t => {
   const { api, service } = await fixture(t);

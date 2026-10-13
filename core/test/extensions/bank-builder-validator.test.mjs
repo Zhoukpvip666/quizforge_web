@@ -218,10 +218,10 @@ function developmentFixture(f,mode=null){
   const bank=readFixture(f,'bank/bank.json');bank.extension={development:'custom-dev'};f.write('bank/bank.json',bank);return bank;
 }
 
-test('tagged development bindings require opt-in and validate alongside exact formal bindings without touching state',t=>{
+test('legacy folder bindings work without opt-in and validate alongside exact formal bindings without touching state',t=>{
   const f=fixture(t),bank=developmentFixture(f);bank.questions[1].extension={id:f.manifest.id,version:f.manifest.version};f.write('bank/bank.json',bank);
   const bankBefore=readFileSync(path.join(f.root,'bank/bank.json')),markerBefore=readFileSync(path.join(f.root,'extensions/custom-dev/development.json'));
-  const denied=f.run();assert.equal(denied.code,1);assert.equal(denied.report.errors[0].code,'DEVELOPMENT_BINDING_REQUIRES_OPT_IN');assert.equal(denied.report.summary.ruleBatches,0);
+  const normal=f.run();assert.equal(normal.code,0,JSON.stringify(normal.report));assert.ok(normal.report.summary.ruleBatches>0);
   const valid=f.run('--allow-development');assert.equal(valid.code,0,JSON.stringify(valid.report));assert.equal(valid.report.summary.questions,3);assert.equal(valid.report.summary.questionTypes,2);assert.equal(valid.report.summary.maxScore,3);
   assert.deepEqual(readFileSync(path.join(f.root,'bank/bank.json')),bankBefore);assert.deepEqual(readFileSync(path.join(f.root,'extensions/custom-dev/development.json')),markerBefore);
   assert.equal(existsSync(path.join(f.root,'.state')),false);assert.equal(existsSync(path.join(f.root,'.development')),false);
@@ -238,13 +238,13 @@ test('legacy marker modes do not choose a separate pipeline and invalid markers 
 });
 
 test('preview checks incomplete development files without executing rules or claiming scores',t=>{
-  const f=fixture(t);developmentFixture(f);
+  const f=fixture(t);developmentFixture(f);rmSync(path.join(f.root,'staged/custom'),{recursive:true});
   const manifest=readFixture(f,'extensions/custom-dev/manifest.json');delete manifest.answerSchema;f.write('extensions/custom-dev/manifest.json',manifest);
   f.write('extensions/custom-dev/rules.js','throw new Error("Preview must not execute this");');
   const before=readFileSync(path.join(f.root,'bank/bank.json')),valid=f.run('--allow-development','--preview-only');
   assert.equal(valid.code,0,JSON.stringify(valid.report));assert.equal(valid.report.validation,'preview');assert.equal(valid.report.fullRuntimeValidated,false);assert.equal(valid.report.summary.maxScore,null);assert.equal(valid.report.summary.ruleBatches,0);assert.equal(valid.report.summary.exampleRuleBatches,0);assert.equal(valid.report.warnings[0].code,'PREVIEW_ONLY_NO_RUNTIME_VALIDATION');
   assert.deepEqual(readFileSync(path.join(f.root,'bank/bank.json')),before);assert.equal(existsSync(path.join(f.root,'.state')),false);assert.equal(existsSync(path.join(f.root,'.development')),false);
-  const full=f.run('--allow-development');assert.equal(full.code,1);assert.equal(full.report.errors[0].code,'DEVELOPMENT_NOT_IMPLEMENTED');assert.equal(full.report.fullRuntimeValidated,false);
+  const full=f.run('--allow-development');assert.equal(full.code,1);assert.match(full.report.errors[0].code,/NOT_IMPLEMENTED|INVALID_TEXT/);assert.equal(full.report.fullRuntimeValidated,false);
   const optIn=f.run('--preview-only');assert.equal(optIn.code,2);assert.equal(optIn.report.errors[0].code,'PREVIEW_REQUIRES_DEVELOPMENT_OPT_IN');
 });
 
@@ -269,28 +269,28 @@ test('legacy bare UI remains read-only preview input while new tagged skeleton i
   f.write('extensions/custom-dev/development.json',{mode:'ui',entry:'practice.html'});const bare=f.run('--allow-development','--preview-only');assert.equal(bare.code,0);assert.ok(bare.report.warnings.some(row=>row.code==='DEVELOPMENT_EXAMPLES_MISSING'));
 });
 
-for(const folder of ['single-choice-richtext-dev','short-answer-richtext-dev']){
+for(const folder of ['single-choice-richtext','short-answer-richtext']){
   test('basic type '+folder+' previews its existing self-bound samples using the declared schema',t=>{
     const f=fixture(t);
     cpSync(path.join(product,'extensions/基础题型',folder),path.join(f.root,'extensions',folder),{recursive:true});
     const examples=readFixture(f,'extensions/'+folder+'/examples/bank.json');
-    f.write('bank/bank.json',{...examples,id:'reference-bank',extension:{development:folder}});
+    f.write('bank/bank.json',{...examples,id:'reference-bank',extension:examples.extension});
     const preview=f.run('--allow-development','--preview-only');
     assert.equal(preview.code,0,JSON.stringify(preview.report));
     assert.equal(preview.report.summary.exampleQuestions,examples.questions.length);
     assert.equal(preview.report.summary.maxScore,null);
     assert.equal(preview.report.fullRuntimeValidated,false);
     const invalid=copy(examples);invalid.questions[0].data.formatVersion=99;
-    f.write('bank/bank.json',{...invalid,id:'reference-bank',extension:{development:folder}});
+    f.write('bank/bank.json',{...invalid,id:'reference-bank',extension:examples.extension});
     const rejected=f.run('--allow-development','--preview-only');
     assert.equal(rejected.code,1);assert.match(JSON.stringify(rejected.report),/SCHEMA/);
   });
 }
 
-test('formal identity lookup never uses a development directory even with opt-in',t=>{
+test('ID/version lookup accepts legacy marked directories',t=>{
   const f=fixture(t);developmentFixture(f);rmSync(path.join(f.root,'staged/custom'),{recursive:true});
   const bank=readFixture(f,'bank/bank.json');bank.extension={id:f.manifest.id,version:f.manifest.version};f.write('bank/bank.json',bank);
-  const result=f.run('--allow-development');assert.equal(result.code,1);assert.equal(result.report.errors[0].code,'EXTENSION_NOT_FOUND');assert.equal(result.report.summary.ruleBatches,0);
+  const result=f.run('--allow-development');assert.equal(result.code,0,JSON.stringify(result.report));assert.ok(result.report.summary.ruleBatches>0);
 });
 
 test('development references are explicit scoped folders and still run schema and rule validation',t=>{

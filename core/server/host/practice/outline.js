@@ -63,7 +63,8 @@ export async function runRuleBatches(engine, questions, operation, field, inputs
     if (!groups.has(key)) groups.set(key, { extension, indexes: [] });
     groups.get(key).indexes.push(i);
   }
-  for (const [key, group] of [...groups].sort(([left], [right]) => left < right ? -1 : left > right ? 1 : 0)) {
+  const ordered = [...groups].sort(([left], [right]) => left < right ? -1 : left > right ? 1 : 0).map(([, group]) => group);
+  async function runGroup(group) {
     const maximum = operation === 'outlineBatch' || (operation === 'scoreBatch' && group.extension.outlineItemsDeclared) ? 24 : 512;
     let cursor = 0;
     while (cursor < group.indexes.length) {
@@ -82,6 +83,19 @@ export async function runRuleBatches(engine, questions, operation, field, inputs
       }
     }
   }
+  // Independent validators/projections can overlap process startup. Keep each
+  // extension's batches sequential and drain both workers before propagating a
+  // failure, so a failed load never leaves rule work running in the background.
+  const concurrency = ['validateBank', 'projectBatch'].includes(operation) ? 2 : 1;
+  let cursor = 0, failed = false;
+  const workers = await Promise.allSettled(Array.from({ length: Math.min(concurrency, ordered.length) }, async () => {
+    while (!failed && cursor < ordered.length) {
+      const group = ordered[cursor++];
+      try { await runGroup(group); } catch (error) { failed = true; throw error; }
+    }
+  }));
+  const failure = workers.find(worker => worker.status === 'rejected');
+  if (failure) throw failure.reason;
   return result;
 }
 export async function outlineQuestions(engine, questions) {

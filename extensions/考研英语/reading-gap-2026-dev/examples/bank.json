@@ -1,7 +1,7 @@
 {
   "formatVersion": 1,
   "id": "examples",
-  "title": "阅读选填 · 2012代表题",
+  "title": "阅读选填示例",
   "features": {
     "editing": true,
     "whiteboard": true,
@@ -460,5 +460,6 @@
         ]
       }
     }
-  ]
+  ],
+  "description": "题型功能示例；完整历年真题位于考研英语题库分组。"
 }

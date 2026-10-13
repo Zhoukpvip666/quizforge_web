@@ -27,7 +27,6 @@ function reference(value,location,allowDevelopment=false){
   if(!object(value))fail(location,'INVALID_EXTENSION_REFERENCE');
   if(own(value,'typeId'))fail(location+'/typeId','MULTI_TYPE_BINDING_NOT_SUPPORTED');
   if(own(value,'development')){
-    if(!allowDevelopment)fail(location,'DEVELOPMENT_BINDING_REQUIRES_OPT_IN');
     if(Object.keys(value).length!==1)fail(location,'INVALID_EXTENSION_REFERENCE');
     return {development:id(value,'development',location)};
   }
@@ -221,14 +220,14 @@ async function extensionIndex(roots,allowDevelopment=false){
         const hasManifest=await optionalExists(path.join(directory,'manifest.json'),where+'/manifest.json');
         if(!development&&!hasManifest){if(depth>=1)fail(where,'EXTENSION_GROUP_DEPTH_LIMIT');await visit(directory,depth+1);continue;}
         if(++count>200)fail(label,'EXTENSION_COUNT_LIMIT');
-        // A leaf marker keeps the directory out of the formal identity index.
+        // Legacy folder aliases coexist with the canonical ID/version index.
         if(development){
-          if(allowDevelopment&&ID.test(folder)){
+          if(ID.test(folder)){
             const marker=await jsonFile(path.join(directory,'development.json'),256*1024,where+'/development.json');
             if(object(marker))singleTypeDeclaration(marker,where+'/development.json');
             add(key({development:folder}),{directory,location:where,development:folder});
           }
-          continue;
+          if(!hasManifest)continue;
         }
         let manifest;try{
           manifest=await jsonFile(path.join(directory,'manifest.json'),256*1024,where+'/manifest.json');
@@ -262,7 +261,7 @@ async function loadExtension(candidate,coreRoot,previewOnly=false){
     candidate={...candidate,manifest,developmentMarker:marker,hasManifest};
   }
   const {directory,manifest,location}=candidate;singleTypeDeclaration(manifest,location+'/manifest.json');apiRequirements(manifest,location);const files={};text(manifest,'name',300,location);text(manifest,'description',4000,location,true);
-  const partial=Boolean(candidate.development&&previewOnly);
+  const partial=Boolean(previewOnly);
   for(const field of FIELDS){if(partial&&field!=='entry'&&!own(manifest,field))continue;files[field]=await safeFile(directory,text(manifest,field,240,location),field==='examples'?8*MiB:MiB,location+'/'+field);}
   if(own(manifest,'requiresRichText'))await checkSdk(coreRoot,await richTextRequirement(manifest,coreRoot,location),location+'/requiresRichText');
   else if(own(manifest,'dependencies')){
@@ -479,7 +478,7 @@ async function validate(options){
   if(!options.previewOnly&&!Number.isFinite(report.summary.maxScore))fail('/questions','TOTAL_SCORE_NOT_FINITE');report.fullRuntimeValidated=!options.previewOnly;report.ok=true;
 }
 function argumentsFor(args){
-  if(args.length===1&&args[0]==='--help'){console.log('Usage: node validate-bank.mjs --project <quizforge_web product root> --bank <bank folder or JSON file> [--extensions <staged extensions folder>] [--allow-development] [--preview-only]\nRead-only. Development bindings require --allow-development. Preview checks allow incomplete development files but never execute rules or validate scores; --preview-only requires --allow-development. Default full checks remain strict. Runtime/AJV/SDK come from core/ when present; legacy flat fixtures are supported only without core/. Requires project-installed AJV and Node 24. Exit: 0 valid for the reported stage, 1 invalid, 2 usage/environment.');return null;}
+  if(args.length===1&&args[0]==='--help'){console.log('Usage: node validate-bank.mjs --project <quizforge_web product root> --bank <bank folder or JSON file> [--extensions <staged extensions folder>] [--allow-development] [--preview-only]\nRead-only. Legacy folder bindings are accepted without opt-in; --allow-development is retained for old commands. Preview checks allow incomplete development files but never execute rules or validate scores; --preview-only requires --allow-development. Default full checks remain strict. Runtime/AJV/SDK come from core/ when present; legacy flat fixtures are supported only without core/. Requires project-installed AJV and Node 24. Exit: 0 valid for the reported stage, 1 invalid, 2 usage/environment.');return null;}
   const options={};for(let i=0;i<args.length;i++){
     const flag=args[i];if(flag==='--allow-development'){if(options.allowDevelopment)fail('arguments','INVALID_ARGUMENTS');options.allowDevelopment=true;continue;}
     if(flag==='--preview-only'){if(options.previewOnly)fail('arguments','INVALID_ARGUMENTS');options.previewOnly=true;continue;}

@@ -1,6 +1,6 @@
 # 外部题型拓展 API 参考
 
-适用当前 QuizForge Web：公共富文本服务 API v1.1（兼容 v1.0）、文档格式 v1。宿主通过 `core/shared/richtext/service.json` 选择兼容实现；Tiptap 是当前编辑实现，不是拓展依赖。基础设计与数据参考直接读取 `extensions/基础题型/{single-choice-richtext-dev,short-answer-richtext-dev}/` 及其已有 examples，当前仍是开发原型，不作为完整评分实现；旧简答包仅在 `core/test/fixtures/legacy-extensions/` 供兼容测试，不是当前安装清单。以下接口已从实际宿主、规则执行器及 SDK 源码核对；不要根据名称推测额外接口。
+适用当前 QuizForge Web：公共富文本服务 API v1.1（兼容 v1.0）、文档格式 v1。宿主通过 `core/shared/richtext/service.json` 选择兼容实现；Tiptap 是当前编辑实现，不是拓展依赖。基础设计与数据参考直接读取 `extensions/基础题型/{single-choice-richtext,short-answer-richtext,multiple-choice-richtext,true-false-richtext}/` 及其已有 examples，四种均为正式 2.0.0；旧简答包仅在 `core/test/fixtures/legacy-extensions/` 供兼容测试，不是当前安装清单。以下接口已从实际宿主、规则执行器及 SDK 源码核对；不要根据名称推测额外接口。
 
 ## 清单与公共服务声明
 
@@ -305,7 +305,7 @@ requiresRichText 独立声明公共服务 API、文档格式、配置与实际�
 
 新拓展与新样例可声明 API 和顶层题库 `formatVersion:1`；严禁为补字段修改已经发布的 Manifest、已练习题库或旧绑定。缺省按 v1 是读取规则，不是转换操作。历史按每份冻结页面的 apiVersion 加载，缺字段按 v1.0；同一轮可有不同题型，不按当前安装包或轮次顶层版本重判旧页面。
 
-代码更新／样例例外／发布流程只见 [拓展开发](extension-development.md#更新与发布)。技术兼容上，富文本修复由宿主选择满足原声明的实现，无需更改拓展版本；旧 basic 配置不自动扩大为 advanced。历史／精确 SDK 端点使用固定不可变快照，不因当前源码变化刷新，禁止删除或覆盖快照强迫更新。需要新公共能力时报告维护者，不改 shared 或伪造声明。
+代码更新与兼容说明见 [拓展开发](extension-development.md)。技术兼容上，富文本修复由宿主选择满足原声明的实现，无需更改拓展版本；旧 basic 配置不自动扩大为 advanced。历史／精确 SDK 端点使用固定不可变快照，不因当前源码变化刷新，禁止删除或覆盖快照强迫更新。需要新公共能力时报告维护者，不改 shared 或伪造声明。
 
 混合题库每题绑定自己的拓展版本；题型页面只使用该题上下文，不假设集合只有一个类型。历史页面由宿主解析保存的 page/pageKey 和 SDK 依赖；缺快照引用应报错，不能由当前安装版本兜底。拓展无需也不应自行解析历史存储。
 
@@ -355,4 +355,10 @@ grade/review 把逐小题细节保存在正式 result 的自有 feedback 结构�
 
 正式接口规范见 [API 文档](../../../core/docs/reference/API.md)。页面协议：`core/web/bridge/frame.js`、`core/web/bridge/extension-requests.js`、`core/web/practice/practice-context.js`、`core/web/ai/ai-client.js`。规则执行与 AI 校验：`core/server/rules-runner.cjs`、`core/server/host/ai/ai-protocol.js`。富文本服务选择：`core/shared/richtext/service.json`，实现源码按其 provider.version 读取。
 
-基础页面、编辑器、Schema、规则及数据样例直接查看 [单选题](../../../extensions/基础题型/single-choice-richtext-dev) 与 [简答题](../../../extensions/基础题型/short-answer-richtext-dev) 目录的 manifest 声明文件。当前基础规则明确报告未实现业务，不能当作完整自动判分或 AI 示例。以上核心文件仅供只读核对；旧平铺 fixture 对应根层路径。
+基础页面、编辑器、Schema、规则及数据样例直接查看 [基础题型库](../../../extensions/基础题型/README.md) 中四个正式 2.0.0 目录的 manifest 声明文件。自动判分和简答的人工／小问 AI 实现可作为参考，复用时仍核对材料和当前版本契约。以上核心文件仅供只读核对；旧平铺 fixture 对应根层路径。
+
+## 统一练习收尾与草稿（2026-10-13）
+
+完成练习由宿主先 flush，再提交已保存、已作答、未提交的题目，使用既有 grade(data,answer)。不依赖点击拓展页面按钮；空答、小题部分作答与总分由拓展处理。新声明answer-state的拓展负责准确上报draft/unanswered，旧拓展的保存草稿交由规则判断。AI/人工待评分仍是pending，不当作零分；处理完后完成同一轮。
+
+题库／拓展不再区分开发与正式状态；旧development引用仅兼容，新引用用ID/version。新草稿固定760逻辑像素，手机使用本地缩放/平移；保留旧layout，不需要新增拓展接口。

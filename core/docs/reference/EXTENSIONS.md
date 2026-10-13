@@ -1,56 +1,43 @@
-# 拓展开发
+# 拓展制作与修改
 
-完整页面、规则与 HTTP 接口见 [API 文档](API.md)。一个独立拓展提供一个题型和一本只引用自身的样例题库；组合题内部小问由该大题型统一管理。
+一个独立拓展提供一个题型和一本只引用自身的样例题库；组合题的小问由该拓展管理。页面、规则和 HTTP 协议见 [API 文档](API.md)。
 
-## 文件与分组
+## 统一状态与目录
 
-```text
-extensions/
-  基础题型/                 # 一层物理分组，可省略
-    my-type/                # 独立拓展叶目录
-      manifest.json
-      development.json      # 仅开发版保留
-      examples.json
-      practice.html
-      practice.js
-      practice.css
-      rules.js
-      question.schema.json
-      answer.schema.json
-      editor.json           # 可选编辑器声明
-      editor.*
-```
+题库与拓展不区分开发版或正式版，不需要发布、复制版本或移除标记后才能使用、导出。拓展可在授权范围内原位修改；ID、版本号、API 声明仍用于绑定和兼容，不代表发布状态。不同内容的同 ID/版本包导入时仍拒绝覆盖。
 
-Manifest 声明 ID、精确版本、名称及页面、规则、Schema、样例路径；具体字段见实现契约。路径均相对于叶目录，禁止符号链接、越界路径或读取其他拓展。遇到 manifest 或开发标记即停止向下扫描，叶内可以组织源码和资源目录。
+~~~text
+extensions/<可选一层分组>/<题型>/
+  manifest.json
+  practice.html / practice.js / practice.css
+  rules.js
+  question.schema.json / answer.schema.json
+  examples/bank.json
+  editor.json / editor.*                 # 可选
+~~~
 
-分组只负责目录及列表展示，没有清单、ID 或共同版本；只支持一层分组，不能移入其他分组。扫描上限为 1000 个目录节点、200 个叶拓展，分组内普通说明文件忽略。移动完整叶目录并保持身份与内容不变，不改变题库绑定。开发叶名在全部分组中必须唯一。
+Manifest 声明 ID、版本、名称及文件路径。路径相对于叶目录，禁止符号链接和越界。每个拓展仅提供一个题型，不支持 manifest.types、packageFormatVersion、绑定 typeId。分组只支持一层，不参与身份或版本。
 
-不支持 `manifest.types`、`packageFormatVersion` 或绑定 `typeId`；不能用 `data.kind` 切换多个独立题型。
+## 绑定、样例与旧数据
 
-## 绑定、样例与资源
+新题库统一使用 {"id":"quizforge.my-type","version":"1.0.0"}，可逐题引用不同拓展。样例 ID 为 examples，绑定自身同一 ID/版本。样例的答案和历史独立于普通题库；四项功能开关默认开启。
 
-正式题库精确绑定 `{"id":"quizforge.my-type","version":"1.0.0"}`；测试题库使用 `{"development":"my-type"}`。绑定不含分组路径，一本题库可混用多个正式或开发拓展。开发者模式控制拓展列表可见性，不改变正式题库绑定。
+旧 {"development":"叶名"} 仍按全局唯一叶名解析到 Manifest；development.json 只作为兼容配置读取，不决定可见性、运行或导出权限。旧 .development/.state 作答首次打开时复制到统一 .state，保留原文件与 .pre-unified.bak；冻结历史不改写。新导出包转为可移植 ID/版本绑定。
 
-`examples` 使用[题库格式](QUESTION_BANK_FORMAT.md)，题库 ID 为 `examples`，仅精确绑定自身 Manifest 的 ID/版本，可包含多道同题型变体。可用 `examples.json`，或 `examples/bank.json` 与相邻 `assets/`。样例与普通题库共用练习、编辑和保存管线，状态独立。功能开关默认全部开启。
+设置“显示拓展管理”只控制管理入口显示，不影响题库加载。源码变更会使缓存失效；受影响的当前作答重置前保存备份，旧历史仍使用冻结页面。更新前备份数据，修改答案结构时仍需自行设计兼容。
 
-页面静态图片、字体通过 `manifest.assets` 声明，支持 PNG/JPEG/WebP/GIF/SVG、WOFF/WOFF2/TTF/OTF，最多 100 项、每项 1 MiB、合计 8 MiB。动态答案图片使用 `QF.resources` 的内容哈希资源；富文本使用[公共服务](RICHTEXT_SERVICE.md)，不复制编辑器实现。
+## 保存、评分与统一收尾
 
-## 开发版
+页面调用 QF.save 保存完整答案，onFlush 必须等待尚未发送的输入与图片保存，失败时保留输入并明确报错。即时大纲使用 API 1.3 answer-state，稳定小题 ID 必须与 outline 一致。
 
-添加普通对象 `development.json`，如 `{}` 或 `{"name":"我的题型 · 开发版"}`。开发版与正式版共用 QF 页面、规则、编辑和保存管线，额外提供开发标签、当前页面热刷新及 `.development/.state/` 测试数据隔离。
+完成练习时，宿主提交已保存且已作答的未提交题目，复用 grade(data,answer)；不点击页面按钮，不自行判分。拓展需处理空答、部分作答和小题总分。已提交题目不重复评分，未作答题目零分。主观题可返回 pending；AI 失败可重试或人工评分，不能伪造零分。完成前仍先 flush 所有输入。
 
-可以先接入 `QF.page.register({onLoad})` 与真实公开投影，再补齐规则、Schema 和编辑器。尚未实现的动作应省略或抛出 `code:"DEVELOPMENT_NOT_IMPLEMENTED"`，不能返回虚假的保存或评分成功。热刷新与保存失败均应保留输入。`history:false` 时测试作答仅在页面会话内，编辑题目仍可保存。
+## 草稿与资源
 
-混合开发题库逐题使用各自拓展的页面和规则，源文件变化只重置受影响题目的当前作答，冻结历史保留。旧 `mode:"ui"/"runtime"` 及 marker 中的文件声明仅兼容读取；新拓展使用 Manifest 与普通 QF 接口。
+练习页面响应可用宽度；新草稿固定760逻辑像素，题卡与笔迹共用坐标，手机只缩放或平移。已有草稿 layout 保持原值；设备视图变化不写入共享草稿。拓展不应按物理设备强制改变草稿布局。
 
-## 校验与发布
+静态资源使用 manifest.assets；动态答案图片使用 QF.resources；富文本使用 [公共服务](RICHTEXT_SERVICE.md)。
 
-在产品根目录运行只读校验器：
+## 验证与交付
 
-```powershell
-node skills/quizforge-bank-builder/scripts/validate-bank.mjs --project . --bank question-banks/my-bank/bank.json
-```
-
-开发绑定添加 `--allow-development`。未完成骨架可另加 `--preview-only`，仅检查结构、声明、资源及已有 Schema，不执行评分规则；预览通过不代表功能完整。完整发布验证还需覆盖实际作答、提交、评分、编辑保存、切题、只读历史、上传及资源释放。
-
-更新已发布代码时复制到新的唯一开发叶并采用新版本；旧包保留。完整校验后人工移除 `development.json`，确认 Manifest 声明完整、样例精确自绑定，再执行正式校验。当前无发布按钮；发布不会自动迁移已有题库绑定。同 ID/版本不能出现不同代码。受控样例编辑仅修改题目及专属图片，不修改版本代码，详见[兼容说明](COMPATIBILITY.md)。
+按 [题库制作技能](../../../skills/quizforge-bank-builder/SKILL.md) 验证结构、资源、作答恢复、提交、评分、编辑、历史、草稿与手机。结构校验或原型展示不等于功能验收。未实现接口明确失败。只允许按题库分组导出 .qbank，自动收集全部关联拓展到同名分组；导入校验格式、路径、内容和身份冲突。

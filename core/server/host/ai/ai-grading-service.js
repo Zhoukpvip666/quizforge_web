@@ -36,8 +36,10 @@ export class AiGradingService {
   read(id) {
     const file = this.file(id);
     if (this.memoryOnly) { const record = this.memoryRecords.get(id); if (!record) throw new ApiError(404, 'AI_TASK_NOT_FOUND', '评分任务不存在。'); return cloneJson(record.value); }
-    if (!exists(file)) throw new ApiError(404, 'AI_TASK_NOT_FOUND', '评分任务不存在。');
-    try { const value = readJson(file, 2 * 1024 * 1024); if (!object(value) || value.schemaVersion !== 1 || typeof value.requestHash !== 'string' || typeof value.stateKey !== 'string') throw new Error(); return value; } catch { throw new ApiError(503, 'AI_TASK_UNAVAILABLE', '评分任务无法读取，请保留状态目录。'); }
+    const legacy = path.join(path.dirname(path.dirname(this.directory)), '.development', '.state', 'ai-grading', id + '.json');
+    const source = exists(file) ? file : exists(legacy) ? legacy : null;
+    if (!source) throw new ApiError(404, 'AI_TASK_NOT_FOUND', '评分任务不存在。');
+    try { const value = readJson(source, 2 * 1024 * 1024); if (!object(value) || value.schemaVersion !== 1 || typeof value.requestHash !== 'string' || typeof value.stateKey !== 'string') throw new Error(); return value; } catch { throw new ApiError(503, 'AI_TASK_UNAVAILABLE', '评分任务无法读取，请保留状态目录。'); }
   }
   write(id, value) {
     if (this.closed) return;
@@ -55,6 +57,14 @@ export class AiGradingService {
   scoped(collection, question, id) {
     this.file(id); let task = this.live.get(id) ?? this.cache.get(id);
     if (!task) { const value = this.read(id); if (Object.hasOwn(value, 'alias')) throw new ApiError(404, 'AI_TASK_NOT_FOUND', '评分任务不存在。'); task = { value, applying: false, frozenGateway: null }; this.remember(task); }
+    if (task.value.stateKey === collection.legacyCollection?.stateKey() && task.value.questionId === question.id) {
+      Object.assign(task.value, scope(collection, question));
+      const prior = collection.legacyCollection.question(question.id), snap = task.value.snapshot;
+      if (snap?.questionFingerprint === prior.fingerprint && snap.extensionFingerprint === collection.legacyCollection.extensionFor(prior).fingerprint) {
+        snap.stateKey = collection.stateKey(); snap.questionFingerprint = question.fingerprint; snap.extensionFingerprint = collection.extensionFor(question).fingerprint;
+      }
+      this.persist(task);
+    }
     if (task.value.stateKey !== collection.stateKey() || task.value.questionId !== question.id) throw new ApiError(404, 'AI_TASK_NOT_FOUND', '评分任务不存在。'); return task;
   }
   command(id, hash, collection, question) { if (this.memoryOnly ? !this.memoryRecords.has(id) : !exists(this.file(id))) return null; const raw = this.read(id); if (raw.requestHash !== hash) throw new ApiError(409, 'REQUEST_ID_REUSED', 'Request ID was already used with different data'); return this.scoped(collection, question, raw.alias ?? id); }

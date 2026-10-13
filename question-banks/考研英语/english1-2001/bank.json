@@ -1,7 +1,7 @@
 {
   "formatVersion": 1,
   "id": "kaoyan-english1-2001",
-  "title": "2001年考研英语真题（整理版）",
+  "title": "2001年考研英语真题",
   "description": "仅制作所提供PDF收录题目，不补齐缺失部分；按PDF及用户确认分值。",
   "features": {
     "editing": true,
@@ -1802,7 +1802,7 @@
             "segment": "And home appliances will also become so smart that controlling and operating them will result in the breakout of a new psychological disorder—kitchen rage."
           }
         ],
-        "pointsPerItem": 3.0,
+        "pointsPerItem": 3,
         "maxScore": 15,
         "assessment": {
           "type": "doc",

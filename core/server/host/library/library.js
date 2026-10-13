@@ -22,7 +22,7 @@ import { FileCache } from '../platform/file-cache.js';
 export class Library {
   constructor(root, codeRoot, engine, settings = new DevelopmentSettings(root)) {
     this.root = path.resolve(root); this.codeRoot = path.resolve(codeRoot); this.engine = engine; this.settings = settings;
-    this.resources = new ResourceStore(root); this.developmentResources = new ResourceStore(path.join(root, '.development'));
+    this.resources = new ResourceStore(root, { fallback: new ResourceStore(path.join(root, '.development')) }); this.developmentResources = new ResourceStore(path.join(root, '.development'));
     this.richtext = new RichTextService(codeRoot); this.management = new LibraryManagement(root); this.indexer = new LibraryIndex(root, settings); this.validationCache = new ValidationCache(root);
     this.coordinator = new LoadCoordinator(); this.managementTransactions = new SerialTransactions();
     this.loaded = new Map(); this.extensionCache = new Map(); this.statuses = new Map(); this.closed = false; this.generation = 0; this.environmentPending = null; this.backgroundRunning = false;
@@ -69,6 +69,8 @@ export class Library {
     try { return await pending; } finally { if (this.environmentPending === pending) this.environmentPending = null; }
   }
   candidate(snapshot, kind, collectionId) {
+    if (kind === 'development-bank') kind = 'bank';
+    if (kind === 'development') return this.candidate(snapshot, 'extension', snapshot.candidates.find(row => row.kind === 'extension' && row.metadata.legacyFolder === collectionId)?.id ?? collectionId);
     let candidates = snapshot.candidates.filter(candidate => candidate.kind === kind && candidate.id === collectionId);
     if (kind === 'extension' && candidates.length > 1) {
       const latest = candidates.reduce((version, candidate) => compareVersion(candidate.metadata.version, version) > 0 ? candidate.metadata.version : version, candidates[0].metadata.version);
@@ -80,18 +82,18 @@ export class Library {
   scope(snapshot, kind, collectionId) {
     if (kind === 'page') {
       const separator = collectionId.lastIndexOf('@'), extensionId = collectionId.slice(0, separator), version = collectionId.slice(separator + 1);
-      const matches = snapshot.candidates.filter(candidate => candidate.kind === 'extension' && candidate.id === extensionId && candidate.metadata.version === version || candidate.kind === 'development' && runtimeId(candidate.id) === extensionId && version === '0.0.0');
+      const matches = snapshot.candidates.filter(candidate => candidate.kind === 'extension' && candidate.id === extensionId && candidate.metadata.version === version);
       if (matches.length !== 1) throw new ApiError(404, 'EXTENSION_NOT_FOUND', 'Extension is unavailable');
       return { candidate: matches[0], folders: [matches[0].source], source: null };
     }
     const candidate = this.candidate(snapshot, kind, collectionId);
     if (candidate.metadata.error) throw new ApiError(candidate.metadata.errorStatus ?? 422, candidate.metadata.errorCode ?? 'INVALID_BANK', candidate.metadata.error);
-    if (kind === 'extension' || kind === 'development') return { candidate, folders: [candidate.source], source: null };
+    if (candidate.kind === 'extension') return { candidate, folders: [candidate.source], source: null };
     const raw = this.indexer.files.json(candidate.source), references = new Set();
     for (const question of raw.questions ?? []) references.add(referenceKey(Object.hasOwn(question, 'extension') ? question.extension : raw.extension));
     const folders = [];
     for (const key of references) {
-      const matches = snapshot.candidates.filter(value => key.startsWith('development:') ? value.kind === 'development' && value.id === key.slice(12) : value.kind === 'extension' && value.id + '@' + value.metadata.version === key);
+      const matches = snapshot.candidates.filter(value => key.startsWith('development:') ? value.kind === 'extension' && value.metadata.legacyFolder === key.slice(12) : value.kind === 'extension' && value.id + '@' + value.metadata.version === key);
       if (matches.length !== 1 || matches[0].metadata.error) throw bad('Missing or duplicated extension');
       folders.push(matches[0].source);
     }
@@ -125,7 +127,6 @@ export class Library {
   }
   async readCollection(kind, collectionId) {
     if (kind === 'exam' && this.examResolver) return this.examResolver(collectionId);
-    if (kind.startsWith('development')) this.settings.requireEnabled();
     const cached = this.loaded.get(kind + ':' + collectionId);
     if (cached) {
       const snapshot = this.indexSnapshot(), scope = this.scope(snapshot, kind, collectionId);
@@ -136,7 +137,6 @@ export class Library {
   async writeCollection(kind, collectionId) {
     if (this.closed) throw new ApiError(503, 'LIBRARY_UNAVAILABLE', 'Library is closed');
     if (kind === 'exam' && this.examResolver) return this.examResolver(collectionId);
-    if (kind.startsWith('development')) this.settings.requireEnabled();
     const cached = this.loaded.get(kind + ':' + collectionId);
     if (cached && cached.environment !== 'unavailable') {
       // Writes target a previously opened binding. Check that binding and its
@@ -151,7 +151,6 @@ export class Library {
   async collection(kind, collectionId) {
     if (kind === 'exam' && this.examResolver) return this.examResolver(collectionId);
     if (!['bank', 'extension', 'development', 'development-bank'].includes(kind)) throw bad('Invalid collection kind');
-    if (kind.startsWith('development')) this.settings.requireEnabled();
     return (await this.load(kind, collectionId, true)).collection;
   }
   async load(kind, collectionId, foreground = true) {
@@ -192,15 +191,21 @@ export class Library {
     });
   }
   async loadScope(snapshot, scope, identity, environment, kind, collectionId) {
-    const available = new Map(), packages = new Map(), originals = new Map();
+    const available = new Map(), packages = new Map(), originals = new Map(), legacyAvailable = new Map();
+    kind = scope.candidate.kind === 'bank' ? 'bank' : kind === 'page' ? kind : 'extension';
+    if (kind !== 'page') collectionId = scope.candidate.id;
     for (const directory of scope.folders) {
       const development = markedDevelopment(directory), packageValue = development ? readDevelopment(directory) : null;
       const original = readExtension(directory, this.richtext, (id, version) => this.resolveSdk(id, version), packageValue);
-      const extension = development ? runtimeExtension(original, packageValue) : original;
-      if (development) { packages.set(packageValue.folder, packageValue); originals.set(packageValue.folder, original); available.set('development:' + packageValue.folder, extension); }
+      const extension = original;
+      const folder = path.basename(directory);
+      available.set('development:' + folder, extension);
+      if (development) { packages.set(packageValue.folder, packageValue); originals.set(packageValue.folder, original); legacyAvailable.set('development:' + folder, runtimeExtension(original, packageValue)); }
+      else legacyAvailable.set('development:' + folder, extension);
+      legacyAvailable.set(extension.id + '@' + extension.version, extension);
       available.set(extension.id + '@' + extension.version, extension);
       this.extensionCache.set(extension.id + '@' + extension.version, extension);
-      (development ? this.developmentResources : this.resources).importExtensionAssets(directory, staticAssets(directory, declaration(directory, development)));
+      this.resources.importExtensionAssets(directory, staticAssets(directory, declaration(directory, development)));
     }
     if (kind === 'page') {
       const extension = available.get(collectionId);
@@ -210,7 +215,7 @@ export class Library {
     let extension = null, raw;
     if (scope.source) raw = readJson(scope.source, 8 * 1024 * 1024);
     else {
-      extension = kind === 'development' ? available.get('development:' + collectionId) : [...available.values()].find(value => value.id === collectionId);
+      extension = [...available.values()].find(value => value.id === scope.candidate.id);
       const original = kind === 'development' ? originals.get(collectionId) : extension;
       raw = extension.examples ? readJson(extension.examples, 8 * 1024 * 1024) : { id: 'examples', title: extension.name, extension: { id: original.id, version: original.version }, questions: [{ id: 'preview', title: extension.name, data: {} }] };
       if (raw.id !== 'examples') throw bad('Invalid example ID');
@@ -219,7 +224,15 @@ export class Library {
     const prepared = prepareCollection(raw, kind, extension, collectionId, available);
     const cacheKey = environment === 'unavailable' ? null : fingerprint({ collection: prepared.checkKey, environment, sources: identity }, 'quizforge-node-validation-v1');
     const result = await finishCollection(this.engine, prepared, this.validationCache.read(cacheKey, prepared.questions.length));
-    const collection = result.collection, store = kind.startsWith('development') ? this.developmentResources : this.resources;
+    const collection = result.collection, store = this.resources;
+    if (kind === 'bank' && developmentFolders(raw).length) {
+      const legacy = prepareCollection(raw, 'development-bank', null, collection.id, legacyAvailable);
+      collection.legacyCollection = new (collection.constructor)(legacy);
+    } else if (kind === 'extension' && markedDevelopment(extension.directory)) {
+      const old = legacyAvailable.get('development:' + path.basename(extension.directory));
+      const legacy = prepareCollection(bindRuntimeExamples(raw, extension, old), 'development', old, path.basename(extension.directory), new Map([[old.id+'@'+old.version,old]]));
+      collection.legacyCollection = new (collection.constructor)(legacy);
+    }
     const source = scope.source ?? extension.examples;
     if (source && path.basename(source) === 'bank.json' && path.dirname(source) !== path.join(this.root, 'question-banks')) store.importAssets(path.dirname(source));
     const row = { validationStatus: 'ready', questionCount: collection.questions.length, contentRevision: catalogRevision(collection), extension: collection.extension ? { id: collection.extension.id, version: collection.extension.version } : null, extensions: collection.extensions.map(extension => ({ id: extension.id, version: extension.version })) };
@@ -237,22 +250,24 @@ export class Library {
   }
   async page(id, version) { return cloneJson((await this.load('page', id + '@' + version)).descriptor); }
   editorPage(extension) { return editorPage(extension); }
-  async development(folder) { this.settings.requireEnabled(); return cloneJson((await this.load('development', folder)).descriptor); }
-  async developmentBank(collectionId) { this.settings.requireEnabled(); return cloneJson((await this.load('development-bank', collectionId)).descriptor); }
+  async development(folder) {
+    const { collection } = await this.load('development', folder), extension = collection.extension;
+    return { id: collection.id, kind: collection.kind, title: collection.title, revision: catalogRevision(collection), features: collection.features.json(), page: snapshotPage(extension), extension: { id: extension.id, version: extension.version }, canEdit: !!editorPage(extension) && collection.features.editing };
+  }
+  async developmentBank(collectionId) { const { collection } = await this.load('development-bank', collectionId); return { id: collection.id, kind: collection.kind, title: collection.title, revision: catalogRevision(collection), features: collection.features.json() }; }
   developmentDirectory(folder) {
-    const matches = scanExtensions(path.join(this.root, 'extensions')).filter(directory => markedDevelopment(directory) && path.basename(directory) === folder);
+    const matches = scanExtensions(path.join(this.root, 'extensions')).filter(directory => path.basename(directory) === folder);
     if (matches.length !== 1) throw new ApiError(404, 'DEVELOPMENT_NOT_FOUND', 'Development extension is unavailable');
     return matches[0];
   }
-  developmentRevision(folder) { this.settings.requireEnabled(); return { revision: developmentRevision(this.developmentDirectory(folder)) }; }
+  developmentRevision(folder) { return { revision: developmentRevision(this.developmentDirectory(folder)) }; }
   bankRevision(raw, folders = developmentFolders(raw)) {
     const revisions = folders.map(folder => ({ folder, revision: this.developmentRevision(folder).revision }));
     const revision = folders.length === 1 ? revisions[0].revision : fingerprint(revisions, 'quizforge-development-bindings-v1');
     return hash(Buffer.from(fingerprint(raw, 'quizforge-development-bank-v1') + ':' + revision));
   }
   developmentBankRevision(collectionId) {
-    this.settings.requireEnabled();
-    const matches = this.indexSnapshot().candidates.filter(candidate => candidate.kind === 'development-bank' && candidate.id === collectionId);
+    const matches = this.indexSnapshot().candidates.filter(candidate => candidate.kind === 'bank' && candidate.id === collectionId);
     if (matches.length !== 1) throw new ApiError(404, 'DEVELOPMENT_BANK_NOT_FOUND', 'Development bank is unavailable');
     const raw = this.indexer.files.json(matches[0].source);
     if (!developmentFolders(raw).length) throw new ApiError(404, 'DEVELOPMENT_BANK_NOT_FOUND', 'Development bank is unavailable');
@@ -295,63 +310,8 @@ export class Library {
     return { path: source, before, after: jsonBytes(raw), collection: replacement, question: replacement.question(questionId) };
   }
   invalidate() { this.generation++; this.loaded.clear(); this.extensionCache.clear(); this.statuses.clear(); this.coordinator.invalidate(() => true); }
-  async validatePublication(directory) {
-    const original = readExtension(directory, this.richtext, (id, version) => this.resolveSdk(id, version));
-    const raw = bindRuntimeExamples(readJson(original.examples, 8 * 1024 * 1024), original, original);
-    if (raw.id !== 'examples') throw bad('Invalid example ID');
-    const prepared = prepareCollection(raw, 'extension', original, original.id, new Map([[original.id + '@' + original.version, original]]));
-    const { collection } = await finishCollection(this.engine, prepared);
-    editorPage(original);
-    await runRuleBatches(this.engine, collection.questions, 'scoreBatch', 'scores', collection.questions.map(question => ({ data: question.data, state: { status: 'unanswered', answer: null, result: null } })));
-    return original;
-  }
-  requirePublicationIdentity(original) {
-    for (const directory of scanExtensions(path.join(this.root, 'extensions'))) {
-      if (markedDevelopment(directory)) continue;
-      let manifest; try { manifest = readJson(safeFile(directory, 'manifest.json'), 256 * 1024); } catch { continue; }
-      if (manifest.id === original.id && manifest.version === original.version) throw new ApiError(409, 'EXTENSION_VERSION_EXISTS', 'This formal extension ID and version already exist; choose a new version');
-    }
-  }
-  async developmentPublishPlan(folder) {
-    this.settings.requireEnabled(); const source = this.developmentDirectory(folder), value = readDevelopment(source), revision = snapshotRevision(packageSnapshot(source));
-    if (value.mode !== 'runtime') throw new ApiError(409, 'DEVELOPMENT_NOT_READY', 'Complete the runtime extension before publishing');
-    const original = await this.validatePublication(source); this.requirePublicationIdentity(original);
-    let target = original.id + '-' + original.version;
-    if (target.length > 120) target = original.id.slice(0, 80) + '-' + hash(Buffer.from(original.id + '@' + original.version)).slice(0, 16);
-    const group = extensionGroup(path.join(this.root, 'extensions'), source); if (group) target = group + '/' + target;
-    if (exists(path.join(this.root, 'extensions', target))) throw new ApiError(409, 'PUBLISH_TARGET_EXISTS', 'Publication directory already exists');
-    if (revision !== snapshotRevision(packageSnapshot(source))) throw new ApiError(409, 'DEVELOPMENT_CHANGED', 'Development files changed during validation; review the publication again');
-    return { id: original.id, version: original.version, name: text(readJson(safeFile(source, 'manifest.json')), 'name', 300), targetFolder: target, revision, valid: true };
-  }
-  publishDevelopment(folder, request) {
-    return this.managementTransactions.run(async () => {
-      if (!request || Object.keys(request).length !== 1 || typeof request.revision !== 'string') throw bad('Publication requires the reviewed revision');
-      const plan = await this.developmentPublishPlan(folder);
-      if (request.revision !== plan.revision) throw new ApiError(409, 'DEVELOPMENT_CHANGED', 'Development files changed since publication was reviewed');
-      const source = this.developmentDirectory(folder), files = packageSnapshot(source);
-      if (snapshotRevision(files) !== plan.revision) throw new ApiError(409, 'DEVELOPMENT_CHANGED', 'Development files changed while preparing publication');
-      const manifest = readJson(safeFile(source, 'manifest.json')), media = staticAssets(source, manifest);
-      if (media.length) { manifest.assets = media; files.set('manifest.json', jsonBytes(manifest)); }
-      const original = await this.validatePublication(source), examples = path.relative(source, original.examples).replaceAll('\\', '/');
-      files.set(examples, jsonBytes(bindRuntimeExamples(readJson(original.examples), original, original)));
-      const stagingRoot = safeDirectory(path.join(this.root, '.temp', 'publishing'), true), staged = fs.mkdtempSync(path.join(stagingRoot, 'package-'));
-      try {
-        for (const [relative, bytes] of files) {
-          if (relative === 'development.json') continue;
-          const target = path.resolve(staged, relative); if (!target.startsWith(staged + path.sep)) throw new Error('Unsafe publication path');
-          safeDirectory(path.dirname(target), true); fs.writeFileSync(target, bytes, { flag: 'wx' });
-        }
-        this.requirePublicationIdentity(await this.validatePublication(staged));
-        if (plan.revision !== snapshotRevision(packageSnapshot(source))) throw new ApiError(409, 'DEVELOPMENT_CHANGED', 'Development files changed during publication; review again');
-        const destination = path.join(this.root, 'extensions', plan.targetFolder); checkPath(path.dirname(destination), { directory: true });
-        if (exists(destination)) throw new ApiError(409, 'PUBLISH_TARGET_EXISTS', 'Publication directory already exists');
-        fs.renameSync(staged, destination); this.invalidate(); return { ...plan, published: true };
-      } finally {
-        if (!staged.startsWith(stagingRoot + path.sep)) throw new Error('Unsafe publication cleanup');
-        if (exists(staged)) { for (const file of walkFiles(staged)) checkPath(file); fs.rmSync(staged, { recursive: true }); }
-      }
-    });
-  }
+  async developmentPublishPlan() { throw new ApiError(410, 'PUBLICATION_REMOVED', '拓展直接修改和使用，无需发布。'); }
+  async publishDevelopment() { throw new ApiError(410, 'PUBLICATION_REMOVED', '拓展直接修改和使用，无需发布。'); }
   async manage(request) {
     return this.managementTransactions.run(async () => {
       const snapshot = this.index();

@@ -110,10 +110,10 @@ test('finish freezes drafts without scoring them; restart leaves the historical 
   assert.equal((await store.question(collection, first)).state.status, 'unanswered'); assert.deepEqual(await store.history(collection.kind, collection.id, finished.historyId), frozen);
   await store.deleteHistory(collection.kind, collection.id, finished.historyId); assert.equal((await store.history(collection.kind, collection.id)).records.length, 0);
 });
-test('changed formal question preserves its old state and frozen history', async t => {
+test('changed question resets current state with a backup and preserves frozen history', async t => {
   const { store, collection } = await fixture(t), question = collection.questions[0]; await store.act(collection, question, action(0, 'submit', { answer: { selectedOptionId: 'A' } }));
   const oldBytes = fs.readFileSync(store.file(collection)); question.fingerprint = 'b'.repeat(64);
-  await assert.rejects(store.question(collection, question), { code: 'COLLECTION_CHANGED' }); assert.deepEqual(fs.readFileSync(store.file(collection)), oldBytes); assert.equal((await store.history(collection.kind, collection.id)).records.length, 1);
+  assert.equal((await store.question(collection, question)).state.status,'unanswered'); assert.deepEqual(fs.readFileSync(store.file(collection)+'.before-content-edit.bak'), oldBytes); assert.equal((await store.history(collection.kind, collection.id)).records.length, 1);
 });
 test('temporary practice has no durable state or historical browsing', async t => {
   const { root, engine, collection } = await fixture(t); const memory = StateStore.memory(root, engine), question = collection.questions[0];

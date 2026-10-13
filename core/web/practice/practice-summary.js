@@ -54,9 +54,9 @@ export function mountPracticeSummary(container, summary, {onFinish,onRestart,rea
     pending.textContent=`未提交 ${count-done} 题`;
     grading.hidden=!awaiting;grading.textContent=`待评分 ${awaiting} 题`;
     scoreLabel.textContent=awaiting?'已评分得分 / 总分':exam?'考试得分 / 总分':'本轮得分 / 总分';
-    note.textContent=exam?`交卷后答案已锁定。${awaiting?'部分题目仍待评分。':''}`:readonly?'此页为只读历史汇总。':current?.finished?(current.historyId?'本轮结果已保存到历史记录。':'本轮练习已完成，结果仅在当前会话保留。'):awaiting?'请返回题目确认评分，再完成练习。':!history?'结果仅在当前会话保留，刷新或关闭页面后清除。':count-done?'未提交的题目暂计 0 分，完成后保留本轮记录。':'完成练习后保留本轮结果。';
+    note.textContent=exam?`交卷后答案已锁定。${awaiting?'部分题目仍待评分。':''}`:readonly?'此页为只读历史汇总。':current?.finished?(current.historyId?'本轮结果已保存到历史记录。':'本轮练习已完成，结果仅在当前会话保留。'):current?.completionPending?(current.completionError||'答案已提交，AI 评分尚未完成。可返回题目查看进度或人工评分，再完成练习。'):awaiting?'答案已提交，部分题目待评分。请返回题目重试 AI 或人工评分，再完成练习。':current?.answeredUnsubmittedCount?`还有 ${current.answeredUnsubmittedCount} 道已作答题目未提交，完成练习时统一提交评分；未作答题目计 0 分。`:!history?'结果仅在当前会话保留，刷新或关闭页面后清除。':'完成练习后保留本轮结果。';
     if(button){
-      button.disabled=busy||(current?.finished?typeof onRestart!=='function':awaiting>0||typeof onFinish!=='function');
+      button.disabled=busy||(current?.finished?typeof onRestart!=='function':awaiting>0&&!current?.answeredUnsubmittedCount||typeof onFinish!=='function');
       button.textContent=current?.finished?(busy?'正在开始…':typeof onRestart==='function'?'再练一次':'练习已完成'):(busy?'正在完成…':'完成练习');
       button.classList.toggle('is-busy',busy);
       button.setAttribute('aria-busy',String(busy));
@@ -64,7 +64,7 @@ export function mountPracticeSummary(container, summary, {onFinish,onRestart,rea
   }
   async function finish() {
     const restarting=Boolean(current?.finished),action=restarting?onRestart:onFinish;
-    if(destroyed||busy||(!restarting&&current?.pendingCount>0)||typeof action!=='function')return;
+    if(destroyed||busy||(!restarting&&current?.pendingCount>0&&!current?.answeredUnsubmittedCount)||typeof action!=='function')return;
     busy=true;error.hidden=true;render();
     try {
       const next=await action(current);

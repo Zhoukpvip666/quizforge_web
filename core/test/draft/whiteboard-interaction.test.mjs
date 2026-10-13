@@ -258,7 +258,7 @@ test('writing and panning after scroll use world coordinates and count scroll of
   ]);
   click('[data-tool="pan"]');
   pointer('pointerdown', 40, 60, 'mouse'); pointer('pointerup', 60, 90, 'mouse');
-  assert.deepEqual(board.getDraft().viewport, { x: 20, y: -5, zoom: 2 });
+  assert.deepEqual(board.getViewCamera(), { x: 20, y: -5, zoom: 2 });
 });
 
 test('pointer coordinates stay aligned when programmatic scroll precedes its scroll event', () => {
@@ -280,7 +280,7 @@ test('wheel and pinch keep the world anchor under the pointer when the viewport 
   wheel.container.scrollTop = 300;
   wheel.board.setMode('draft');
   wheel.canvas.dispatch('wheel', { clientX: 100, clientY: 100, deltaY: -50 });
-  const camera = wheel.board.getDraft().viewport;
+  const camera = wheel.board.getViewCamera();
   assert.ok(Math.abs((100 + camera.x) * camera.zoom - 100) < 1e-9);
   assert.ok(Math.abs((400 + camera.y) * camera.zoom - 300 - 100) < 1e-9);
   const pinch = fixture();
@@ -291,11 +291,11 @@ test('wheel and pinch keep the world anchor under the pointer when the viewport 
   pinch.pointer('pointermove', 300, 100, 'touch', 2);
   pinch.pointer('pointerup', 300, 100, 'touch', 2);
   pinch.pointer('pointerup', 100, 100, 'touch', 1);
-  assert.deepEqual(pinch.board.getDraft().viewport, { x: -50, y: -200, zoom: 2 });
+  assert.deepEqual(pinch.board.getViewCamera(), { x: -50, y: -200, zoom: 2 });
   assert.equal(pinch.container.style.getPropertyValue('--qf-whiteboard-y'), '-400px');
   assert.equal(pinch.root.style.transform, 'translate(0px, 300px)');
   pinch.board.setMode('practice');
-  assert.deepEqual(pinch.board.getDraft().viewport, { x: -50, y: -200, zoom: 2 });
+  assert.deepEqual(pinch.board.getViewCamera(), { x: -50, y: -200, zoom: 2 });
   assert.equal(pinch.container.scrollTop, 300);
   assert.equal(pinch.board.getDraft().strokes.length, 0);
 });
@@ -385,7 +385,7 @@ test('selection tool passes question input through without changing ink or camer
   pointer('pointerdown', 20, 30); pointer('pointerup', 100, 120);
   assert.equal(board.getDraft().strokes.length, 2);
   assert.deepEqual(board.getDraft().strokes[0], draft.strokes[0]);
-  assert.deepEqual(board.getDraft().viewport, draft.viewport);
+  assert.deepEqual(board.getViewCamera(), draft.viewport);
   assert.equal(changes.length, 1);
   board.destroy();
 });
@@ -512,13 +512,14 @@ test('single finger pans in pen-only mode and emits the camera only at gesture c
   board.setMode('draft');
   pointer('pointerdown', 10, 20, 'touch'); pointer('pointermove', 110, 80, 'touch');
   assert.equal(changes.length, 0);
-  assert.deepEqual(board.getDraft().viewport, { x: 100, y: 60, zoom: 1 });
+  assert.deepEqual(board.getViewCamera(), { x: 100, y: 60, zoom: 1 });
   assert.equal(container.style.getPropertyValue('--qf-whiteboard-x'), '100px');
   assert.equal(container.style.getPropertyValue('--qf-whiteboard-y'), '60px');
   pointer('pointerup', 130, 100, 'touch');
-  assert.equal(changes.length, 1);
+  assert.equal(changes.length, 0);
+  assert.deepEqual(board.getDraft().viewport,{x:0,y:0,zoom:1});
   assert.equal(board.getDraft().strokes.length, 0);
-  assert.deepEqual(board.getDraft().viewport, { x: 120, y: 80, zoom: 1 });
+  assert.deepEqual(board.getViewCamera(), { x: 120, y: 80, zoom: 1 });
 });
 
 test('host camera CSS variables match ink camera during load, pinch and practice mode and clean up on destroy', () => {
@@ -533,12 +534,12 @@ test('host camera CSS variables match ink camera during load, pinch and practice
   pointer('pointerdown', 100, 100, 'touch', 1);
   pointer('pointerdown', 200, 100, 'touch', 2);
   pointer('pointermove', 250, 150, 'touch', 2);
-  const camera = board.getDraft().viewport;
+  const camera = board.getViewCamera();
   assert.equal(container.style.getPropertyValue('--qf-whiteboard-x'), `${camera.x * camera.zoom}px`);
   assert.equal(container.style.getPropertyValue('--qf-whiteboard-y'), `${camera.y * camera.zoom}px`);
   assert.equal(container.style.getPropertyValue('--qf-whiteboard-zoom'), String(camera.zoom));
   board.setMode('practice');
-  assert.deepEqual(board.getDraft().viewport, camera);
+  assert.deepEqual(board.getViewCamera(), camera);
   assert.equal(container.style.getPropertyValue('--qf-whiteboard-zoom'), String(camera.zoom));
   board.destroy();
   assert.equal(container.style.getPropertyValue('--qf-whiteboard-x'), '');
@@ -555,20 +556,20 @@ test('host viewport adjustment fits a narrow screen and preserves world ink plus
   const viewport = { x: (width / zoom - logicalWidth) / 2, y: 0, zoom };
   assert.equal(board.setViewport(viewport), true);
   assert.deepEqual(board.getDraft().strokes, strokes);
-  assert.deepEqual(board.getDraft().viewport, viewport);
-  assert.equal(changes.length, 2);
+  assert.deepEqual(board.getViewCamera(), viewport);
+  assert.equal(changes.length, 1);
   assert.equal(container.style.getPropertyValue('--qf-whiteboard-x'), `${viewport.x * zoom}px`);
   assert.equal(container.style.getPropertyValue('--qf-whiteboard-zoom'), String(zoom));
   click('[data-action="undo"]');
   assert.equal(board.getDraft().strokes.length, 0);
-  assert.deepEqual(board.getDraft().viewport, viewport);
+  assert.deepEqual(board.getViewCamera(), viewport);
   assert.equal(board.setViewport({ ...viewport, y: 5 }, { emit: false }), true);
-  assert.equal(changes.length, 3);
+  assert.equal(changes.length, 2);
   click('[data-action="redo"]');
   assert.deepEqual(board.getDraft().strokes, strokes);
-  assert.deepEqual(board.getDraft().viewport, { ...viewport, y: 5 });
+  assert.deepEqual(board.getViewCamera(), { ...viewport, y: 5 });
   assert.equal(board.setViewport({ ...viewport, y: 5 }), false);
-  assert.equal(changes.length, 4);
+  assert.equal(changes.length, 3);
 });
 
 test('practice hides ink while draft camera and undo remain intact', () => {
@@ -602,7 +603,7 @@ test('practice hides ink while draft camera and undo remain intact', () => {
   assert.equal(changes.length, 1);
   click('[data-action="undo"]');
   assert.equal(board.getDraft().strokes.length, 0);
-  assert.deepEqual(board.getDraft().viewport, saved.viewport);
+  assert.deepEqual(board.getViewCamera(), saved.viewport);
   click('[data-action="redo"]');
   assert.equal(JSON.stringify(board.getDraft()), serialized);
 });
@@ -672,7 +673,7 @@ test('valid viewport adjustment finishes pending ink; invalid adjustment leaves 
   assert.equal(board.getDraft().strokes.length, 1);
   assert.equal(changes.length, 1); // Ink always commits; only the layout camera write is muted.
   assert.deepEqual(interactions, [true, false]);
-  assert.equal(board.getDraft().viewport.zoom, 0.6);
+  assert.equal(board.getViewCamera().zoom, 0.6);
 });
 
 test('two-finger pinch discards first-finger writing and translates plus scales without ink', () => {
@@ -684,12 +685,12 @@ test('two-finger pinch discards first-finger writing and translates plus scales 
   pointer('pointerdown', 205, 100, 'touch', 2);
   pointer('pointermove', 305, 100, 'touch', 2);
   assert.equal(changes.length, 0);
-  assert.equal(board.getDraft().viewport.zoom, 2);
+  assert.equal(board.getViewCamera().zoom, 2);
   pointer('pointerup', 305, 100, 'touch', 2);
   pointer('pointerup', 105, 100, 'touch', 1);
   assert.equal(board.getDraft().strokes.length, 0);
-  assert.equal(changes.length, 1);
-  assert.equal(board.getDraft().viewport.zoom, 2);
+  assert.equal(changes.length, 0);
+  assert.equal(board.getViewCamera().zoom, 2);
 });
 
 test('a palm touch cannot replace active stylus ink; blur cancels unfinished work', () => {
@@ -700,7 +701,7 @@ test('a palm touch cannot replace active stylus ink; blur cancels unfinished wor
   first.pointer('pointermove', 400, 400, 'touch', 2);
   first.pointer('pointerup', 50, 50);
   assert.equal(first.board.getDraft().strokes.length, 1);
-  assert.deepEqual(first.board.getDraft().viewport, { x: 0, y: 0, zoom: 1 });
+  assert.deepEqual(first.board.getViewCamera(), { x: 0, y: 0, zoom: 1 });
   first.pointer('pointerdown', 80, 80);
   first.window.dispatch('blur');
   assert.equal(first.board.getDraft().strokes.length, 1);

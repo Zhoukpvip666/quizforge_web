@@ -81,7 +81,7 @@ test('group discovery allows one group level and stops scanning inside leaf sour
 test('tagged developer bindings use globally unique leaf names regardless of their group path',t=>{
   const f=fixture(t);f.write(f.leaves.one+'/development.json',{});
   const bank=clone(f.bank);for(const question of bank.questions)if(question.extension.id===f.refs.one.id)question.extension={development:'one'};f.write('bank/bank.json',bank);
-  assert.equal(f.run().report.errors[0].code,'DEVELOPMENT_BINDING_REQUIRES_OPT_IN');assert.equal(f.run('--allow-development').code,0);
+  assert.equal(f.run().code,0);assert.equal(f.run('--allow-development').code,0);
   const examples=f.read(f.leaves.one+'/examples/bank.json');delete examples.extension;examples.questions[0].extension={development:'one'};f.write(f.leaves.one+'/examples/bank.json',examples);assert.equal(f.run('--allow-development').code,0);
   mkdirSync(path.join(f.root,'extensions/其他分组'),{recursive:true});renameSync(path.join(f.root,f.leaves.one),path.join(f.root,'extensions/其他分组/one'));assert.equal(f.run('--allow-development').code,0);
   cpSync(path.join(f.root,'extensions/其他分组/one'),path.join(f.root,'extensions/重复分组/one'),{recursive:true});

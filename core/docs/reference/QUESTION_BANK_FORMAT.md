@@ -32,7 +32,7 @@
 | `title` | 非空，最多 300 字符；每题仍需标题元数据 |
 | `description` | 可选说明 |
 | `questions` | 按题序排列，1–10000 项；每项独立保存和提交，组合题小问留在父题 data 内 |
-| `extension` | 精确 `{id,version}`，或开发绑定 `{development:"叶名"}`；逐题声明优先于根默认绑定 |
+| `extension` | 统一 `{id,version}`；旧 `{development:"叶名"}` 仅兼容读取，逐题声明优先于根默认绑定 |
 | `data` | 对应拓展的 question schema 与规则定义，宿主不规定内部字段 |
 
 单份 JSON 最多 8 MiB。无根默认绑定时，每题必须声明拓展；可混用不同分组或版本，绑定不含分组路径。拓展样例只允许精确引用自身，见[拓展开发](EXTENSIONS.md)。

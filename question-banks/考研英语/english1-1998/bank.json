@@ -1,7 +1,7 @@
 {
   "formatVersion": 1,
   "id": "kaoyan-english1-1998",
-  "title": "1998年考研英语真题（整理版）",
+  "title": "1998年考研英语真题",
   "description": "仅制作所提供PDF收录题目，不补齐缺失部分；按PDF及用户确认分值。",
   "features": {
     "editing": true,
@@ -281,7 +281,7 @@
             "correctOptionId": "D"
           }
         ],
-        "pointsPerItem": 1.0,
+        "pointsPerItem": 1,
         "maxScore": 10,
         "explanation": {
           "type": "doc",
@@ -1554,7 +1554,7 @@
             "segment": "Odd though it sounds, cosmic inflation is a scientifically plausible consequence of some respected ideas in elementary particle physics, and many astrophysicists have been convinced for the better part of a decade that it is true."
           }
         ],
-        "pointsPerItem": 3.0,
+        "pointsPerItem": 3,
         "maxScore": 15,
         "assessment": {
           "type": "doc",

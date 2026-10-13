@@ -45,10 +45,10 @@ export class LibraryIndex {
     if (this.cached?.inventory === inventory && this.cached.inputs.every(([file, identity]) => stamp(file) === identity)) return cloneJson(this.cached.snapshot);
     const inputs = new Set([this.management.labelsFile, ...bankTree.banks, ...folders.flatMap(directory => [path.join(directory, 'manifest.json'), path.join(directory, 'development.json')])]);
     const candidates = [], available = new Set(), packages = [], banks = [], identities = [], names = new Map();
-    for (const directory of folders.filter(markedDevelopment)) { const name = path.basename(directory); names.set(name, (names.get(name) ?? 0) + 1); }
+    for (const directory of folders) { const name = path.basename(directory); names.set(name, (names.get(name) ?? 0) + 1); }
     for (const directory of folders) {
-      const development = markedDevelopment(directory); if (development && !this.settings.enabled) continue;
-      const folder = path.basename(directory), kind = development ? 'development' : 'extension';
+      const development = markedDevelopment(directory);
+      const folder = path.basename(directory), kind = 'extension';
       const row = { id: folder, kind, version: '?', name: folder, description: '', questionCount: 0, validationStatus: 'pending', path: relative(path.join(this.root, 'extensions'), directory) };
       const group = extensionGroup(path.join(this.root, 'extensions'), directory); if (group) row.group = group;
       try {
@@ -60,15 +60,15 @@ export class LibraryIndex {
           if (names.get(folder) !== 1) throw bad('Development leaf folder names must be globally unique');
           if (Object.hasOwn(marker, 'mode') && !['ui', 'runtime'].includes(marker.mode)) throw bad('Invalid legacy development mode');
           if (Object.hasOwn(marker, 'types') || Object.hasOwn(marker, 'packageFormatVersion')) throw bad('Each extension provides one question type');
-          row.name = Object.hasOwn(marker, 'name') ? text(marker, 'name', 300) : Object.hasOwn(manifest, 'name') ? text(manifest, 'name', 300) : folder;
-          Object.assign(row, { title: row.name, description: optional(marker, 'description', 4000), development: { folder }, version: Object.hasOwn(manifest, 'version') ? id(manifest, 'version') : '0.0.0' });
-          available.add('development:' + folder);
-        } else {
+        }
+        {
           requireManifestApi(manifest);
           if (Object.hasOwn(manifest, 'types') || Object.hasOwn(manifest, 'packageFormatVersion')) throw bad('Each extension provides one question type');
           Object.assign(row, { id: id(manifest, 'id'), version: id(manifest, 'version'), name: text(manifest, 'name', 300), description: optional(manifest, 'description', 4000) });
           available.add(row.id + '@' + row.version);
         }
+        row.legacyFolder = folder;
+        if (names.get(folder) === 1) available.add('development:' + folder);
         const exampleName = Object.hasOwn(manifest, 'examples') ? manifest.examples : marker.examples;
         if (typeof exampleName === 'string') {
           if (!exampleName.trim() || exampleName.length > 240 || path.isAbsolute(exampleName) || exampleName.includes('\\') || exampleName.includes(':') || !within(directory, path.resolve(directory, exampleName))) throw bad('Invalid examples path');
@@ -85,7 +85,6 @@ export class LibraryIndex {
       const group = relative(base, path.dirname(item)); if (group) row.group = group;
       try {
         const raw = this.files.json(file), development = developmentFolders(raw).length > 0;
-        if (development && !this.settings.enabled) continue;
         requireBankFormat(raw); row.features = BankFeatures.read(raw).json();
         Object.assign(row, { id: id(raw, 'id'), title: text(raw, 'title', 300), description: optional(raw, 'description', 4000) });
         if (!Array.isArray(raw.questions) || !raw.questions.length || raw.questions.length > 10000) throw bad('Invalid questions');
@@ -97,7 +96,6 @@ export class LibraryIndex {
           if (!available.has(key)) throw bad('Missing extension'); if (!references.has(key)) references.set(key, reference);
         }
         Object.assign(row, { questionCount: raw.questions.length, extension: cloneJson(raw.extension ?? null), extensions: cloneJson([...references.values()]) });
-        if (development) Object.assign(row, { kind: 'development-bank', development: bankDevelopmentMetadata(developmentFolders(raw)) });
         identities.push(this.files.jsonFingerprint(file, 'index-bank'));
       } catch (error) { catalogError(row, error, 'INVALID_BANK'); }
       candidates.push({ kind: row.kind, id: row.id, source: file, metadata: cloneJson(row) }); banks.push(row);

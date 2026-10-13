@@ -40,9 +40,9 @@ question-banks/my-exam/
 }
 ```
 
-`data` 必须按对应独立拓展的 schema 填写。根对象可以有 `extension` 作为默认绑定，每题的 `extension` 优先；没有根绑定时每题都必须有绑定。正式引用是精确 `{id,version}`，不支持 `latest`、范围或只填 id。不同题可以引用同组或跨组的独立拓展，物理分组名和路径不进入绑定，不使用 `typeId` 或 `extensionGroup`。见 [独立拓展与分组](extension-development.md)，题型 data 直接参考 [单选题已有样例](../../../extensions/基础题型/single-choice-richtext-dev/examples/bank.json) 与 [简答题已有样例](../../../extensions/基础题型/short-answer-richtext-dev/examples/bank.json)，再按实际安装的 Schema 填写；构建混合库时逐题声明各自绑定，不另建技能样例库。
+`data` 必须按对应独立拓展的 schema 填写。根对象可以有 `extension` 作为默认绑定，每题的 `extension` 优先；没有根绑定时每题都必须有绑定。统一引用是精确 `{id,version}`，不支持 `latest`、范围或只填 id。不同题可以引用同组或跨组的独立拓展，物理分组名和路径不进入绑定，不使用 `typeId` 或 `extensionGroup`。见 [独立拓展与分组](extension-development.md)，题型 data 直接参考 [单选题已有样例](../../../extensions/基础题型/single-choice-richtext/examples/bank.json) 与 [简答题已有样例](../../../extensions/基础题型/short-answer-richtext/examples/bank.json)，再按实际安装的 Schema 填写；构建混合库时逐题声明各自绑定，不另建技能样例库。
 
-开发测试题库可显式用 `extension:{"development":"new-type-dev"}` 引用全局唯一的开发叶目录名，不包含分组路径，可与正式绑定混用；仅在开发者模式开启时可用。开发绑定始终使用同一 QF 管线和隔离状态，尚未实现的动作显式报错。完整校验加 `--allow-development`；骨架预览另加 `--preview-only`，不执行规则或验收分值。正式交付改为该叶拓展已发布的精确 `id/version`，详见 [开发版拓展](extension-development.md)。
+旧 extension:{"development":"叶名"} 仅兼容读取，按全局唯一叶名解析到 Manifest；新题库用精确 ID/version。管理入口开关不影响加载，导出自动规范化绑定。骨架结构预览使用 --preview-only；它不代表真实保存、评分或界面验收通过。
 
 - bank/question id：`^[A-Za-z0-9][A-Za-z0-9._-]{0,119}$`，同题库题 ID 唯一。
 - 顶层 `formatVersion` 当前只支持数字整数 `1`；旧文件缺省按 `1` 读取，不补写。仅为新题库和新拓展示例显式添加；与题型内部 `data.formatVersion` 相互独立。
@@ -112,12 +112,12 @@ extensions/
 
 | 参考叶 | 查看内容 |
 | --- | --- |
-| [single-choice-richtext-dev](../../../extensions/基础题型/single-choice-richtext-dev) | 富文本题干、选项、正确选项 ID、答案与解析、满分，以及已有文字/图片/公式/表格样例 |
-| [short-answer-richtext-dev](../../../extensions/基础题型/short-answer-richtext-dev) | 可选共享材料、稳定小题 ID、富文本题干与答案解析、各小题满分，以及单问/多问样例 |
+| [single-choice-richtext](../../../extensions/基础题型/single-choice-richtext) | 富文本题干、选项、正确选项 ID、答案与解析、满分，以及已有文字/图片/公式/表格样例 |
+| [short-answer-richtext](../../../extensions/基础题型/short-answer-richtext) | 可选共享材料、稳定小题 ID、富文本题干与答案解析、各小题满分，以及单问/多问样例 |
 
 读取 manifest.examples 对应文件及 question.schema.json、answer.schema.json、rules.js；按实际文件核对必填项、资源、答案结构、分值范围与步长，不把旧纯文本单选或旧简答 referenceAnswer/rubric 结构套给新题型。
 
-当前参考叶为开发原型，真实保存、判分、人工/AI 评分尚未完成。它们用于设计和数据参考，不能作为已验收正式版本或对外可评分题库的依据。用户项目安装的其他完整版本按其实际精确绑定与 Schema 使用，旧兼容 fixture 不当作当前安装清单。
+当前基础参考叶为正式 2.0.0，支持真实保存、评分和编辑；简答支持人工及按小问 AI 评分。按实际 manifest 的精确绑定与 Schema 使用。其他已安装版本保持自己的数据契约，旧兼容 fixture 不当作当前安装清单。
 
 材料无解析时可根据已确认答案编写解析并在报告注明；材料答案缺失或矛盾须先确认，不静默生成正式评分依据。回答由页面按拓展答案结构保存，不预写进 bank.json，也不直接写状态目录。
 

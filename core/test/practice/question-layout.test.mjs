@@ -10,10 +10,10 @@ function fixture(t,{draft=null,pending=true,view='practice'}={}){
  const pane={view,draftLayoutPending:pending,world:dom.window.document.querySelector('div'),viewport:{clientWidth:1200},whiteboard:{getDraft:()=>model.getDraft(),setViewCamera:value=>cameras.push(value),initializeLayout:width=>{const changed=model.initializeLayout(width);if(changed)changes.push(model.getDraft());return changed;}}};
  return {pane,model,cameras,changes};
 }
-test('practice never initializes or saves a layout; first draft freezes full visible width',t=>{
+test('practice never initializes or saves a layout; first draft freezes device-independent width',t=>{
  const f=fixture(t);syncQuestionLayout(f.pane,false);assert.equal(f.changes.length,0);assert.equal(f.model.getDraft().layout,undefined);
- syncQuestionLayout(f.pane,true);assert.deepEqual(f.model.getDraft().layout,{width:1200,padding:0,top:0});assert.equal(f.changes.length,1);
- f.pane.viewport.clientWidth=480;syncQuestionLayout(f.pane,true);assert.equal(f.pane.world.style.getPropertyValue('--qf-draft-width'),'1200px');assert.equal(f.changes.length,1);
+ syncQuestionLayout(f.pane,true);assert.deepEqual(f.model.getDraft().layout,{width:760,padding:0,top:0});assert.equal(f.changes.length,1);
+ f.pane.viewport.clientWidth=480;syncQuestionLayout(f.pane,true);assert.equal(f.pane.world.style.getPropertyValue('--qf-draft-width'),'760px');assert.equal(f.changes.length,1);
  syncQuestionLayout(f.pane,false);assert.equal(f.changes.length,1);assert.deepEqual(f.cameras.at(-1),{x:0,y:0,zoom:1});
 });
 test('legacy ink and read-only history keep their original coordinates and never write',t=>{
@@ -31,5 +31,5 @@ test('draft initialization waits until question load is committed',t=>{
  const f=fixture(t);f.pane.loading=true;syncQuestionLayout(f.pane,true);assert.equal(f.changes.length,0);f.pane.loading=false;syncQuestionLayout(f.pane,true);assert.equal(f.changes.length,1);
 });
 test('layout resize reads only small metadata rather than cloning all ink',t=>{
- const f=fixture(t);f.pane.whiteboard.getLayout=()=>f.model.layout;f.pane.whiteboard.getDraft=()=>{throw new Error('Resize must not clone draft ink');};syncQuestionLayout(f.pane,false);syncQuestionLayout(f.pane,true);assert.equal(f.pane.world.style.getPropertyValue('--qf-draft-width'),'1200px');
+ const f=fixture(t);f.pane.whiteboard.getLayout=()=>f.model.layout;f.pane.whiteboard.getDraft=()=>{throw new Error('Resize must not clone draft ink');};syncQuestionLayout(f.pane,false);syncQuestionLayout(f.pane,true);assert.equal(f.pane.world.style.getPropertyValue('--qf-draft-width'),'760px');
 });

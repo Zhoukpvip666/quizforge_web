@@ -1,7 +1,7 @@
 {
   "formatVersion": 1,
   "id": "kaoyan-english1-1999",
-  "title": "1999年考研英语真题（整理版）",
+  "title": "1999年考研英语真题",
   "description": "仅制作所提供PDF收录题目，不补齐缺失部分；按PDF及用户确认分值。",
   "features": {
     "editing": true,
@@ -290,7 +290,7 @@
             "correctOptionId": "D"
           }
         ],
-        "pointsPerItem": 1.0,
+        "pointsPerItem": 1,
         "maxScore": 10,
         "explanation": {
           "type": "doc",
@@ -1437,7 +1437,7 @@
             "segment": "It applies equally to traditional historians who view history as only the external and internal criticism of sources, and to social science historians who equate their activity with specific techniques."
           }
         ],
-        "pointsPerItem": 3.0,
+        "pointsPerItem": 3,
         "maxScore": 15,
         "assessment": {
           "type": "doc",
