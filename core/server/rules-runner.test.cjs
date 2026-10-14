@@ -118,6 +118,18 @@ test('catalog validation rejects malformed reset boundaries', t => {
   }
 });
 
+test('merged outline jobs retain fresh globals at original request boundaries', t => {
+  const files = fixture(t, `let count=0;QF.defineType({project(){return {};},grade(){return {};},getOutlineItems(){return [{id:'child',label:String(++count)}];}});`);
+  const request = { op:'outlineBatch', apiVersion:{major:1,minor:3}, outlineItemsDeclared:true, questions:[{secret:'a'},{secret:'b'},{secret:'c'},{secret:'d'}] };
+  const result = call(files, {...request,contextResetOffsets:[2]}).body;
+  assert.equal(result.ok,true); assert.deepEqual(result.data.outlineItems.map(items=>items[0].label), ['1','2','1','2']);
+  for (const contextResetOffsets of [[0],[4],[2,2],{}]) {
+    const rejected=call(files,{...request,contextResetOffsets}).body;
+    assert.equal(rejected.ok,false); assert.match(rejected.error,/boundaries/);
+  }
+  assert.equal(call(files,{...request,questions:[{secret:'a'},{secret:2}],contextResetOffsets:[1]}).body.ok,false);
+});
+
 test('draft validation returns only an unsubmitted projection and still rejects invalid answers',t=>{
   const files=fixture(t,normal);
   const request={op:'validateAnswer',projectAfterValidation:true,withCapabilities:true,data:{secret:'yes'},answer:'yes',state:{submitted:true,result:{score:1,maxScore:1,correct:true}}};

@@ -136,9 +136,15 @@ process.stdin.on('end', () => {
     } else if (request.op === 'outlineBatch') {
       if (requestedMinor < 1 || request.outlineItemsDeclared !== true) outlineError();
       if (!Array.isArray(request.questions) || request.questions.length > 10000) outlineError();
+      const offsets = request.contextResetOffsets ?? [];
+      if (!Array.isArray(offsets) || offsets.length > request.questions.length
+          || offsets.some((offset, index) => !Number.isInteger(offset) || offset <= 0 || offset >= request.questions.length || index > 0 && offset <= offsets[index - 1])) throw new Error('Invalid outline boundaries');
+      let nextReset = 0;
       const outlineItems = [];
       const plain = (value, maximum) => typeof value === 'string' && value.length > 0 && value.length <= maximum && value === value.trim() && !/[\u0000-\u001f\u007f-\u009f<>]/u.test(value);
-      for (const question of request.questions) {
+      for (let index = 0; index < request.questions.length; index++) {
+        if (index === offsets[nextReset]) { resetContext(); nextReset++; }
+        const question = request.questions[index];
         validateQ(question); set({ data: question });
         let items;
         try { items = canOutlineItems ? invoke('__type.getOutlineItems(__input.data)') : []; }

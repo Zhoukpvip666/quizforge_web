@@ -16,6 +16,7 @@ import { TemporaryExamSessions, requireOwner } from './temporary-exams.js';
 import { SerialTransactions } from '../platform/transactions.js';
 
 const privateFields = new Set(['packages', 'questions', 'features', 'requestId', 'description', 'pageSession']);
+const packageIdentity = extension => extension.referencePath ? fingerprint(extension.referencePath, extension.fingerprint) : extension.fingerprint;
 export class ExamSessions {
   constructor(root, library, states, ai, routes, writes, automaticAi, { now = () => Date.now(), resourceGateway = null } = {}) {
     Object.assign(this, { root, library, states, ai, routes, writes, automaticAi, now, resourceGateway }); this.directory = path.join(root, '.state', 'exams'); this.records = new Map(); this.collections = new Map(); this.temporary = new TemporaryExamSessions(now); this.transactions = new SerialTransactions(); this.closed = false;
@@ -42,7 +43,9 @@ export class ExamSessions {
       const directory = path.resolve(base, pkg.folder); if (!within(base, directory) || directory === base) throw new Error('Unsafe exam package'); checkPath(directory, { directory: true });
       const extension = { id: pkg.id, version: pkg.version, name: pkg.name, description: pkg.description ?? '', directory, fingerprint: pkg.fingerprint, dependencies: cloneJson(pkg.dependencies ?? []), contentApi: cloneJson(pkg.contentApi ?? null), providerRevision: pkg.providerRevision ?? '', outlineItemsDeclared: pkg.outlineItemsDeclared === true, answerStateDeclared: pkg.answerStateDeclared === true, examples: null, development: pkg.id.startsWith('dev.') && pkg.version === '0.0.0' && markedDevelopment(directory) ? { folder: path.basename(directory) } : null };
       for (const key of ['entry', 'script', 'style', 'rules', 'questionSchema', 'answerSchema']) extension[key] = typeof pkg[key] === 'string' ? safeFile(directory, pkg[key]) : null;
-      if (extensions.has(pkg.fingerprint)) throw new Error('Duplicate exam extension'); extensions.set(pkg.fingerprint, extension);
+      if (pkg.referencePath) extension.referencePath = pkg.referencePath;
+      const key = pkg.key ?? pkg.fingerprint;
+      if (!/^[a-f0-9]{64}$/.test(key) || extensions.has(key)) throw new Error('Duplicate exam extension'); extensions.set(key, extension);
     }
     const seen = new Set(), questions = record.questions.map(row => {
       routeId(row.id); if (seen.has(row.id) || typeof row.title !== 'string' || !/^[a-f0-9]{64}$/.test(row.fingerprint) || !Object.hasOwn(row, 'data')) throw new Error('Invalid frozen exam question'); seen.add(row.id);
@@ -53,6 +56,7 @@ export class ExamSessions {
   }
   describe(extension) {
     const value = { id: extension.id, version: extension.version, name: extension.name, description: extension.description, fingerprint: extension.fingerprint, providerRevision: extension.providerRevision, outlineItemsDeclared: extension.outlineItemsDeclared, ...(extension.answerStateDeclared ? {answerStateDeclared:true} : {}), dependencies: cloneJson(extension.dependencies) };
+    if (extension.referencePath) { value.referencePath = extension.referencePath; value.key = packageIdentity(extension); }
     for (const key of ['entry', 'script', 'style', 'rules', 'questionSchema', 'answerSchema']) if (extension[key]) value[key] = path.relative(extension.directory, extension[key]).replaceAll('\\', '/'); if (extension.contentApi) value.contentApi = cloneJson(extension.contentApi); return value;
   }
   copyPackage(source, target) {
@@ -83,8 +87,8 @@ export class ExamSessions {
     if (!source.features.history) this.temporary.checkAdmission(0);
     const examId = randomUUID(), now = this.now(), record = { id: examId, bankKind: source.kind, bankId: source.id, title: source.title, description: source.description, requestId, startedAt: new Date(now).toISOString(), status: 'in-progress', durationMinutes: request.durationMinutes, features: source.features.json(), ...(!source.features.history ? { pageSession } : {}), deadline: request.durationMinutes === null ? null : new Date(now + request.durationMinutes * 60000).toISOString(), packages: [], questions: [] };
     try {
-      for (const extension of source.extensions) { const pkg = this.describe(extension); pkg.folder = 'packages/' + extension.fingerprint + '/' + path.basename(extension.directory); this.copyPackage(extension.directory, path.join(this.directory, examId, pkg.folder)); record.packages.push(pkg); }
-      for (const question of source.questions) { if (source.kind.startsWith('development')) this.copyImages(question.data); record.questions.push({ id: question.id, title: question.title, fingerprint: question.fingerprint, package: source.extensionFor(question).fingerprint, data: cloneJson(question.data), ...(question.outline ? { outline: cloneJson(question.outline) } : {}), outlineItems: cloneJson(question.outlineItems) }); }
+      for (const extension of source.extensions) { const pkg = this.describe(extension); pkg.folder = 'packages/' + packageIdentity(extension) + '/' + path.basename(extension.directory); this.copyPackage(extension.directory, path.join(this.directory, examId, pkg.folder)); record.packages.push(pkg); }
+      for (const question of source.questions) { if (source.kind.startsWith('development')) this.copyImages(question.data); record.questions.push({ id: question.id, title: question.title, fingerprint: question.fingerprint, package: packageIdentity(source.extensionFor(question)), data: cloneJson(question.data), ...(question.outline ? { outline: cloneJson(question.outline) } : {}), outlineItems: cloneJson(question.outlineItems) }); }
       const frozen = this.restore(record);
       if (!source.features.history) {
         const memory = StateStore.memory(this.root, this.states.rules), resources = new ResourceStore(this.root, { memory: true, fallback: this.library.resources }), gateway = this.resourceGateway ? this.resourceGateway(resources) : this.ai.gateway, ai = this.ai.temporary(this.root, memory, gateway), routes = new CollectionRoutes(this.library, memory, ai, this.writes, this.automaticAi), runtime = { states: memory, ai, resources, routes, bytes: () => memory.memoryBytes() + ai.memoryBytes() + resources.memoryBytes(), close: () => { ai.close(); memory.clearMemory(); resources.clearMemory(); } };
@@ -93,7 +97,8 @@ export class ExamSessions {
       record.questionCount = record.questions.length; await this.store(record).overview(frozen); this.persist(record); this.records.set(examId, record); this.cache(frozen); return this.publicRecord(record);
     } catch (error) { this.temporary.discard(examId); if (!source.features.history) this.cleanupTemporarySnapshot(examId); if (error instanceof ApiError) throw error; throw new ApiError(500, 'EXAM_START_FAILED', '无法保存考试快照，原练习进度未改变。'); }
   }
-  async list(kind, bankId, pageSession = null) { await this.tick(); this.temporary.touchPage(pageSession, false); return { records: [...this.records.values()].filter(record => record.status !== 'deleted' && (record.bankKind === kind || record.bankKind === 'development-bank' && kind === 'bank') && record.bankId === bankId && (record.features?.history !== false || record.pageSession === pageSession)).sort((a, b) => b.startedAt.localeCompare(a.startedAt)).map(record => this.publicRecord(record)) }; }
+  bankFor(record) { return this.library.bankLocations?.historical(record.bankId, record.startedAt) ?? record.bankId; }
+  async list(kind, bankId, pageSession = null) { await this.tick(); this.temporary.touchPage(pageSession, false); return { records: [...this.records.values()].filter(record => record.status !== 'deleted' && (record.bankKind === kind || record.bankKind === 'development-bank' && kind === 'bank') && this.bankFor(record) === bankId && (record.features?.history !== false || record.pageSession === pageSession)).sort((a, b) => b.startedAt.localeCompare(a.startedAt)).map(record => this.publicRecord(record)) }; }
   async submit(id) { const record = this.require(id); await this.advance(record); await this.handIn(record, 'manual'); return this.publicRecord(record); }
   delete(id, pageSession) {
     this.expireTemporary(); const record = this.records.get(id); if (!record || record.features?.history === false && record.pageSession !== pageSession) throw new ApiError(404, 'COLLECTION_NOT_FOUND', '考试记录不存在。'); if (record.features?.history === false) requireOwner(pageSession);
@@ -125,7 +130,7 @@ export class ExamSessions {
     record.summary = summary.finished ? { ...summary, historyId: collection.features.history ? summary.roundId : null } : await states.finish(collection, { requestId: 'exam-finish-' + collection.id, summaryVersion: summary.summaryVersion, roundId: summary.roundId }); Object.assign(record, { status: 'completed', finishedAt: new Date(this.now()).toISOString() }); this.persist(record);
   }
   static isHistoryId(id) { return /^exam-[a-f0-9-]{36}$/.test(id); }
-  belongsToHistory(record, kind, bankId) { return (record.bankKind === kind || record.bankKind === 'development-bank' && kind === 'bank') && record.bankId === bankId && record.status === 'completed' && record.features?.history !== false && typeof record.summary?.historyId === 'string'; }
+  belongsToHistory(record, kind, bankId) { return (record.bankKind === kind || record.bankKind === 'development-bank' && kind === 'bank') && this.bankFor(record) === bankId && record.status === 'completed' && record.features?.history !== false && typeof record.summary?.historyId === 'string'; }
   historyRecord(exam, entry) { return { ...cloneJson(entry), id: 'exam-' + exam.id, mode: 'exam', examId: exam.id, createdAt: exam.startedAt, updatedAt: exam.finishedAt }; }
   async appendHistory(kind, bankId, history) { await this.tick(); const records = [...history.records]; for (const record of this.records.values()) if (this.belongsToHistory(record, kind, bankId)) for (const row of (await this.states.history('exam', record.id)).records) if (row.id === record.summary.historyId) records.push(this.historyRecord(record, row)); records.sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt)); return { ...history, records }; }
   async history(kind, bankId, id, remove) { const record = this.records.get(id.slice(5)); if (!record || !this.belongsToHistory(record, kind, bankId)) throw new ApiError(404, 'HISTORY_NOT_FOUND', '考试历史记录不存在。'); if (remove) { await this.states.deleteHistory('exam', record.id, record.summary.historyId); return { deleted: id }; } return this.historyRecord(record, await this.states.history('exam', record.id, record.summary.historyId)); }

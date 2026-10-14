@@ -24,6 +24,25 @@ async function fixture(t, history = true, activeReports = false) {
   t.after(() => { exams.close(); ai.close(); library.close(); engine.close(); assert.ok(within(temporaryRoot, root) && root !== temporaryRoot); fs.rmSync(root, { recursive: true, force: true }); }); return { root, exams, states, library, ai, writes, routes, options, source, advance: milliseconds => now += milliseconds };
 }
 function context(body, owner) { return { body, request: { headers: { ...(owner ? { 'x-quizforge-practice-session': owner } : {}) } }, url: new URL('http://127.0.0.1/') }; }
+test('same runtime code in distinct extension paths remains independently frozen in an exam',async t=>{
+ const f=await fixture(t),directory=path.join(f.root,'extensions/choice');
+ fs.cpSync(directory,path.join(f.root,'extensions/second'),{recursive:true});
+ const file=path.join(f.root,'question-banks/bank.json'),raw=readJson(file);
+ raw.extension={id:raw.extension.id,path:'extensions/choice'};raw.questions[1].extension={id:raw.extension.id,path:'extensions/second'};fs.writeFileSync(file,jsonBytes(raw));
+ const source=await f.library.collection('bank','bank');assert.equal(source.extensions.length,2);assert.equal(source.extensions[0].fingerprint,source.extensions[1].fingerprint);
+ const started=await f.exams.start(source,{requestId:'exam-path-bindings',durationMinutes:null}),frozen=f.exams.collection(started.id);
+ assert.equal(frozen.extensions.length,2);assert.equal(frozen.questions[1].extension.referencePath,'extensions/second');
+ const reopened=new ExamSessions(f.root,f.library,f.states,f.ai,f.routes,f.writes,()=>false,f.options);t.after(()=>reopened.close());assert.equal(reopened.collection(started.id).extensions.length,2);
+});
+test('moving a UUID bank retains the unfinished exam association without rewriting its snapshot',async t=>{
+ const f=await fixture(t),file=path.join(f.root,'question-banks/bank.json'),raw=readJson(file);raw.id='a6c9d20d-77e8-466c-945c-10bc6c978791';fs.writeFileSync(file,jsonBytes(raw));
+ await f.library.manage({kind:'bank',action:'create',target:'group',name:'One'});await f.library.manage({kind:'bank',action:'create',target:'group',name:'Two'});
+ await f.library.manage({kind:'bank',action:'update',target:'item',path:'bank.json',name:raw.title,group:'One'});
+ const row=f.library.index().banks[0],source=await f.library.collection('bank',row.id),started=await f.exams.start(source,{requestId:'exam-moving-bank',durationMinutes:null});
+ const snapshot=path.join(f.root,'.state/exams',started.id,'snapshot.json'),before=fs.readFileSync(snapshot);
+ const result=await f.library.manage({kind:'bank',action:'update',target:'item',path:row.path,name:raw.title,group:'Two'}),newId=result.catalog.banks[0].id;
+ assert.equal((await f.exams.list('bank',newId)).records[0].id,started.id);assert.equal((await f.exams.list('bank',row.id)).records.length,0);assert.deepEqual(fs.readFileSync(snapshot),before);
+});
 test('exam snapshots retain active answer-state capability and reload saved child progress without scoring', async t => {
  const {exams,source,states,root,library,ai,routes,writes,options}=await fixture(t,true,true);
  assert.equal(source.extensions[0].answerStateDeclared,true);source.questions[0].outlineItems=[{id:'a',label:'1'},{id:'b',label:'2'}];

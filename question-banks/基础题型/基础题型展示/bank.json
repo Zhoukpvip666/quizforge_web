@@ -1,6 +1,7 @@
 {
   "formatVersion": 1,
-  "id": "basic-types-showcase-v2",
+  "id": "9ca3e69d-4991-4151-be9f-ed9ea48a324f",
+  "version": "1.0.0",
   "title": "基础题型展示库",
   "description": "四种基础题型：单选、简答、多选、判断。包含文字、图片、公式、表格及共享材料示例，支持作答保存、评分、编辑、白板、历史和考试。",
   "features": {
@@ -149,7 +150,7 @@
       },
       "extension": {
         "id": "quizforge.single-choice",
-        "version": "2.0.0"
+        "path": "extensions/single-choice-richtext"
       }
     },
     {
@@ -326,7 +327,7 @@
       },
       "extension": {
         "id": "quizforge.single-choice",
-        "version": "2.0.0"
+        "path": "extensions/single-choice-richtext"
       }
     },
     {
@@ -938,7 +939,7 @@
       },
       "extension": {
         "id": "quizforge.single-choice",
-        "version": "2.0.0"
+        "path": "extensions/single-choice-richtext"
       }
     },
     {
@@ -1024,7 +1025,7 @@
       },
       "extension": {
         "id": "quizforge.short-answer",
-        "version": "2.0.0"
+        "path": "extensions/short-answer-richtext"
       }
     },
     {
@@ -1118,24 +1119,15 @@
       },
       "extension": {
         "id": "quizforge.short-answer",
-        "version": "2.0.0"
+        "path": "extensions/short-answer-richtext"
       }
     },
     {
       "id": "short-sample-material",
       "title": "共享材料：两个小问",
       "outline": {
-        "level": "parts",
-        "items": [
-          {
-            "id": "average",
-            "label": "6.1"
-          },
-          {
-            "id": "reasoning",
-            "label": "6.2"
-          }
-        ]
+        "level": "question",
+        "label": "6"
       },
       "data": {
         "formatVersion": 1,
@@ -1378,7 +1370,7 @@
       },
       "extension": {
         "id": "quizforge.short-answer",
-        "version": "2.0.0"
+        "path": "extensions/short-answer-richtext"
       }
     },
     {
@@ -1518,7 +1510,7 @@
       },
       "extension": {
         "id": "quizforge.multiple-choice",
-        "version": "2.0.0"
+        "path": "extensions/multiple-choice-richtext"
       }
     },
     {
@@ -1928,7 +1920,7 @@
       },
       "extension": {
         "id": "quizforge.multiple-choice",
-        "version": "2.0.0"
+        "path": "extensions/multiple-choice-richtext"
       }
     },
     {
@@ -1973,7 +1965,7 @@
       },
       "extension": {
         "id": "quizforge.true-false",
-        "version": "2.0.0"
+        "path": "extensions/true-false-richtext"
       }
     },
     {
@@ -2058,7 +2050,7 @@
       },
       "extension": {
         "id": "quizforge.true-false",
-        "version": "2.0.0"
+        "path": "extensions/true-false-richtext"
       }
     }
   ]

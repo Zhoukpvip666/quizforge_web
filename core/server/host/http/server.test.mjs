@@ -26,6 +26,27 @@ async function fixture(t, options = {}) {
 }
 const rawGet = (port, uri, headers = {}) => new Promise((resolve, reject) => { const request = http.get({ host: '127.0.0.1', port, path: uri, headers }, response => { const bytes = []; response.on('data', chunk => bytes.push(chunk)); response.on('end', () => resolve({ status: response.statusCode, data: Buffer.concat(bytes).toString() })); }); request.on('error', reject); });
 
+test('desktop graceful shutdown finishes an accepted save and its HTTP response before releasing the directory', async t => {
+  const { api, service, root, raw } = await fixture(t);
+  const question = '/api/collections/bank/bank1/questions/' + raw.questions[0].id;
+  const initial = (await api(question)).data;
+  let release, entered;
+  const gate = new Promise(resolve => release = resolve), started = new Promise(resolve => entered = resolve);
+  const act = service.states.act.bind(service.states);
+  service.states.act = (...args) => service.states.transactions.run(async () => { entered(); await gate; return act(...args); });
+  const saving = api(question + '/actions', { method: 'POST', body: { action: 'draft', requestId: 'tray-save', revision: initial.state.revision, data: { answer: { selectedOptionId: 'B' } } } });
+  await started;
+  const closing = service.close({ graceful: true });
+  assert.equal(service.close({ graceful: true }), closing);
+  assert.equal(service.engine.closed, false);
+  assert.equal(fs.existsSync(path.join(root, '.state/host.lock')), true);
+  release(); const response = await saving;
+  assert.equal(response.status, 200, JSON.stringify(response.data));
+  await closing; assert.equal(service.engine.closed, true);
+  assert.equal(fs.existsSync(path.join(root, '.state/host.lock')), false);
+  assert.deepEqual(response.data.state.answer, { selectedOptionId: 'B' });
+});
+
 test('conditional question reads reuse one checked binding and return updated answers on a stale stamp', async t => {
   const {api, service, raw} = await fixture(t);
   const q = '/api/collections/bank/bank1/questions/' + raw.questions[0].id;
@@ -149,6 +170,18 @@ test('HTTP group export and import transport the native qbank stream and install
   const response = await fetch('http://127.0.0.1:' + other.service.port() + '/api/library/import', { method: 'POST', headers: { 'Content-Type': archiveMime }, body: archive.data });
   const imported = await response.json(); assert.equal(response.status, 200, JSON.stringify(imported)); assert.equal(imported.importedBanks, 1); assert.equal(imported.importedExtensions, 1);
   assert.equal((await other.api('/api/collections/bank/bank1')).status, 200);
+});
+test('HTTP v2 import previews version choices and commits only the confirmed plan',async t=>{
+ const source=await fixture(t),target=await fixture(t),bankId='18a9f141-87f4-4772-8d9e-5471998828cc';
+ const raw={...source.raw,id:bankId,version:'1.0'};fs.writeFileSync(path.join(source.root,'question-banks/bank.json'),jsonBytes(raw));source.service.library.invalidate();
+ await source.api('/api/library/manage',{method:'POST',body:{kind:'bank',action:'create',target:'group',name:'Package v2'}});
+ assert.equal((await source.api('/api/library/manage',{method:'POST',body:{kind:'bank',action:'update',target:'item',path:'bank.json',name:raw.title,group:'Package v2'}})).status,200);
+ const exported=await source.api('/api/library/export',{method:'POST',body:{group:'Package v2'}});assert.equal(exported.status,200);
+ const upload=async()=>{const response=await fetch('http://127.0.0.1:'+target.service.port()+'/api/library/import',{method:'POST',headers:{'Content-Type':archiveMime},body:exported.data});assert.equal(response.status,200);return response.json();};
+ assert.equal((await upload()).importedBanks,1);
+ const plan=await upload();assert.equal(plan.needsConfirmation,true);assert.equal(plan.conflicts[0].incomingVersion,'1.0');assert.equal(plan.conflicts[0].existingVersion,'1.0');
+ const committed=await target.api('/api/library/import/commit',{method:'POST',body:{importId:plan.importId,choices:{[bankId]:'keep'}}});assert.equal(committed.status,200);assert.equal(committed.data.skippedBanks,1);
+ const repeated=await target.api('/api/library/import/commit',{method:'POST',body:{importId:plan.importId,choices:{[bankId]:'keep'}}});assert.equal(repeated.status,410);
 });
 
 test('HTTP persists frozen draft layout and ink through history and restart, with legacy compatibility',async t=>{

@@ -140,7 +140,7 @@ test('latest extension preview coexists with banks pinned to older installed ver
   const bank = readJson(path.join(source, manifest.examples)); bank.id = 'old-pinned-bank'; fs.writeFileSync(path.join(root, 'question-banks', 'old.json'), jsonBytes(bank));
   assert.equal((await library.collection('extension', 'quizforge.single-choice')).extension.version, '1.0.1');
   assert.equal((await library.collection('bank', bank.id)).extension.version, '1.0.0');
-  assert.equal(library.index().extensions[0].version, '1.0.1');
+  assert.deepEqual(library.index().extensions.map(row => row.version).sort(), ['1.0.0', '1.0.1']);
   assert.equal((await library.page('quizforge.single-choice', '1.0.0')).html.includes('提交'), true);
 });
 

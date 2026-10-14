@@ -24,7 +24,7 @@ export function scanBanks(root) {
       const item = path.join(directory, name), stat = fs.lstatSync(item);
       if (stat.isSymbolicLink()) throw new Error('题库目录不能包含链接');
       if (stat.isDirectory()) visit(item, depth + 1);
-      else if (name.endsWith('.json')) { checkPath(item); banks.push(item); }
+      else if (name.endsWith('.json') && !name.startsWith('.')) { checkPath(item); banks.push(item); }
       if (banks.length > 1000) throw new Error('题库数量不能超过 1000');
     }
   }

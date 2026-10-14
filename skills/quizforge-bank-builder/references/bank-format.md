@@ -26,23 +26,24 @@ question-banks/my-exam/
 ```json
 {
   "formatVersion": 1,
-  "id": "my-exam-2026",
+  "id": "136832c4-69e0-4ef9-9b72-e86ce4317405",
+  "version": "1.0.0",
   "title": "我的练习",
   "description": "可选的说明",
   "questions": [
     {
       "id": "q-001",
       "title": "题目的简短名称",
-      "extension": {"id": "quizforge.single-choice", "version": "1.0.0"},
+      "extension": {"id": "f7aa4878-0e49-4f2f-a6d5-c6a7636b24ca", "path": "extensions/single-choice"},
       "data": {}
     }
   ]
 }
 ```
 
-`data` 必须按对应独立拓展的 schema 填写。根对象可以有 `extension` 作为默认绑定，每题的 `extension` 优先；没有根绑定时每题都必须有绑定。统一引用是精确 `{id,version}`，不支持 `latest`、范围或只填 id。不同题可以引用同组或跨组的独立拓展，物理分组名和路径不进入绑定，不使用 `typeId` 或 `extensionGroup`。见 [独立拓展与分组](extension-development.md)，题型 data 直接参考 [单选题已有样例](../../../extensions/基础题型/single-choice-richtext/examples/bank.json) 与 [简答题已有样例](../../../extensions/基础题型/short-answer-richtext/examples/bank.json)，再按实际安装的 Schema 填写；构建混合库时逐题声明各自绑定，不另建技能样例库。
+`data` 按对应拓展 schema 填写。根默认 `extension` 与逐题覆盖均用 `{id,path}`，path 相对数据根目录；无默认时每题必须声明。不支持 latest、版本范围、只填 id、typeId 或 extensionGroup。题型 data 参考已有基础样例，再按实际 Schema 填写；混合库逐题绑定，不另建技能样例库。见[独立拓展与分组](extension-development.md)。
 
-旧 extension:{"development":"叶名"} 仅兼容读取，按全局唯一叶名解析到 Manifest；新题库用精确 ID/version。管理入口开关不影响加载，导出自动规范化绑定。骨架结构预览使用 --preview-only；它不代表真实保存、评分或界面验收通过。
+旧 `{id,version}` 和 `extension:{"development":"叶名"}` 兼容读取，多个候选时应改为准确路径。新题库用 `{id,path}`。管理入口不影响加载，导出在暂存副本规范化绑定。`--preview-only` 不代表真实保存、评分或界面验收。
 
 - bank/question id：`^[A-Za-z0-9][A-Za-z0-9._-]{0,119}$`，同题库题 ID 唯一。
 - 顶层 `formatVersion` 当前只支持数字整数 `1`；旧文件缺省按 `1` 读取，不补写。仅为新题库和新拓展示例显式添加；与题型内部 `data.formatVersion` 相互独立。
@@ -64,21 +65,18 @@ question-banks/
     第二份练习/
       bank.json
 extensions/
-  我的题库组/                      # 可选：本次获准新建的独立拓展
-    choice-dev/
-      manifest.json
-      development.json
-      examples/bank.json
-    reading-dev/
-      ...
+  choice/                         # 获准新建时直接存放，无物理分组
+    manifest.json
+    examples/bank.json
+  reading/
+    ...
 ```
 
-- 分组只是实际文件夹，不另造 group 清单、ID、共同版本或分组内分组。含 `bank.json` 的目录是题库叶，内部 assets 不算分组；分组下也可放普通题库 JSON。目录名使用合法文件名，不与现有文件或叶目录冲突。
-- 一组可包含多本题库，每本保持独立 ID、题序和 features。题库分组与拓展分组独立；本次相关新拓展建议放入同名组，但每个题型仍是独立拓展与自己的同题型样例。复用已安装拓展时按精确 ID／版本引用，允许跨组，不搬动或修改其他拓展来强求目录一致。开发目录也只能在用户授权的位置创建。
-- 第一版只导出**题库分组**，不单独导出一本题库或拓展分组。需要可导入的共享包时，优先通过应用本机分组导出生成 `.qbank`；它自动收集所有正式依赖及图片，将不同来源的拓展复制到包内的同名拓展分组，原安装位置和绑定不变。仅复制现有正式叶作交付，不合并多个题型的规则或样例，也不重建／改写正式代码。
-- 引用开发叶的题库不能导出；必须先完成验证并另获用户发布许可，再使用精确正式绑定。不得为打包擅自移除开发标记、升级已有题库或发布未验收拓展。
-- 包使用 ZIP 容器，根含 `quizforge-package.json`，标识为 `{"format":"quizforge-bank-group","formatVersion":1,"group":"我的题库组"}`；另含 `question-banks/<分组>/<题库ID>/` 与 `extensions/<同名分组>/<拓展ID>@<版本>/`。普通 ZIP 改后缀不能代替完整包。不能调用实际导出时，交付已校验的目录与导出步骤，明确尚未生成或验证 `.qbank`。
-- 包不含练习答案、得分、白板、历史或 AI／网络设置，不把 `.state` 放入交付。导入校验后安装；相同身份且内容一致跳过，内容不同或目标冲突拒绝，不覆盖。尺寸限制与用户操作见产品 README 的“题库分组导入与导出”。
+- 题库分组为一层物理目录，含 `.group.json` 稳定 UUID；题库含稳定 UUID、作者版本。同分组题库 UUID 与标题各自唯一，复制独立题库需新 UUID；不建嵌套分组。
+- 拓展为独立实体，逻辑分组不搬代码。题库通过 `{id,path}` 精确引用实际实体，path 相对数据根目录。复用基础拓展不改其文件；目录创建和既有数据迁移仍需用户授权。
+- 只按题库分组导出 `.qbank`；自动收集关联拓展，格式 2 包平铺到 `extensions/<实际目录>/`，题库保留分组及其 UUID；源文件不改变，没有开发/正式导出限制。
+- 包清单含 `format:"quizforge-bank-group"`、`formatVersion:2`、`group:{id,name}`、`extensions:[{path,id,version,hash}]`；普通 ZIP 改后缀不能替代完整包。旧非 UUID 数据继续旧格式兼容，不自动迁移。无法实际导出时只交付校验目录和操作步骤。
+- 不包含作答、白板、历史或设置。同组题库按 UUID、版本决定保留/替换；拓展 UUID/哈希一致复用，否则新增并处理实际目录冲突。完整规则及迁移交接见[宿主导入导出约定](../../../core/docs/reference/LIBRARY_PACKAGES.md)。
 
 逐本运行 validator，核对整组题库的所有依赖及资源；单本通过不等于整组已验证。实际生成包后核对其结构与分组、题库数量和依赖，并如实说明是否在隔离位置验证导入。交付报告列出分组名、每库路径／ID、依赖精确版本、包路径及检查结果。所有暂存／解包与验证中间文件仍只放 SKILL.md 指定的 `.temp`，最终目录与包放用户确认的交付位置。
 
@@ -112,8 +110,8 @@ extensions/
 
 | 参考叶 | 查看内容 |
 | --- | --- |
-| [single-choice-richtext](../../../extensions/基础题型/single-choice-richtext) | 富文本题干、选项、正确选项 ID、答案与解析、满分，以及已有文字/图片/公式/表格样例 |
-| [short-answer-richtext](../../../extensions/基础题型/short-answer-richtext) | 可选共享材料、稳定小题 ID、富文本题干与答案解析、各小题满分，以及单问/多问样例 |
+| [single-choice-richtext](../../../extensions/single-choice-richtext) | 富文本题干、选项、正确选项 ID、答案与解析、满分，以及已有文字/图片/公式/表格样例 |
+| [short-answer-richtext](../../../extensions/short-answer-richtext) | 可选共享材料、稳定小题 ID、富文本题干与答案解析、各小题满分，以及单问/多问样例 |
 
 读取 manifest.examples 对应文件及 question.schema.json、answer.schema.json、rules.js；按实际文件核对必填项、资源、答案结构、分值范围与步长，不把旧纯文本单选或旧简答 referenceAnswer/rubric 结构套给新题型。
 

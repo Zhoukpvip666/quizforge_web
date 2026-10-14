@@ -18,7 +18,7 @@ const object = value => value !== null && typeof value === 'object' && !Array.is
 const digest = value => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value);
 const ownSet = (object, name, value) => Object.defineProperty(object, name, { value, enumerable: true, configurable: true, writable: true });
 const increment = value => { if (!Number.isSafeInteger(value) || value < 0 || value === Number.MAX_SAFE_INTEGER) throw new ApiError(409, 'REVISION_LIMIT', 'Question revision limit reached; previous data is preserved'); return value + 1; };
-export const extensionMetadata = extension => ({ id: extension.id, version: extension.version, name: extension.name, ...(extension.development ? { development: cloneJson(extension.development) } : {}) });
+export const extensionMetadata = extension => ({ id: extension.id, version: extension.version, name: extension.name, ...(extension.referencePath ? { path: extension.referencePath, pageId: extension.pageId ?? extension.id } : {}), ...(extension.development ? { development: cloneJson(extension.development) } : {}) });
 function collectionMetadata(collection) { return { features: collection.features.json(), ...(collection.kind.startsWith('development') && collection.extension ? { development: cloneJson(collection.extension.development) } : {}), extension: collection.extension ? extensionMetadata(collection.extension) : null, extensions: collection.extensions.map(extensionMetadata) }; }
 export const publicState = state => cloneJson({ status: state.status, revision: state.revision, answer: state.answer, result: state.result, ...(state.status !== 'submitted' && state.answerState ? {answerState: state.answerState} : {}) });
 export function questionState(persisted, collection, question) { return Object.hasOwn(persisted.questions, question.id) ? persisted.questions[question.id] : { status: 'unanswered', revision: 0, fingerprint: question.fingerprint, answer: null, result: null, draft: null, receipts: [] }; }
@@ -90,7 +90,7 @@ export class StateStore {
       const fresh = { schemaVersion: 1, collection: key, extensionFingerprint: collection.extensionFingerprint, questions: {} }, file = this.file(collection);
       let value = this.memoryOnly || !exists(file) ? fresh : readJson(file, 32 * 1024 * 1024);
       if (!this.memoryOnly && !exists(file) && collection.legacyCollection) {
-        const legacy = collection.legacyCollection, oldFile = path.join(this.root, '.development', '.state', hash(Buffer.from(legacy.stateKey())) + '.json');
+        const legacy = collection.legacyCollection, currentFile = this.file(legacy), oldFile = exists(currentFile) ? currentFile : path.join(this.root, '.development', '.state', hash(Buffer.from(legacy.stateKey())) + '.json');
         if (exists(oldFile)) {
           const old = readJson(oldFile, 32 * 1024 * 1024); validateSaved(old, legacy.stateKey());
           // Preserve the original file and frozen history; migrate only current
@@ -146,7 +146,7 @@ export class StateStore {
     const mac = createHmac('sha256', this.stampKey);
     for (const field of fields) { const bytes = Buffer.from(field ?? ''), size = Buffer.alloc(4); size.writeUInt32BE(bytes.length); mac.update(size).update(bytes); } return mac.digest('hex');
   }
-  stampValue(collection, question, state) { const extension = collection.extensionFor(question); return { revision: state.revision, contentVersion: this.opaqueVersion('question', collection.stateKey(), question.id, question.title, question.fingerprint), packageVersion: this.opaqueVersion('package', extension.id, extension.version, extension.fingerprint, extension.providerRevision) }; }
+  stampValue(collection, question, state) { const extension = collection.extensionFor(question); return { revision: state.revision, contentVersion: this.opaqueVersion('question', collection.stateKey(), question.id, question.title, question.fingerprint), packageVersion: this.opaqueVersion('package', extension.id, extension.version, extension.fingerprint, extension.providerRevision, extension.referencePath ?? '') }; }
   async stamp(collection, question) { return this.stampValue(collection, question, questionState(this.load(collection), collection, question)); }
   outlineVersion(collection, question, state) { const visible = publicState(state); delete visible.revision; return fingerprint(visible, question.fingerprint + ':' + collection.extensionFor(question).fingerprint); }
   cacheOutline(collection, question, state, score) {
@@ -194,12 +194,12 @@ export class StateStore {
     return { features: collection.features.json(), question: { id: question.id, title: question.title, data: projected }, state: visibleState ?? (await this.publicStates(collection, [question], [state]))[0], draft: cloneJson(state.draft), stamp: this.stampValue(collection, question, state), capabilities: persisted ? await this.reviewCapabilities(collection, question, state, persisted) : { canReview: false, canAiGrade: false }, aiTask: typeof state.aiTaskId === 'string' ? { taskId: state.aiTaskId } : null, ...(object(state.aiTaskIds) ? { aiTasks: cloneJson(state.aiTaskIds) } : {}), extension: extensionMetadata(collection.extensionFor(question)) };
   }
   question(collection, question) { return this.response(collection, question, questionState(this.load(collection), collection, question)); }
-  historyEntry(collection, question) { const extension = collection.extensionFor(question); return collection.extension ? {} : { pageKey: pageKey(extension.id, extension.version, extension.fingerprint) }; }
+  historyEntry(collection, question) { const extension = collection.extensionFor(question); return collection.extension ? {} : { pageKey: pageKey(extension.id, extension.version, extension.fingerprint, null, extension.referencePath ?? null) }; }
   freezePages(round, collection) {
     declareApi(round); Object.assign(round, collectionMetadata(collection));
     try {
       if (collection.extension) round.page = snapshotPage(collection.extension);
-      else round.pages = Object.fromEntries(collection.extensions.map(extension => [pageKey(extension.id, extension.version, extension.fingerprint), { ...snapshotPage(extension), extension: { ...extensionMetadata(extension), fingerprint: extension.fingerprint } }]));
+      else round.pages = Object.fromEntries(collection.extensions.map(extension => [pageKey(extension.id, extension.version, extension.fingerprint, null, extension.referencePath ?? null), { ...snapshotPage(extension), extension: { ...extensionMetadata(extension), fingerprint: extension.fingerprint } }]));
     } catch (error) { throw new ApiError(422, 'INVALID_EXTENSION', 'Practice page cannot be frozen for history; submission was not saved', { cause: error }); }
   }
   async freezeRound(collection, persisted, states) {

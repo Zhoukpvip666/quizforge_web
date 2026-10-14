@@ -7,12 +7,13 @@
 ```json
 {
   "formatVersion": 1,
-  "id": "my-practice",
+  "id": "136832c4-69e0-4ef9-9b72-e86ce4317405",
+  "version": "1.0.0",
   "title": "我的练习",
   "questions": [{
     "id": "q1",
     "title": "整数除法",
-    "extension": {"id": "quizforge.single-choice", "version": "1.0.0"},
+    "extension": {"id": "f7aa4878-0e49-4f2f-a6d5-c6a7636b24ca", "path": "extensions/single-choice"},
     "outline": {"level": "question", "label": "1"},
     "data": {
       "stem": "Java 中 7 / 2 的结果是什么？",
@@ -25,17 +26,18 @@
 }
 ```
 
-| 字段 | 约束 |
-| --- | --- |
-| `formatVersion` | 整数 1；旧文件省略时按 1 读取 |
-| `id` | 题库与顶层题目稳定身份，匹配 `^[A-Za-z0-9][A-Za-z0-9._-]{0,119}$`；同库题目 ID 唯一 |
-| `title` | 非空，最多 300 字符；每题仍需标题元数据 |
-| `description` | 可选说明 |
-| `questions` | 按题序排列，1–10000 项；每项独立保存和提交，组合题小问留在父题 data 内 |
-| `extension` | 统一 `{id,version}`；旧 `{development:"叶名"}` 仅兼容读取，逐题声明优先于根默认绑定 |
-| `data` | 对应拓展的 question schema 与规则定义，宿主不规定内部字段 |
+| 字段              | 约束                                                                                                                       |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `formatVersion` | 整数 1；旧文件省略时按 1 读取                                                                                              |
+| `id`            | 新题库使用稳定 UUID，同分组唯一；题目 ID 仍匹配`^[A-Za-z0-9][A-Za-z0-9._-]{0,119}$`，同库唯一；旧字符串题库 ID 兼容读取  |
+| `version`       | 作者维护的题库版本，导入按数字段比较；旧文件可缺省                                                                         |
+| `title`         | 非空，最多 300 字符；每题仍需标题元数据                                                                                    |
+| `description`   | 可选说明                                                                                                                   |
+| `questions`     | 按题序排列，1–10000 项；每项独立保存和提交，组合题小问留在父题 data 内                                                    |
+| `extension`     | 新绑定`{id,path}`，path 相对数据根目录；旧 `{id,version}`、`{development:"叶名"}` 兼容读取，逐题声明优先于根默认绑定 |
+| `data`          | 对应拓展的 question schema 与规则定义，宿主不规定内部字段                                                                  |
 
-单份 JSON 最多 8 MiB。无根默认绑定时，每题必须声明拓展；可混用不同分组或版本，绑定不含分组路径。拓展样例只允许精确引用自身，见[拓展开发](EXTENSIONS.md)。
+单份 JSON 最多 8 MiB。无根默认绑定时，每题必须声明拓展；可混用不同实际目录的拓展，移动题库不改变绑定。分组 UUID、包格式、导入选择与迁移要求见[导入导出约定](LIBRARY_PACKAGES.md)。拓展样例只引用自身，见[拓展开发](EXTENSIONS.md)。
 
 ## 整库功能开关
 
@@ -45,12 +47,12 @@
 
 仅允许这四个布尔字段。对象或字段省略时默认 true；仅显式 false 关闭，不支持题目级覆盖。
 
-| 开关 | 关闭后的行为 |
-| --- | --- |
-| `editing` | 禁止题目编辑及对应服务端写请求 |
-| `whiteboard` | 禁止草稿白板及对应写入，答案自动保存不受影响 |
-| `history` | 练习答案、得分、笔迹、完成状态、图片、AI 任务及考试仅留当前页面会话，不生成持久历史 |
-| `exam` | 隐藏开始考试入口，普通练习保留 |
+| 开关           | 关闭后的行为                                                                        |
+| -------------- | ----------------------------------------------------------------------------------- |
+| `editing`    | 禁止题目编辑及对应服务端写请求                                                      |
+| `whiteboard` | 禁止草稿白板及对应写入，答案自动保存不受影响                                        |
+| `history`    | 练习答案、得分、笔迹、完成状态、图片、AI 任务及考试仅留当前页面会话，不生成持久历史 |
+| `exam`       | 隐藏开始考试入口，普通练习保留                                                      |
 
 关闭 history 不删除原有持久数据；若 editing 仍开启，题目及编辑图片仍可写入题库。拓展样例采用相同语义，默认四项全开。考试细节见[考试模式](EXAM_MODE.md)。
 
@@ -91,11 +93,12 @@ node skills/quizforge-bank-builder/scripts/validate-bank.mjs --project . --bank 
 
 ```text
 quizforge-package.json
+question-banks/<分组名>/.group.json
 question-banks/<分组名>/<题库>/bank.json
 question-banks/<分组名>/<题库>/assets/
-extensions/<同名分组>/<相关拓展>/...
+extensions/<实际拓展目录>/...
 ```
 
-标识为 `{format:"quizforge-bank-group",formatVersion:1,group:"分组名"}`。相关拓展不论原所属分组，均收集到同名拓展分组；仅包含声明文件及所需图片，不含用户作答、历史、设置或密钥。引用开发版拓展的题库不能导出。
+格式 2 标识包含 `{format:"quizforge-bank-group",formatVersion:2,group:{id,name},extensions:[{path,id,version,hash}]}`。拓展平铺，仅含关联内容，不含用户作答、历史、设置或密钥。没有开发/正式导出限制；旧非 UUID 数据继续格式 1。版本选择和历史保留规则见[导入导出约定](LIBRARY_PACKAGES.md)。
 
 导入检查格式标识、目录、路径、资源和完整题库规则，处理身份及同名冲突后再安装；不能只按 ZIP 后缀直接解压。上限为上传 64 MiB、解压 128 MiB、单文件 8 MiB、10000 个条目。实现见 `core/server/host/library/library-archive.js`。

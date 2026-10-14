@@ -15,7 +15,7 @@ description: 把 Word、PDF、图片或文本材料制作成 QuizForge Web 题�
 
 ## 基础题型参考
 
-布局、数据结构和样例直接使用产品的 [单选题](../../extensions/基础题型/single-choice-richtext)、[简答题](../../extensions/基础题型/short-answer-richtext)、[多选题](../../extensions/基础题型/multiple-choice-richtext)、[判断题](../../extensions/基础题型/true-false-richtext) 基础拓展。先读取 manifest 指向的 Schema、规则、页面、编辑器及 examples；基础目录不存在时核对实际安装位置，不使用已移除的技能模板或凭空补一套样例。
+布局、数据结构和样例直接使用产品的 [单选题](../../extensions/single-choice-richtext)、[简答题](../../extensions/short-answer-richtext)、[多选题](../../extensions/multiple-choice-richtext)、[判断题](../../extensions/true-false-richtext) 基础拓展。先读取 manifest 指向的 Schema、规则、页面、编辑器及 examples；基础目录不存在时核对实际安装位置，不使用已移除的技能模板或凭空补一套样例。
 
 复用已有题型时直接使用其已有样例验证效果，不新建拓展或重复样例库。获准新建题型后，可复制适合的基础叶到授权位置，维护副本身份、规则及已有 examples 的精确自绑定；不改参考拓展，不在技能内另建 assets 模板。
 
@@ -62,6 +62,8 @@ node "<技能目录>/scripts/validate-bank.mjs" --project "<产品根目录>" --
 
 ## 统一状态、草稿与完成练习
 
-产品不区分开发版／正式版。新题库绑定 Manifest ID/version；development.json 和 development 叶名引用只用于旧数据兼容，不再要求发布后才能导出。只能按题库分组导出 .qbank，关联拓展收集到同名分组。
+产品不区分开发版／正式版。新题库使用稳定 UUID、作者版本及 `{id,path}` 拓展绑定，path 相对数据根目录；旧 ID/version 与叶名引用兼容读取。题库分组含 `.group.json` UUID；只能按题库分组导出 `.qbank`，关联拓展平铺在固定 extensions 文件夹。身份、版本选择及迁移要求见 [宿主导入导出约定](../../core/docs/reference/LIBRARY_PACKAGES.md)，不擅自迁移已有个人数据。
 
 新草稿题卡固定760逻辑像素，不按设备改变换行；宿主管理缩放、平移及笔迹，拓展不按物理设备强制改布局。完成练习会由宿主提交已保存的未提交答案，拓展 grade 负责空答、部分作答及小题汇总。onFlush 必须完整保存输入；待评分保留 pending，可重试 AI 或人工处理。需要验证这条统一提交路径，不只测试页面提交按钮。
+
+拓展无物理分组，每个独立拓展目录直接放在 `extensions/` 下。界面逻辑分组由数据根目录的 `.state/extension-groups.json` 记录；制作题库不需要改此表，也不将它打包交付。分组维护和旧目录兼容见 [拓展分组与绑定](references/extension-development.md#分组与绑定)。

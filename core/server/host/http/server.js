@@ -47,7 +47,7 @@ const listen = (server, port, host) => new Promise((resolve, reject) => {
   const ready = () => { server.off('error', fail); resolve(server); };
   server.once('error', fail); server.once('listening', ready); server.listen({ port, host, backlog: 64, ipv6Only: false });
 });
-const closeServer = server => new Promise(resolve => { if (!server?.listening) return resolve(); server.close(() => resolve()); server.closeAllConnections(); });
+const closeServer = (server, graceful = false) => new Promise(resolve => { if (!server?.listening) return resolve(); server.close(() => resolve()); if (!graceful) server.closeAllConnections(); });
 
 export class QuizForgeServer {
   static async create({ root = '.', host = '127.0.0.1', port = 8080, token = null, node = process.execPath, codeRoot = null } = {}) {
@@ -118,12 +118,18 @@ export class QuizForgeServer {
     // neither opens banks nor retains an unchecked environment across requests.
     this.runtimeWarmup = this.library.environment().catch(() => {});
   }
-  async close() {
-    if (this.closed) return; this.closed = true; this.ready = false; clearInterval(this.timer);
-    this.library?.close(); this.exams?.close(); this.practiceSessions?.close(); this.ai?.close(); this.developmentAi?.close(); this.networkSettings?.invalidateSessions(); this.engine?.close();
-    await Promise.all([closeServer(this.server), closeServer(this.networkServer)]);
-    await Promise.allSettled([...this.handlers ?? [], this.states?.transactions.drain(), this.developmentStates?.transactions.drain(), this.exams?.transactions.drain(), this.library?.managementTransactions.drain()]);
-    if (this.ownsLock && exists(this.lockFile)) { checkPath(this.lockFile); if (readJson(this.lockFile, 4096).nonce === this.lockNonce) fs.unlinkSync(this.lockFile); this.ownsLock = false; }
+  close({ graceful = false } = {}) {
+    if (this.closing) return this.closing;
+    this.closed = true; this.ready = false; clearInterval(this.timer);
+    const dispose = () => { this.library?.close(); this.exams?.close(); this.practiceSessions?.close(); this.ai?.close(); this.developmentAi?.close(); this.networkSettings?.invalidateSessions(); this.engine?.close(); };
+    this.closing = (async () => {
+      if (!graceful) dispose();
+      await Promise.all([closeServer(this.server, graceful), closeServer(this.networkServer, graceful)]);
+      await Promise.allSettled([...this.handlers ?? [], this.states?.transactions.drain(), this.developmentStates?.transactions.drain(), this.exams?.transactions.drain(), this.library?.managementTransactions.drain()]);
+      if (graceful) dispose();
+      if (this.ownsLock && exists(this.lockFile)) { checkPath(this.lockFile); if (readJson(this.lockFile, 4096).nonce === this.lockNonce) fs.unlinkSync(this.lockFile); this.ownsLock = false; }
+    })();
+    return this.closing;
   }
   createPracticeSession() {
     const states = StateStore.memory(this.root, this.engine), resources = new ResourceStore(this.root, { memory: true, fallback: this.resources });
@@ -259,7 +265,12 @@ export class QuizForgeServer {
     if (pathname === '/api/library/index' && method === 'GET') return { ...this.library.index(), canManage: this.canManage(context) };
     if (pathname === '/api/catalog' && method === 'GET') { this.states.recover(); return { ...await this.library.catalog(), canManage: this.canManage(context) }; }
     if (pathname === '/api/library/import' && method === 'POST') { this.requireLocal(context); this.validateOrigin(context); if (context.request.headers['content-type']?.split(';')[0].trim().toLowerCase() !== archiveMime) throw new ApiError(415, 'QBANK_REQUIRED', '请上传 QuizForge .qbank 文件'); return this.namespaceTransaction(() => this.library.importPackage(context.request)); }
-    if (pathname === '/api/library/manage' && method === 'POST') { this.requireLocal(context); const body = await this.writeRequest(context); return this.namespaceTransaction(() => this.library.manage(body)); }
+    if (['/api/library/import/commit', '/api/library/import/cancel'].includes(pathname) && method === 'POST') {
+      this.requireLocal(context); const body = await this.writeRequest(context);
+      const importId = routeId(body.importId);
+      return this.namespaceTransaction(() => pathname.endsWith('/cancel') ? this.library.cancelImport(importId) : this.library.commitImport(importId, body.choices));
+    }
+    if (pathname === '/api/library/manage' && method === 'POST') { this.requireLocal(context); const body = await this.writeRequest(context); return this.namespaceTransaction(async () => { const result = await this.library.manage(body); this.states.clearMemory(); this.developmentStates.clearMemory(); return result; }); }
     if (parts.length === 5 && parts[1] === 'extensions' && parts[4] === 'page' && method === 'GET') return this.library.page(routeId(parts[2]), routeId(parts[3]));
     if (parts.length >= 4 && parts[1] === 'collections') {
       const kind = parts[2], bank = routeId(parts[3]); if (kind === 'exam') return this.exams.route(context, method, parts);

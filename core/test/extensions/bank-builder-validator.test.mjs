@@ -10,6 +10,14 @@ const product=fileURLToPath(new URL('../../../',import.meta.url));
 const script=path.join(product,'skills','quizforge-bank-builder','scripts','validate-bank.mjs');
 const singleChoice=fileURLToPath(new URL('../fixtures/legacy-extensions/single-choice-1.0.0/',import.meta.url));
 const copy=value=>JSON.parse(JSON.stringify(value));
+test('path-bound banks validate the exact entity while unrelated same-ID variants remain independent',t=>{
+ const f=fixture(t),bank=readFixture(f,'bank/bank.json');
+ bank.extension={id:f.manifest.id,path:'extensions/custom'};f.write('bank/bank.json',bank);
+ cpSync(path.join(f.root,'staged/custom'),path.join(f.root,'staged/other'),{recursive:true});
+ f.write('staged/other/practice.css','/* unrelated same ID/version variant */');
+ const result=f.run();assert.equal(result.code,0,JSON.stringify(result.report));assert.equal(result.report.ok,true);
+ bank.extension.path='extensions/../custom';f.write('bank/bank.json',bank);assert.equal(f.run().code,1);
+});
 const requirement={major:1,minMinor:0,documentFormat:1,documentProfile:'advanced-v1',capabilities:['images','tables','math']};
 const service={schemaVersion:1,api:{major:1,minor:0,documentFormat:1},defaultProfile:'advanced-v1',profiles:[
   {id:'basic-v1',provider:{id:'quizforge.richtext',version:'1.0.0'},capabilities:['basic-formatting','images'],legacyVersions:['1.0.0']},
@@ -272,7 +280,7 @@ test('legacy bare UI remains read-only preview input while new tagged skeleton i
 for(const folder of ['single-choice-richtext','short-answer-richtext']){
   test('basic type '+folder+' previews its existing self-bound samples using the declared schema',t=>{
     const f=fixture(t);
-    cpSync(path.join(product,'extensions/基础题型',folder),path.join(f.root,'extensions',folder),{recursive:true});
+    cpSync(path.join(product,'extensions',folder),path.join(f.root,'extensions',folder),{recursive:true});
     const examples=readFixture(f,'extensions/'+folder+'/examples/bank.json');
     f.write('bank/bank.json',{...examples,id:'reference-bank',extension:examples.extension});
     const preview=f.run('--allow-development','--preview-only');

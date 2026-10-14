@@ -15,6 +15,17 @@ import { jsonBytes } from '../platform/json.js';
 const codeRoot = fileURLToPath(new URL('../../../', import.meta.url)), temporaryRoot = path.join(path.dirname(codeRoot), '.temp', 'node-migration');
 function root(t) { safeDirectory(temporaryRoot, true); const directory = fs.mkdtempSync(path.join(temporaryRoot, 'archive-')); fs.mkdirSync(path.join(directory, 'extensions')); fs.mkdirSync(path.join(directory, 'question-banks')); t.after(() => { assert.ok(within(temporaryRoot, directory) && directory !== temporaryRoot); fs.rmSync(directory, { recursive: true, force: true }); }); return directory; }
 async function packageBuffer(entries) { const zip = new yazl.ZipFile(), chunks = []; zip.outputStream.on('data', chunk => chunks.push(chunk)); const ended = once(zip.outputStream, 'end'); for (const [name, bytes] of entries) if (name.endsWith('/')) zip.addEmptyDirectory(name); else zip.addBuffer(Buffer.from(bytes), name); zip.end(); await ended; return Buffer.concat(chunks); }
+test('legacy format fallback exports mixed UUID/string bank IDs with exact path bindings without modifying source banks',async t=>{
+ const sourceRoot=root(t),targetRoot=root(t),leaf=path.join(sourceRoot,'extensions/choice');fs.cpSync(path.join(codeRoot,'test/fixtures/legacy-extensions/single-choice-1.0.0'),leaf,{recursive:true});
+ const group=path.join(sourceRoot,'question-banks/Group');fs.mkdirSync(group);
+ fs.writeFileSync(path.join(group,'.group.json'),jsonBytes({schemaVersion:1,kind:'bank-group',id:'a04a41c3-7374-4a09-9892-1f25e30d24f4'}));
+ const raw=readJson(path.join(leaf,'examples.json'));raw.extension={id:raw.extension.id,path:'extensions/choice'};raw.questions[1].extension={...raw.extension};
+ const ids=['old-bank','419257df-b27f-4979-af8a-dea38a58ceda'],before=[];
+ for(const identity of ids){raw.id=identity;const file=path.join(group,identity+'.json');fs.writeFileSync(file,jsonBytes(raw));before.push([file,fs.readFileSync(file)]);}
+ const engine=await RuleEngine.create(codeRoot);engine.validationEnvironment=async()=>'fixture';const source=new Library(sourceRoot,codeRoot,engine),target=new Library(targetRoot,codeRoot,engine);t.after(()=>{source.close();target.close();engine.close();});
+ const exported=await source.exportGroup('Group');try{const imported=await target.importPackage(fs.readFileSync(exported.file));assert.equal(imported.importedBanks,2);assert.equal(imported.importedExtensions,1);for(const identity of ids){const collection=await target.collection('bank',identity);assert.equal(collection.extensionFor(collection.questions[1]).id,'quizforge.single-choice');}}finally{exported.close();}
+ for(const [file,bytes]of before)assert.deepEqual(fs.readFileSync(file),bytes);
+});
 test('qbank group round-trip keeps IDs and versions; identical import skips and conflicts preserve data', async t => {
   const first = root(t), second = root(t); fs.cpSync(path.join(codeRoot, 'test', 'fixtures', 'legacy-extensions', 'single-choice-1.0.0'), path.join(first, 'extensions', 'choice'), { recursive: true }); const raw = readJson(path.join(first, 'extensions', 'choice', 'examples.json')); raw.id = 'bank'; fs.mkdirSync(path.join(first, 'question-banks', 'Group')); fs.writeFileSync(path.join(first, 'question-banks', 'Group', 'bank.json'), jsonBytes(raw));
   // A bank.json directly inside a directory denotes a bank, so give the group a

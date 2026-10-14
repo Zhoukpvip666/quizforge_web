@@ -44,7 +44,9 @@
             <path
               d="m10 3-.7 2.2-2 .9-2.1-.5-2 3.4 1.5 1.7v2.6l-1.5 1.7 2 3.4 2.1-.5 2 .9.7 2.2h4l.7-2.2 2-.9 2.1.5 2-3.4-1.5-1.7v-2.6l1.5-1.7-2-3.4-2.1.5-2-.9L14 3Z" />
             <circle cx="12" cy="12" r="3" />
-          </svg></button></div>
+          </svg></button><a id="library-download" class="library-download-link"
+          href="https://quizforge.treenewbee.cloud/#library" target="_blank" rel="noopener noreferrer"
+          title="在新标签页打开题库广场" aria-label="获取题库，在新标签页打开题库广场">获取题库<span aria-hidden="true">↗</span></a></div>
     </aside>
     <main class="main">
       <section class="document-header"><button id="library-toggle" class="icon-button sidebar-toggle"
@@ -120,7 +122,7 @@
           aria-label="关闭导入">×</button>
       </div>
       <p id="library-import-name" class="library-manage-hint"></p>
-      <p class="library-manage-hint">导入题库分组及随附的正式拓展。拓展包含运行代码，请选择可信来源的 .qbank 文件。已有相同内容会跳过，内容冲突时不覆盖。个人作答和历史保留。</p>
+      <p class="library-manage-hint">导入题库分组及随附拓展。同一题库的高版本自动替换，其他版本由你选择；相同拓展内容复用，不同内容独立保存。个人历史快照保留。请选择可信来源的 .qbank 文件。</p>
       <p id="library-import-error" class="library-manage-error" role="alert" hidden></p>
       <div class="dialog-actions"><button id="library-import-cancel" type="button">取消</button><button
           id="library-import-confirm" type="submit">导入</button></div>
@@ -171,9 +173,8 @@
           class="network-settings-switch"><span>允许公网连接</span><input id="network-settings-public-enabled" type="checkbox"
             role="switch" aria-label="允许公网连接"></label>
         <div id="network-settings-public-fields" hidden><label class="network-settings-public-address">公网访问地址<input
-              id="network-settings-public-url" type="url" maxlength="500" placeholder="https://quiz.example.com/"
-              autocomplete="url"><small>填写域名、IPv4 或 IPv6，可带端口。IPv6 示例：http://[你的IPv6地址]:8788/。推荐使用
-              HTTPS。</small></label>
+              id="network-settings-public-url" type="url" maxlength="500" placeholder="http://[你的IPv6地址]:8788/"
+              autocomplete="url"><small>当前应用直连使用 HTTP。填写域名、IPv4 或 IPv6，可带端口；IPv6 地址须放在方括号内。</small></label>
           <section id="network-settings-ipv6-addresses" class="network-settings-addresses" hidden>
             <h4>本机公网 IPv6 候选地址</h4>
             <div id="network-settings-ipv6-urls"></div>
@@ -182,7 +183,7 @@
           <details class="network-settings-public-help">
             <summary>公网接入说明</summary>
             <p class="network-settings-hint">IPv4 通常需要路由器端口映射或公网代理；公网 IPv6 可直接访问，但需放行入站防火墙。代理应保留
-              Host，连接下方连接端口，不要连接本机管理端口。本应用不自动配置映射、域名或证书。</p>
+              Host，连接下方连接端口，不要连接本机管理端口。本应用不自动配置端口映射、域名或防火墙。</p>
           </details>
         </div>
         <div class="network-settings-inputs"><label>连接端口<input id="network-settings-port" type="number" min="1024"

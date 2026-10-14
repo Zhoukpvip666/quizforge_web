@@ -10,7 +10,7 @@ import { optional } from '../library/collections.js';
 const FIELDS = ['entry', 'script', 'style', 'rules', 'questionSchema', 'answerSchema', 'examples'];
 const MEDIA = new Map([['png', 'image/png'], ['jpg', 'image/jpeg'], ['jpeg', 'image/jpeg'], ['webp', 'image/webp'], ['gif', 'image/gif'], ['svg', 'image/svg+xml'], ['woff', 'font/woff'], ['woff2', 'font/woff2'], ['ttf', 'font/ttf'], ['otf', 'font/otf']]);
 export const markedDevelopment = directory => exists(path.join(directory, 'development.json'));
-export const runtimeId = folder => 'dev.' + (folder.length <= 116 ? folder : hash(Buffer.from(folder)));
+export const runtimeId = folder => 'dev.' + (/^[A-Za-z0-9][A-Za-z0-9._-]{0,115}$/.test(folder) ? folder : hash(Buffer.from(folder)));
 export function declaration(directory, development = markedDevelopment(directory)) {
   const file = path.join(directory, 'manifest.json');
   const result = exists(file) ? readJson(file, 256 * 1024) : {};

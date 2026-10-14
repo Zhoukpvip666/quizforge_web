@@ -13,7 +13,7 @@ export function bindLibraryManagement({request,getContext,beforeChange,onChanged
     $('#library-manage-name').value=target==='group'?(row?.name||''):(row?.title||row?.name||'');
     $('#library-manage-fields').hidden=removing;$('#library-manage-confirm').textContent=removing?'移入回收目录':'保存';
     $('#library-manage-confirm').classList.toggle('danger-button',removing);
-    const hint=removing?`${row?.title||row?.name||row?.path}：${target==='group'?'此分组及其全部内容（包括未显示的文件）':'此'+type}将移入 .trash/library 回收目录，作答与历史数据保留。`:target==='group'?'分组只支持一层，可修改名称；改名不会重置作答与历史。':kind==='extension'?'只修改列表显示名称和所属分组，不修改拓展源码、标识和版本。':'移动或改名不会重置作答与历史。';
+    const hint=removing?(kind==='extension'&&target==='group'?'删除此逻辑分组，拓展文件、作答与历史保留。':`${row?.title||row?.name||row?.path}：${target==='group'?'此分组及其全部内容（包括未显示的文件）':'此'+type}将移入 .trash/library 回收目录，作答与历史数据保留。`):target==='group'?'分组只支持一层，可修改名称；改名不会重置作答与历史。':kind==='extension'?'只修改列表显示名称和逻辑分组，拓展实际目录保持原样。':'移动或改名不会重置作答与历史。';
     $('#library-manage-hint').textContent=hint;
     const select=$('#library-manage-group');select.closest('label').hidden=target==='group';$('#library-manage-cancel').hidden=creatingGroup;select.replaceChildren(new Option('未分组（根目录）',''));
     for(const path of catalog.groups?.[kind==='bank'?'banks':'extensions']||[]){

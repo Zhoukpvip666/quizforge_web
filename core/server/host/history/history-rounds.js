@@ -9,7 +9,7 @@ const digest = value => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value
 const finite = value => typeof value === 'number' && Number.isFinite(value);
 const invalid = message => { throw new Error(message); };
 export const gradingStatus = result => typeof result?.gradingStatus === 'string' ? result.gradingStatus : 'graded';
-export function pageKey(id, version, fingerprintValue, typeId = null) { return fingerprint({ id, version, ...(typeId === null ? {} : { typeId }) }, fingerprintValue); }
+export function pageKey(id, version, fingerprintValue, typeId = null, referencePath = null) { return fingerprint({ id, version, ...(typeId === null ? {} : { typeId }), ...(referencePath === null ? {} : { path: referencePath }) }, fingerprintValue); }
 export function matchesId(record, id) { return record.id === id || record.legacyIds?.includes(id) === true; }
 export function summarize(round) {
   const scores = [], maxima = [], states = {}; let submitted = 0, graded = 0, pending = 0;
@@ -50,8 +50,8 @@ export function publicRecord(source, summary = false) {
   if (summary) for (const field of ['questions', 'collection', 'page', 'pages']) delete value[field];
   return value;
 }
-function extensionIdentity(extension) { return `${extension.id}@${extension.version}${extension.typeId === undefined ? '' : ':' + extension.typeId}`; }
-function sameExtension(left, right) { return left && right && left.id === right.id && left.version === right.version && left.typeId === right.typeId; }
+function extensionIdentity(extension) { return `${extension.id}@${extension.version}${extension.typeId === undefined ? '' : ':' + extension.typeId}${extension.path === undefined ? '' : ':' + extension.path}`; }
+function sameExtension(left, right) { return left && right && left.id === right.id && left.version === right.version && left.typeId === right.typeId && left.path === right.path; }
 function validateExtension(extension) {
   if (!object(extension) || !identifier(extension.id) || !identifier(extension.version) || (Object.hasOwn(extension, 'typeId') && (typeof extension.typeId !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/.test(extension.typeId)))) invalid('Invalid frozen extension');
 }
@@ -76,7 +76,7 @@ export function validateRound(record) {
     for (const extension of record.extensions) { validateExtension(extension); const identity = extensionIdentity(extension); if (declared.has(identity)) invalid('Duplicate frozen extension'); declared.add(identity); }
     for (const [key, page] of Object.entries(record.pages)) {
       validatePage(page); validateExtension(page.extension); const extension = page.extension, identity = extensionIdentity(extension);
-      if (!digest(extension.fingerprint) || key !== pageKey(extension.id, extension.version, extension.fingerprint, extension.typeId ?? null) || identities.has(identity) || !declared.has(identity)) invalid('Invalid frozen page identity');
+      if (!digest(extension.fingerprint) || key !== pageKey(extension.id, extension.version, extension.fingerprint, extension.typeId ?? null, extension.path ?? null) || identities.has(identity) || !declared.has(identity)) invalid('Invalid frozen page identity');
       identities.add(identity);
     }
     if (identities.size !== declared.size || !jsonEqual(record.extensions, record.collection.extensions)) invalid('Frozen extension outline mismatch');

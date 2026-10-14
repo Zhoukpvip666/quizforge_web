@@ -1,12 +1,16 @@
 import {extensionGroups} from './extension-groups.js';
 
+const nameOrder=new Intl.Collator('zh-CN',{numeric:true,sensitivity:'base'});
+const compareItems=(left,right)=>nameOrder.compare(left.title||left.name||'',right.title||right.name||'')
+  ||nameOrder.compare(left.path||left.id||'',right.path||right.id||'');
+
 export function renderLibraryView({document,catalog,listMode,activeKey,collapsedGroups,onNotice,onOpen,onManage,onExport}){
   const $=selector=>document.querySelector(selector);
   const el=(tag,className,text)=>{const node=document.createElement(tag);if(className)node.className=className;if(text!=null)node.textContent=text;return node;};
   $('.library-switch').hidden=!catalog.developmentEnabled;if(!catalog.developmentEnabled)listMode='bank';
   $('#welcome p').textContent=catalog.developmentEnabled?'选择左侧题库，或到拓展列表体验样例。':'选择左侧题库，开始练习。';
   $('#show-banks').setAttribute('aria-selected',String(listMode==='bank'));$('#show-extensions').setAttribute('aria-selected',String(listMode==='extension'));$('#library-label').textContent=listMode==='bank'?'我的题库':'题型拓展';
-  const root=$('#library-list');root.replaceChildren();const rows=listMode==='bank'?catalog.banks:catalog.extensions;
+  const root=$('#library-list');root.replaceChildren();const rows=[...(listMode==='bank'?catalog.banks:catalog.extensions)].sort(compareItems);
   $('#library-new-group').hidden=!catalog.canManage;
   $('#library-import').hidden=!catalog.canManage||listMode!=='bank';
   const actions=(target,row)=>{const tools=el('span','library-row-actions');if(!catalog.canManage)return tools;
@@ -29,7 +33,12 @@ export function renderLibraryView({document,catalog,listMode,activeKey,collapsed
     const collapseKey=`${listMode}:${group.path}`,sync=()=>{const expanded=!collapsedGroups.has(collapseKey);body.hidden=!expanded;arrow.textContent=expanded?'▾':'▸';toggle.setAttribute('aria-expanded',String(expanded));toggle.setAttribute('aria-label',`${expanded?'折叠':'展开'} ${group.path}`);};
     toggle.addEventListener('click',()=>{if(collapsedGroups.has(collapseKey))collapsedGroups.delete(collapseKey);else collapsedGroups.add(collapseKey);sync();});sync();appendGroups(body,group.children);const header=el('div','library-group-header');header.append(toggle,actions('group',{name:group.name,path:group.path,group:group.path.includes('/')?group.path.slice(0,group.path.lastIndexOf('/')):''}));section.append(header,body);container.append(section);
   }};
-  const groups=extensionGroups(rows,catalog.groups?.[listMode==='bank'?'banks':'extensions']||[]);appendGroups(root,groups);
-  if(!groups.length)root.append(el('p','list-empty',listMode==='bank'?'目录中还没有题库。添加文件后刷新列表。':'目录中还没有拓展。添加文件后刷新列表。'));
+  const groups=extensionGroups(rows,catalog.groups?.[listMode==='bank'?'banks':'extensions']||[]);
+  groups.sort((left,right)=>left.kind===right.kind?left.kind==='group'?nameOrder.compare(left.name,right.name):compareItems(left.row,right.row):left.kind==='group'?1:-1);
+  appendGroups(root,groups);
+  if(!groups.length){
+    const message=listMode!=='bank'?'目录中还没有拓展。添加文件后刷新列表。':catalog.canManage?'还没有题库。点击“获取题库”下载题库包，再通过上方导入按钮添加。':'还没有题库。请在运行应用的主机上导入题库包。';
+    root.append(el('p','list-empty',message));
+  }
   return listMode;
 }

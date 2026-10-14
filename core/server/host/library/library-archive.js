@@ -10,21 +10,25 @@ import { checkPath, exists, readBytes, readJson, replaceFile, safeDirectory, saf
 import { scanBanks, scanExtensions, bankItem } from './directories.js';
 import { folderName } from './library-management.js';
 import { markedDevelopment, declaration, staticAssets } from '../extensions/extension-packages.js';
-import { ResourceStore, imageReferences } from '../resources/resources.js';
+import { ResourceStore, imageReferences, detectImageMime, MAX_IMAGE_BYTES } from '../resources/resources.js';
+import { GROUP_FILE, referenceIdentity, relativeExtension } from './identity.js';
+import { exportV2, prepareV2 } from './library-package.js';
 
 export const MAX_UPLOAD = 64 * 1024 * 1024, MAX_EXPANDED = 128 * 1024 * 1024, MAX_FILE = 8 * 1024 * 1024, MAX_ENTRIES = 10000;
 export const MANIFEST = 'quizforge-package.json', FORMAT = 'quizforge-bank-group', MIME = 'application/vnd.quizforge.qbank';
 const invalid = message => new ApiError(422, 'INVALID_LIBRARY_ARCHIVE', message), conflict = message => new ApiError(409, 'LIBRARY_IMPORT_CONFLICT', message), limit = message => new ApiError(413, 'LIBRARY_ARCHIVE_LIMIT', message);
 const relative = (base, file) => path.relative(base, file).replaceAll('\\', '/');
+const imageTypes = new Map([['image/png', 'png'], ['image/jpeg', 'jpg'], ['image/webp', 'webp'], ['image/gif', 'gif']]);
 function privatePath(name) { return name.split('/').some(part => part.startsWith('.') || ['node_modules', 'target'].includes(part)); }
 function binding(reference) {
   if (!reference || typeof reference !== 'object' || Array.isArray(reference) || Object.hasOwn(reference,'typeId') || Object.hasOwn(reference,'development') && Object.keys(reference).length !== 1) throw invalid('题型绑定格式无效');
+  if (Object.hasOwn(reference, 'path')) return referenceIdentity(reference);
   return Object.hasOwn(reference, 'development') ? 'development:' + id(reference, 'development') : id(reference, 'id') + '@' + id(reference, 'version');
 }
 function portableBank(file, installed) {
   const raw = readJson(file, MAX_FILE);
   for (const item of [raw, ...(raw.questions ?? [])]) if (item.extension?.development) {
-    const matches = [...installed.values()].filter(source => path.basename(source) === item.extension.development);
+    const matches = [...new Set(installed.values())].filter(source => path.basename(source) === item.extension.development);
     if (matches.length !== 1) throw invalid('旧题型绑定缺少或重复拓展');
     const manifest = readJson(path.join(matches[0], 'manifest.json'));
     item.extension = { id: manifest.id, version: manifest.version };
@@ -55,9 +59,36 @@ export class LibraryArchive {
       if (fs.lstatSync(file).isDirectory()) safeDirectory(target, true); else { if (fs.statSync(file).size > MAX_FILE) throw limit('目录中有过大的文件：' + name); this.account(file); safeDirectory(path.dirname(target), true); fs.copyFileSync(file, target, fs.constants.COPYFILE_EXCL); }
     }
   }
-  exportImages(directory, document) {
-    const suffix = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp', 'image/gif': 'gif' };
-    for (const id of imageReferences(document)) { const image = this.resources.read(id); if (exists(path.join(directory, 'assets', id + '.' + suffix[image.mime]))) continue; this.copiedBytes += image.bytes.length; if (this.copiedBytes > MAX_EXPANDED || ++this.copiedEntries > MAX_ENTRIES) throw limit('图片及文件超过导出大小或数量上限'); } this.resources.exportReferences(directory, document);
+  exportImages(directory, document, resourceDirectories = []) {
+    const ids = imageReferences(document);
+    if (!ids.size) return;
+    const assets = safeDirectory(path.join(directory, 'assets'), true);
+    for (const id of ids) {
+      let image, present = false;
+      // Copied assets belong to the package; exporting must not require a prior
+      // collection load to register them in the host's global resource store.
+      for (const source of new Set([directory, ...resourceDirectories])) {
+        const sourceAssets = path.join(source, 'assets');
+        if (!exists(sourceAssets)) continue;
+        checkPath(sourceAssets, { directory: true });
+        for (const [mime, suffix] of imageTypes) {
+          const file = path.join(sourceAssets, `${id}.${suffix}`);
+          if (!exists(file)) continue;
+          let bytes;
+          try { bytes = readBytes(file, MAX_IMAGE_BYTES); }
+          catch { throw invalid('题库包图片无法读取或超过 4 MiB：' + id); }
+          if (hash(bytes) !== id || detectImageMime(bytes) !== mime) throw invalid('题库包图片校验或格式不正确：' + id);
+          image ??= { mime, bytes };
+          if (source === directory) present = true;
+        }
+      }
+      if (present) continue;
+      // Older standalone JSON banks may have their images only in .state.
+      image ??= this.resources.read(id);
+      this.copiedBytes += image.bytes.length;
+      if (this.copiedBytes > MAX_EXPANDED || ++this.copiedEntries > MAX_ENTRIES) throw limit('图片及文件超过导出大小或数量上限');
+      replaceFile(path.join(assets, `${id}.${imageTypes.get(image.mime)}`), image.bytes);
+    }
   }
   copyBank(file, destination) { if (path.basename(file) === 'bank.json' && path.dirname(file) !== path.join(this.root, 'question-banks')) this.copyTree(path.dirname(file), destination); else { safeDirectory(destination, true); this.account(file); fs.copyFileSync(file, path.join(destination, 'bank.json'), fs.constants.COPYFILE_EXCL); } this.exportImages(destination, readJson(path.join(destination, 'bank.json'), MAX_FILE)); }
   copyExtension(source, destination) {
@@ -67,7 +98,7 @@ export class LibraryArchive {
     replaceFile(path.join(destination,'manifest.json'),jsonBytes(manifest));
     const examples = safeFile(destination, text(manifest, 'examples', 240)), raw = readJson(examples, MAX_FILE);
     for (const item of [raw, ...(raw.questions ?? [])]) if (item.extension?.development === path.basename(source)) item.extension = { id: manifest.id, version: manifest.version };
-    replaceFile(examples, jsonBytes(raw)); this.exportImages(path.dirname(examples), raw);
+    replaceFile(examples, jsonBytes(raw)); this.exportImages(path.dirname(examples), raw, [destination]);
     const legacyMarker = path.join(destination, 'development.json');
     if (exists(legacyMarker)) fs.unlinkSync(legacyMarker);
   }
@@ -79,13 +110,19 @@ export class LibraryArchive {
     } catch (error) { archive.outputStream.destroy(error); output.destroy(); await writing.catch(() => {}); throw error; }
   }
   async exportGroup(group) {
-    folderName(group); const bankRoot = path.join(this.root, 'question-banks'), selected = path.join(bankRoot, group); if (!scanBanks(bankRoot).groups.includes(selected)) throw new ApiError(404, 'GROUP_NOT_FOUND', '题库分组已不存在，请刷新列表'); const work = this.workspace();
+    folderName(group); const bankRoot = path.join(this.root, 'question-banks'), selected = path.join(bankRoot, group); if (!scanBanks(bankRoot).groups.includes(selected)) throw new ApiError(404, 'GROUP_NOT_FOUND', '题库分组已不存在，请刷新列表');
+    const modern = await exportV2(this, group); if (modern) return modern;
+    const work = this.workspace();
     try {
       const content = path.join(work, 'content'), banks = path.join(content, 'question-banks', group), extensions = path.join(content, 'extensions', group); safeDirectory(banks, true); safeDirectory(extensions, true); const installed = index(path.join(this.root, 'extensions'), true), required = new Set(), ids = new Set();
+      for (const source of new Set(installed.values())) {
+        const manifest = declaration(source);
+        installed.set(referenceIdentity({ id: manifest.id, path: relativeExtension(this.root, source) }), source);
+      }
       for (const file of scanBanks(bankRoot).banks.filter(file => within(selected, file))) { const raw = readJson(file, MAX_FILE), bankId = id(raw, 'id'); if (ids.has(bankId)) throw invalid('分组内有重复题库 ID：' + bankId); ids.add(bankId); if (Object.hasOwn(raw, 'extension')) required.add(binding(raw.extension)); for (const question of raw.questions ?? []) if (Object.hasOwn(question, 'extension')) required.add(binding(question.extension)); this.copyBank(file, path.join(banks, bankId)); }
       const copied = new Set(), resolved = new Map();
       for (const identity of required) {
-        const matches = identity.startsWith('development:') ? [...installed.values()].filter(source => path.basename(source) === identity.slice(12)) : [installed.get(identity)].filter(Boolean);
+        const matches = identity.startsWith('development:') ? [...new Set(installed.values())].filter(source => path.basename(source) === identity.slice(12)) : [installed.get(identity)].filter(Boolean);
         if (matches.length !== 1) throw invalid('缺少或重复拓展：' + identity);
         const source = matches[0], manifest = readJson(path.join(source, 'manifest.json')), canonical = binding(manifest);
         resolved.set(identity, { id: manifest.id, version: manifest.version });
@@ -94,7 +131,7 @@ export class LibraryArchive {
       // Export portable ID/version references, independent of source folder names.
       for (const file of scanBanks(path.join(content, 'question-banks')).banks) {
         const raw = readJson(file);
-        for (const item of [raw, ...(raw.questions ?? [])]) if (item.extension && Object.hasOwn(item.extension, 'development')) item.extension = resolved.get(binding(item.extension));
+        for (const item of [raw, ...(raw.questions ?? [])]) if (item.extension && (Object.hasOwn(item.extension, 'development') || Object.hasOwn(item.extension, 'path'))) item.extension = resolved.get(binding(item.extension));
         replaceFile(file, jsonBytes(raw));
       }
       replaceFile(path.join(content, MANIFEST), jsonBytes({ format: FORMAT, formatVersion: 1, group })); const file = path.join(work, 'group.qbank'); await this.zip(content, file); if (fs.statSync(file).size > MAX_UPLOAD) throw limit('导出的题库包超过 64 MiB，请缩小题库分组'); return { workspace: work, file, close: () => this.removeWorkspace(work) };
@@ -129,14 +166,17 @@ export class LibraryArchive {
     const leaves = new Set(), declared = new Set();
     for (const extension of extensions) { leaves.add(extension); for (const name of declaredPaths(extension)) declared.add(path.resolve(extension, name)); }
     for (const bank of banks) { const item = bankItem(path.join(staging, 'question-banks'), bank); if (fs.lstatSync(item).isDirectory()) leaves.add(item); declared.add(bank); }
-    for (const file of walkFiles(staging, MAX_ENTRIES + 1)) { const parts = relative(staging, file).split('/'); if (parts.length <= 2) continue; let base = path.resolve(staging, ...parts.slice(0, 2)); const leaf = path.resolve(staging, ...parts.slice(0, 3)); if (leaves.has(leaf)) base = leaf; if (privatePath(relative(base, file)) && !declared.has(file)) throw invalid('题库包包含未声明的私有文件或目录'); }
+    for (const file of walkFiles(staging, MAX_ENTRIES + 1)) { const parts = relative(staging, file).split('/'); if (parts.length <= 2 || parts.length === 3 && parts[0] === 'question-banks' && parts[2] === GROUP_FILE) continue; let base = path.resolve(staging, ...parts.slice(0, 2)); const leaf = path.resolve(staging, ...parts.slice(0, 3)); if (leaves.has(leaf)) base = leaf; if (privatePath(relative(base, file)) && !declared.has(file)) throw invalid('题库包包含未声明的私有文件或目录'); }
   }
   checkGroupDestination(kind, destination) { if (!exists(destination)) return; checkPath(destination); const group = kind === 'bank' ? scanBanks(path.join(this.root, 'question-banks')).groups.includes(destination) : fs.lstatSync(destination).isDirectory() && !['manifest.json', 'development.json'].some(name => exists(path.join(destination, name))); if (!group) throw conflict('分组名称与现有题库或拓展目录冲突：' + path.basename(destination)); }
   async importPackage(input, validator) {
-    const work = this.workspace();
+    const work = this.workspace(); let retained = false;
     try {
       const zip = path.join(work, 'upload.qbank'), staging = path.join(work, 'content'); let uploaded = 0;
-      const bound = new Transform({ transform(chunk, encoding, callback) { if ((uploaded += chunk.length) > MAX_UPLOAD) return callback(limit('压缩包超过上传大小上限')); callback(null, chunk); } }); await pipeline(Buffer.isBuffer(input) ? Readable.from([input]) : input, bound, fs.createWriteStream(zip, { flags: 'wx' })); safeDirectory(staging, true); await this.unzip(zip, staging); const group = this.archiveGroup(staging), incomingBanks = scanBanks(path.join(staging, 'question-banks')).banks, incomingExtensions = scanExtensions(path.join(staging, 'extensions'));
+      const bound = new Transform({ transform(chunk, encoding, callback) { if ((uploaded += chunk.length) > MAX_UPLOAD) return callback(limit('压缩包超过上传大小上限')); callback(null, chunk); } }); await pipeline(Buffer.isBuffer(input) ? Readable.from([input]) : input, bound, fs.createWriteStream(zip, { flags: 'wx' })); safeDirectory(staging, true); await this.unzip(zip, staging);
+      let marker; try { marker = readJson(path.join(staging, MANIFEST), 256 * 1024); } catch { throw invalid('不是 QuizForge 题库包：缺少格式标识'); }
+      if (marker.formatVersion === 2) { const plan = await prepareV2(this, work, staging, marker, validator); retained = true; return plan; }
+      const group = this.archiveGroup(staging), incomingBanks = scanBanks(path.join(staging, 'question-banks')).banks, incomingExtensions = scanExtensions(path.join(staging, 'extensions'));
       try { this.validatePrivatePaths(staging, incomingBanks, incomingExtensions); } catch (error) { if (error instanceof ApiError && error.status !== 400) throw error; throw invalid('题库包的拓展文件声明无效或不完整'); }
       await validator(staging); const stagedResources = new ResourceStore(staging);
       for (const file of incomingBanks) stagedResources.exportReferences(path.dirname(file), readJson(file, MAX_FILE));
@@ -159,6 +199,6 @@ export class LibraryArchive {
         for (const move of moves) { fs.renameSync(move.source, move.destination); committed.push(move); }
       } catch (error) { for (const move of committed.reverse()) try { fs.renameSync(move.destination, move.source); } catch {} for (const directory of created.reverse()) try { fs.rmdirSync(directory); } catch {} throw error; }
       return { group, importedBanks: newBanks.size - skippedBanks, importedExtensions: newExtensions.size - skippedExtensions, skippedBanks, skippedExtensions };
-    } finally { this.removeWorkspace(work); }
+    } finally { if (!retained) this.removeWorkspace(work); }
   }
 }

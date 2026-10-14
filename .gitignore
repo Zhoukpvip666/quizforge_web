@@ -1,10 +1,25 @@
 target/
 node_modules/
 .state/
-/.temp/
+.temp/
 /.development/
 /.trash/
 /.vscode/
+/QuizForge.exe
+/runtime/
+/dist/
+
+# 公开源码只附带基础题库及四种基础拓展；其他内容保留本地。
+/question-banks/*
+!/question-banks/基础题型/
+/question-banks/基础题型/MIGRATION.md
+/question-banks/基础题型/EXTENSIONS_LAYOUT.md
+/extensions/*
+!/extensions/README.md
+!/extensions/single-choice-richtext/
+!/extensions/multiple-choice-richtext/
+!/extensions/true-false-richtext/
+!/extensions/short-answer-richtext/
 *.log
 .env
 .env.*

@@ -4,10 +4,10 @@
 
 ## 统一状态与目录
 
-题库与拓展不区分开发版或正式版，不需要发布、复制版本或移除标记后才能使用、导出。拓展可在授权范围内原位修改；ID、版本号、API 声明仍用于绑定和兼容，不代表发布状态。不同内容的同 ID/版本包导入时仍拒绝覆盖。
+题库与拓展不区分开发版或正式版，不需要发布、复制版本或移除标记后才能使用、导出。拓展可在授权范围内原位修改；UUID 表示来源身份，版本号与 API 声明表示作者版本及协议。不同内容的同 UUID/版本拓展可安装在不同目录，精确路径决定使用哪个。见[导入导出约定](LIBRARY_PACKAGES.md)。
 
 ~~~text
-extensions/<可选一层分组>/<题型>/
+extensions/<唯一题型目录>/
   manifest.json
   practice.html / practice.js / practice.css
   rules.js
@@ -16,13 +16,13 @@ extensions/<可选一层分组>/<题型>/
   editor.json / editor.*                 # 可选
 ~~~
 
-Manifest 声明 ID、版本、名称及文件路径。路径相对于叶目录，禁止符号链接和越界。每个拓展仅提供一个题型，不支持 manifest.types、packageFormatVersion、绑定 typeId。分组只支持一层，不参与身份或版本。
+Manifest 声明稳定 UUID ID、版本、名称及文件路径。文件路径相对于叶目录，禁止符号链接和越界。每个拓展仅提供一个题型，不支持 manifest.types、packageFormatVersion、绑定 typeId。分组为一层本地逻辑分组，不移动代码；旧物理分组仍可读取。
 
 ## 绑定、样例与旧数据
 
-新题库统一使用 {"id":"quizforge.my-type","version":"1.0.0"}，可逐题引用不同拓展。样例 ID 为 examples，绑定自身同一 ID/版本。样例的答案和历史独立于普通题库；四项功能开关默认开启。
+新题库使用 {"id":"<拓展UUID>","path":"extensions/<实际目录>"}，可逐题引用不同拓展。样例 ID 为 examples，绑定自身；可保留自引用 ID/version，宿主运行时绑定所属实际目录。样例的答案和历史独立于普通题库；四项功能开关默认开启。
 
-旧 {"development":"叶名"} 仍按全局唯一叶名解析到 Manifest；development.json 只作为兼容配置读取，不决定可见性、运行或导出权限。旧 .development/.state 作答首次打开时复制到统一 .state，保留原文件与 .pre-unified.bak；冻结历史不改写。新导出包转为可移植 ID/版本绑定。
+旧 {"development":"叶名"} 仍按唯一候选解析到 Manifest；development.json 只作为兼容配置读取，不决定可见性、运行或导出权限。旧 .development/.state 作答首次打开时复制到统一 .state，保留原文件与 .pre-unified.bak；冻结历史不改写。格式 2 导出包使用可移植数据根目录路径绑定。
 
 设置“显示拓展管理”只控制管理入口显示，不影响题库加载。源码变更会使缓存失效；受影响的当前作答重置前保存备份，旧历史仍使用冻结页面。更新前备份数据，修改答案结构时仍需自行设计兼容。
 

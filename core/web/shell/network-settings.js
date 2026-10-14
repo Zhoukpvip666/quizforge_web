@@ -1,4 +1,5 @@
 const SETTINGS_PATH='/api/settings/network';
+const PUBLIC_URL_MESSAGE='请填写有效的公网根地址，如 http://quiz.example.com/ 或 http://[IPv6地址]:端口/，不包含路径、账号或查询参数。';
 
 export function bindNetworkSettings({request,beforeSave,onSaved,document=globalThis.document}) {
   const get=id=>document.getElementById(`network-settings-${id}`);
@@ -11,7 +12,7 @@ export function bindNetworkSettings({request,beforeSave,onSaved,document=globalT
   const listeners=[];
   const listen=(node,event,handler)=>{node.addEventListener(event,handler);listeners.push(()=>node.removeEventListener(event,handler));};
   function showError(cause) {
-    const messages={LOCAL_SETTINGS_ONLY:'网络设置只能在本机修改。请在运行 QuizForge 的电脑上打开本机地址。',LAN_SETTINGS_UNAVAILABLE:'端口被占用或设置保存失败，当前连接保留。',INVALID_NETWORK_SETTINGS:'请检查连接端口、密码和公网地址。'};
+    const messages={LOCAL_SETTINGS_ONLY:'网络设置只能在本机修改。请在运行 QuizForge 的电脑上打开本机地址。',LAN_SETTINGS_UNAVAILABLE:'端口被占用或设置保存失败，当前连接保留。',INVALID_NETWORK_SETTINGS:'请检查连接端口、密码和公网地址。',INVALID_PUBLIC_URL:PUBLIC_URL_MESSAGE};
     error.textContent=messages[cause?.code]||cause?.message||'设置操作失败，请重试。';
     error.hidden=false;
   }
@@ -82,7 +83,7 @@ export function bindNetworkSettings({request,beforeSave,onSaved,document=globalT
       try {
         const address=new URL(nextPublicUrl);
         if(!['http:','https:'].includes(address.protocol)||address.username||address.password||address.pathname!=='/'||address.search||address.hash)throw new Error();
-      } catch {showError(new Error('请填写完整的公网访问地址，如 https://quiz.example.com/ 或 http://[IPv6地址]:端口/，不包含路径或查询参数。'));publicUrl.focus();return;}
+      } catch {showError(new Error(PUBLIC_URL_MESSAGE));publicUrl.focus();return;}
     }
     const body={enabled:enabled.checked,publicEnabled:publicEnabled.checked,publicUrl:nextPublicUrl,port:nextPort};
     if(hasPassword)body.password=nextPassword;

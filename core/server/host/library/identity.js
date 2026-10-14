@@ -1,0 +1,55 @@
+import path from 'node:path';
+import { randomUUID } from 'node:crypto';
+import { ApiError, bad, id, requireObject } from '../platform/errors.js';
+import { exists, readJson, checkPath, within } from '../platform/files.js';
+import { hash } from '../platform/json.js';
+
+export const GROUP_FILE = '.group.json';
+export const isUuid = value => typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+export const freshUuid = () => randomUUID();
+export function groupIdentity(directory) {
+  const file = path.join(directory, GROUP_FILE);
+  if (!exists(file)) return null;
+  const value = requireObject(readJson(file, 64 * 1024), 'Invalid group metadata');
+  if (value.schemaVersion !== 1 || value.kind !== 'bank-group' || !isUuid(value.id)) throw new ApiError(422, 'INVALID_GROUP_IDENTITY', '题库分组 .group.json 必须包含 schemaVersion:1、kind:bank-group 和 UUID id');
+  return value.id.toLowerCase();
+}
+export function extensionPath(value) {
+  if (typeof value !== 'string' || value.length > 1000 || !value.startsWith('extensions/') || value.includes('\\') || /[:\x00-\x1f]/.test(value) || value.split('/').some(part => !part || part === '.' || part === '..' || /[ .]$/.test(part))) throw bad('Invalid extension path');
+  return value;
+}
+export function extensionDirectory(root, value) {
+  const relative = extensionPath(value), base = path.join(root, 'extensions'), target = path.resolve(root, relative);
+  if (target === base || !within(base, target)) throw bad('Invalid extension path');
+  try { return checkPath(target, { directory: true }); }
+  catch { throw new ApiError(422, 'EXTENSION_PATH_MISSING', '引用的拓展目录不存在或无效：' + relative); }
+}
+export const relativeExtension = (root, directory) => path.relative(root, directory).replaceAll('\\', '/');
+// URL locators are derived from paths, not new persistent identities.
+export const extensionLocator = relative => 'p.' + hash(Buffer.from(extensionPath(relative)));
+export const bankLocator = (group, bank) => isUuid(bank) ? 'g.' + group + '.' + bank : 'g.' + hash(Buffer.from(group + '#' + bank));
+export function referenceIdentity(reference) {
+  requireObject(reference, 'Invalid extension reference');
+  if (Object.hasOwn(reference, 'typeId')) throw bad('Invalid extension reference');
+  if (Object.hasOwn(reference, 'path')) return 'path:' + extensionPath(reference.path) + '#' + id(reference, 'id');
+  if (Object.hasOwn(reference, 'development')) {
+    if (Object.keys(reference).length !== 1) throw bad('Invalid development reference');
+    return 'development:' + id(reference, 'development');
+  }
+  return id(reference, 'id') + '@' + id(reference, 'version');
+}
+export function eachReference(raw, visit) {
+  if (Object.hasOwn(raw, 'extension')) visit(raw, raw.extension);
+  for (const question of raw.questions ?? []) if (Object.hasOwn(question, 'extension')) visit(question, question.extension);
+}
+export function findExtension(reference, rows) {
+  referenceIdentity(reference);
+  let matches;
+  if (reference.path) matches = rows.filter(row => row.referencePath === reference.path);
+  else if (reference.development) matches = rows.filter(row => row.legacyFolder === reference.development);
+  else matches = rows.filter(row => (row.extensionId ?? row.id) === reference.id && row.version === reference.version);
+  if (matches.length !== 1) throw new ApiError(422, 'AMBIGUOUS_EXTENSION', '拓展缺失或绑定不明确，请使用准确的相对路径：' + (reference.path ?? reference.id ?? reference.development));
+  const row = matches[0];
+  if (reference.path && reference.id !== (row.extensionId ?? row.id)) throw new ApiError(422, 'EXTENSION_ID_MISMATCH', '拓展路径的身份与题库声明不一致：' + reference.path);
+  return row;
+}

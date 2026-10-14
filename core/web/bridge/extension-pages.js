@@ -2,8 +2,8 @@
 // library only; routing, snapshots and caches keep the extension's exact identity.
 // Old readonly snapshots can still contain typeId; it identifies their frozen
 // page, but does not add a type selector to active extension routes.
-export const sameExtension=(left,right)=>!!left&&!!right&&left.id===right.id&&left.version===right.version&&(left.typeId||'')===(right.typeId||'')&&left.development?.folder===right.development?.folder;
-export const extensionPagePrefix=extension=>`${extension.development?.folder?`development:${extension.development.folder}`:`${extension.id}:${extension.version}`}:`;
+export const sameExtension=(left,right)=>!!left&&!!right&&left.id===right.id&&left.version===right.version&&(left.path||'')===(right.path||'')&&(left.typeId||'')===(right.typeId||'')&&left.development?.folder===right.development?.folder;
+export const extensionPagePrefix=extension=>`${extension.development?.folder?`development:${extension.development.folder}`:`${extension.pageId||extension.id}:${extension.version}`}:`;
 export const sameQuestionStamp=(left,right)=>!!left&&!!right&&left.revision===right.revision&&left.contentVersion===right.contentVersion&&left.packageVersion===right.packageVersion;
 export function questionExtension(payload,collection,qid=payload?.question?.id){
   const extension=payload?.extension||collection?.questions?.find(row=>row.id===qid)?.type||collection?.extension;
@@ -22,7 +22,7 @@ export function collectionHasExtension(collection,qid,extension){
   return !!row&&sameExtension(row.type||collection.extension,extension);
 }
 export function extensionPageRoute(extension,packageVersion){
-  const path=typeof extension.development?.folder==='string'?`/api/development/extensions/${encodeURIComponent(extension.development.folder)}/page`:`/api/extensions/${encodeURIComponent(extension.id)}/${encodeURIComponent(extension.version)}/page`;
+  const path=typeof extension.development?.folder==='string'?`/api/development/extensions/${encodeURIComponent(extension.development.folder)}/page`:`/api/extensions/${encodeURIComponent(extension.pageId||extension.id)}/${encodeURIComponent(extension.version)}/page`;
   return {key:`${extensionPagePrefix(extension)}${packageVersion||'unversioned'}`,path};
 }
 export function unusedPagePrefixes(closedPane,remainingPanes){

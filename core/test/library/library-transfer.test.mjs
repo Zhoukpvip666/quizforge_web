@@ -4,6 +4,16 @@ import {readFileSync} from 'node:fs';
 import {JSDOM} from 'jsdom';
 import {bindLibraryTransfer} from '../../web/library/library-transfer.js';
 const html=readFileSync(new URL('../../web/index.html',import.meta.url),'utf8');
+test('v2 conflict dialog displays both versions, defaults to keeping local and commits explicit choices',async t=>{
+ const calls=[];const f=fixture(t,{request:async(path,options)=>{calls.push({path,...options});return path==='/api/library/import'?{needsConfirmation:true,importId:'prepared',conflicts:[{id:'bank-id',title:'<script>题库</script>',existingVersion:'2.0',incomingVersion:'1.0'}]}:{importedBanks:1};}});
+ f.select();await f.submit();assert.equal(f.dialog.open,true);assert.equal(f.results.length,0);
+ const select=f.$('#library-import-choices select');assert.equal(select.value,'keep');assert.match(f.$('#library-import-choices').textContent,/本地 2.0 \/ 导入 1.0/);assert.equal(f.$('#library-import-choices script'),null);
+ select.value='replace';await f.submit();assert.equal(calls[1].path,'/api/library/import/commit');assert.deepEqual(JSON.parse(calls[1].body),{importId:'prepared',choices:{'bank-id':'replace'}});assert.equal(f.results.length,1);assert.equal(f.dialog.open,false);
+});
+test('cancelling v2 conflict choices discards the isolated server plan',async t=>{
+ const calls=[];const f=fixture(t,{request:async(path,options)=>{calls.push({path,...options});return {needsConfirmation:true,importId:'prepared',conflicts:[]};}});
+ f.select();await f.submit();f.$('#library-import-cancel').click();await Promise.resolve();assert.equal(calls[1].path,'/api/library/import/cancel');assert.equal(f.dialog.open,false);
+});
 function fixture(t,overrides={}){
  const dom=new JSDOM(html),document=dom.window.document,saved=globalThis.document;globalThis.document=document;t.after(()=>{globalThis.document=saved;dom.window.close();});
  const $=selector=>document.querySelector(selector),dialog=$('#library-import-dialog');dialog.showModal=()=>{dialog.open=true;};dialog.close=()=>{dialog.open=false;};

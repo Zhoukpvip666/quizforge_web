@@ -57,6 +57,13 @@ export class AiGradingService {
   scoped(collection, question, id) {
     this.file(id); let task = this.live.get(id) ?? this.cache.get(id);
     if (!task) { const value = this.read(id); if (Object.hasOwn(value, 'alias')) throw new ApiError(404, 'AI_TASK_NOT_FOUND', '评分任务不存在。'); task = { value, applying: false, frozenGateway: null }; this.remember(task); }
+    if (collection.kind === 'bank' && task.value.kind === 'bank' && task.value.stateKey !== collection.stateKey() && task.value.questionId === question.id && this.library.bankLocations?.historical(task.value.collectionId, task.value.createdAt) === collection.id) {
+      const previous = task.value.stateKey;
+      Object.assign(task.value, scope(collection, question));
+      if (task.value.snapshot?.stateKey === previous) task.value.snapshot.stateKey = collection.stateKey();
+      // Preserve answer/content/generation guards; moving is not regrading.
+      this.persist(task);
+    }
     if (task.value.stateKey === collection.legacyCollection?.stateKey() && task.value.questionId === question.id) {
       Object.assign(task.value, scope(collection, question));
       const prior = collection.legacyCollection.question(question.id), snap = task.value.snapshot;
@@ -126,7 +133,7 @@ export class AiGradingService {
     this.queue.push(tasks); queueMicrotask(() => this.pump());
   }
   async pump() { if (this.running || this.closed) return; this.running = true; try { while (this.queue.length && !this.closed) for (const task of this.queue.shift()) await this.execute(task); } finally { this.running = false; } }
-  async stillCurrent(task) { try { const collection = await this.library.collection(task.value.kind, task.value.collectionId); return await this.states.aiCurrent(collection, collection.question(task.value.questionId), snapshot(task), task.value.taskId); } catch (error) { if (staleCodes.includes(error.code)) return false; throw error; } }
+  async stillCurrent(task) { try { const collection = await this.library.collection(task.value.kind, task.value.collectionId), question = collection.question(task.value.questionId); this.scoped(collection, question, task.value.taskId); return await this.states.aiCurrent(collection, question, snapshot(task), task.value.taskId); } catch (error) { if (staleCodes.includes(error.code)) return false; throw error; } }
   candidate(task, response) {
     const output = parseModelOutput(response?.output); if (!output) throw new ApiError(422, 'AI_OUTPUT_INVALID', '模型输出的分数或反馈无效。'); validateScore(output.score);
     const input = snapshot(task).gradingInput, candidate = { score: output.score, feedback: output.feedback, provider: safeText(response.provider, 100), model: safeText(response.model, 200), responseId: safeText(response.responseId, 160), gradedAt: new Date().toISOString(), usage: safeUsage(response.usage), inputHash: task.value.inputHash, protocolVersion: 1, promptVersion, maxScore: input.maxScore, scoreStep: input.scoreStep }; candidate.version = fingerprint(candidate, task.value.taskId); return candidate;

@@ -26,6 +26,11 @@ function id(value,key,location){if(!object(value)||typeof value[key]!=='string'|
 function reference(value,location,allowDevelopment=false){
   if(!object(value))fail(location,'INVALID_EXTENSION_REFERENCE');
   if(own(value,'typeId'))fail(location+'/typeId','MULTI_TYPE_BINDING_NOT_SUPPORTED');
+  if(own(value,'path')){
+    const relative=value.path;
+    if(!fields(value,['id','path'])||Object.keys(value).length!==2||typeof relative!=='string'||relative.length>1000||!relative.startsWith('extensions/')||relative.includes('\\')||/[:\x00-\x1f]/.test(relative)||relative.split('/').some(part=>!part||part==='.'||part==='..'||/[ .]$/.test(part)))fail(location,'INVALID_EXTENSION_REFERENCE');
+    return {id:id(value,'id',location),path:relative};
+  }
   if(own(value,'development')){
     if(Object.keys(value).length!==1)fail(location,'INVALID_EXTENSION_REFERENCE');
     return {development:id(value,'development',location)};
@@ -33,7 +38,7 @@ function reference(value,location,allowDevelopment=false){
   if(!fields(value,['id','version'])||Object.keys(value).length!==2)fail(location,'INVALID_EXTENSION_REFERENCE');
   return {id:id(value,'id',location),version:id(value,'version',location)};
 }
-const key=ref=>ref.development?'development:'+ref.development:ref.id+'@'+ref.version;
+const key=ref=>ref.path?'path:'+ref.path+'#'+ref.id:ref.development?'development:'+ref.development:ref.id+'@'+ref.version;
 function singleTypeDeclaration(value,location){
   if(['types','packageFormatVersion','typeId'].some(field=>own(value,field)))fail(location,'MULTI_TYPE_EXTENSION_NOT_SUPPORTED');
 }
@@ -233,7 +238,9 @@ async function extensionIndex(roots,allowDevelopment=false){
           manifest=await jsonFile(path.join(directory,'manifest.json'),256*1024,where+'/manifest.json');
           if(!object(manifest))fail(where,'INVALID_MANIFEST');id(manifest,'id',where);id(manifest,'version',where);
         }catch(error){if(!(error instanceof Invalid))throw error;report.warnings.push({location:error.location,code:'INVALID_UNRELATED_MANIFEST'});continue;}
-        singleTypeDeclaration(manifest,where+'/manifest.json');add(key(manifest),{directory,manifest,location:where});
+        const referencePath='extensions/'+path.relative(root,directory).split(path.sep).join('/');
+        const candidate={directory,manifest,location:where,referencePath};
+        singleTypeDeclaration(manifest,where+'/manifest.json');add(key(manifest),candidate);add(key({id:manifest.id,path:referencePath}),candidate);
       }
     };await visit(root,0);
   }return index;
@@ -377,7 +384,7 @@ function documentRows(document,location='',owner=null,allowDevelopment=false){
   }
   const bankId=id(document,'id',location);text(document,'title',300,location);text(document,'description',4000,location,true);
   const fallback=own(document,'extension')?reference(document.extension,location+'/extension',allowDevelopment):null;
-  const ownsReference=extension=>key(extension)===key({id:owner.id,version:owner.version})||Boolean(owner.development&&extension.development===owner.development);
+  const ownsReference=extension=>extension.path?extension.id===owner.id:key(extension)===key({id:owner.id,version:owner.version})||Boolean(owner.development&&extension.development===owner.development);
   if(owner&&(bankId!=='examples'||fallback&&!ownsReference(fallback)))fail(location+'/extension','INVALID_EXAMPLE_BINDING');
   if(!Array.isArray(document.questions)||!document.questions.length||document.questions.length>10000)fail(location+'/questions','QUESTION_COUNT_LIMIT');
   const rows=[],groups=new Map(),seen=new Set();document.questions.forEach((question,index)=>{
@@ -441,7 +448,7 @@ async function validate(options){
   const bank=await jsonFile(bankFile,8*MiB,'bank');report.summary.questions=Array.isArray(bank?.questions)?bank.questions.length:0;
   const {fallback,rows,groups}=documentRows(bank,'',null,options.allowDevelopment);report.summary.questionTypes=groups.size;
   const roots=[path.join(project,'extensions')];if(options.extensions)roots.push(await normalPath(options.extensions,'staged-extensions'));const index=await extensionIndex(roots,options.allowDevelopment),loaded=new Map();
-  const required=new Set(groups.keys());if(fallback)required.add(key(fallback));for(const [identity,candidates]of index)if(candidates.length>1)required.add(identity);
+  const required=new Set(groups.keys());if(fallback)required.add(key(fallback));
   for(const identity of required){
     const candidates=index.get(identity);if(!candidates)fail(identity===key(fallback??{})?'/extension':'/questions/'+groups.get(identity)[0].index+'/extension','EXTENSION_NOT_FOUND');
     if(identity.startsWith('development:')&&candidates.length>1)fail(candidates[1].location,'DEVELOPMENT_FOLDER_CONFLICT');
@@ -459,7 +466,7 @@ async function validate(options){
     if(!extension.files.examples){report.warnings.push({location:where,code:'DEVELOPMENT_EXAMPLES_MISSING'});continue;}
     const examples=await jsonFile(extension.files.examples,8*MiB,where);
     const exampleRows=documentRows(examples,where,{...extension.manifest,development:extension.development},options.allowDevelopment).rows;
-    if(extension.development)for(const row of exampleRows)row.extension={development:extension.development};
+    for(const row of exampleRows)row.extension=extension.development?{development:extension.development}:identity.startsWith('path:')?{id:extension.manifest.id,path:extension.referencePath}:{id:extension.manifest.id,version:extension.manifest.version};
     report.summary.exampleQuestions+=exampleRows.length;
     checkImages(exampleRows,loaded,new Map(),new Set(),usedExtensionAssets);if(options.previewOnly)checkPreviewSchemas(exampleRows,loaded);exampleGroups.set(identity,exampleRows);
   }
