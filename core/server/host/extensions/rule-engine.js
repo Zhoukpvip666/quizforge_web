@@ -8,6 +8,9 @@ import { readBytes, safeFile, walkEntries } from '../platform/files.js';
 import { apiVersion } from './extension-api.js';
 import { fileIdentity, statIdentity } from '../platform/file-cache.js';
 
+// Persistent runners: one per extension permission set, two at most while
+// busy, recycled after idling or serving many requests.
+const WORKER_IDLE_MS = 60 * 1000, WORKER_REQUESTS = 500, WORKERS_PER_KEY = 2, WORKER_LIMIT = 12;
 const ENVIRONMENT = new Set(['SYSTEMROOT', 'WINDIR', 'PATH', 'TEMP', 'TMP', 'COMSPEC', 'PATHEXT']);
 const messages = {
   DEVELOPMENT_NOT_IMPLEMENTED: '开发版拓展尚未实现当前操作，请补齐对应规则、数据结构或评分接口；当前输入已保留。',
@@ -20,7 +23,7 @@ export class RuleEngine {
   constructor(codeRoot, { node = process.execPath, deadline = 8000 } = {}) {
     this.codeRoot = path.resolve(codeRoot); this.node = node; this.deadline = deadline;
     this.children = new Set(); this.closed = false; this.permissions = false;
-    this.fileDigests = new Map();
+    this.fileDigests = new Map(); this.pools = new Map();
   }
   static async create(codeRoot, options) { const result = new RuleEngine(codeRoot, options); await result.initialize(); return result; }
   async initialize() {
@@ -88,7 +91,7 @@ export class RuleEngine {
     }
     args.push(runner);
     try {
-      const result = await this.process(args, encoded, this.deadline);
+      const result = await this.serve(args, encoded, this.deadline, fs.statSync(runner, { bigint: true }).mtimeNs);
       const response = parseJson(result.stdout);
       if (messages[response?.code] && (response.code !== 'DEVELOPMENT_NOT_IMPLEMENTED' || development)) throw new ApiError(422, response.code, messages[response.code]);
       if (result.code !== 0 || !response?.ok) throw new ApiError(422, 'RULE_REJECTED', 'Extension rules rejected or could not process this data');
@@ -127,6 +130,90 @@ export class RuleEngine {
       child.stdin.end(input);
     });
   }
+  // Each request still gets a fresh AJV instance and VM context inside the
+  // runner; only Node startup and module loading are shared. A timeout, an
+  // oversized reply or a crash kills the worker; the next request starts anew.
+  serve(args, input, deadline, revision = '') {
+    if (this.closed) return Promise.reject(new ApiError(503, 'RULE_UNAVAILABLE', 'Rule execution interrupted'));
+    const key = [String(revision), ...args].join('\0');
+    let pool = this.pools.get(key);
+    if (!pool) { pool = { key, args, workers: new Set(), queue: [] }; this.pools.set(key, pool); }
+    return new Promise((resolve, reject) => { pool.queue.push({ input, deadline, resolve, reject, retried: false, timer: null }); this.dispatch(pool); });
+  }
+  dispatch(pool) {
+    while (pool.queue.length && !this.closed) {
+      let worker = [...pool.workers].find(item => !item.job);
+      if (!worker) {
+        if (pool.workers.size >= WORKERS_PER_KEY) return;
+        this.trimWorkers();
+        worker = this.startWorker(pool);
+      }
+      this.assign(worker, pool.queue.shift());
+    }
+    if (!pool.workers.size && !pool.queue.length && this.pools.get(pool.key) === pool) this.pools.delete(pool.key);
+  }
+  workers() { return [...this.pools.values()].flatMap(pool => [...pool.workers]); }
+  trimWorkers() {
+    const idle = this.workers().filter(worker => !worker.job).sort((a, b) => a.lastUsed - b.lastUsed);
+    while (this.workers().length >= WORKER_LIMIT && idle.length) this.release(idle.shift());
+  }
+  startWorker(pool) {
+    const child = spawn(this.node, [...pool.args, '--serve'], { cwd: this.codeRoot, env: ruleEnvironment(), windowsHide: true, stdio: ['pipe', 'pipe', 'pipe'] });
+    const worker = { child, pool, job: null, served: 0, chunks: [], size: 0, errorSize: 0, idle: null, lastUsed: Date.now(), done: false };
+    this.children.add(child); pool.workers.add(worker);
+    child.stdout.on('data', chunk => this.receive(worker, chunk));
+    child.stderr.on('data', chunk => { worker.errorSize += chunk.length; if (worker.errorSize > 64 * 1024) this.retire(worker, new ApiError(422, 'RULE_OUTPUT_LIMIT', 'Extension rules exceeded their output limit')); });
+    child.stdin.on('error', () => {});
+    child.once('error', error => this.retire(worker, error));
+    child.once('close', () => { this.children.delete(child); this.retire(worker, new Error('Rule worker exited')); });
+    return worker;
+  }
+  setReferenced(worker, referenced) {
+    for (const handle of [worker.child, worker.child.stdin, worker.child.stdout, worker.child.stderr]) (referenced ? handle?.ref : handle?.unref)?.call(handle);
+  }
+  assign(worker, job) {
+    clearTimeout(worker.idle); worker.idle = null; worker.job = job; worker.chunks = []; worker.size = 0; worker.errorSize = 0;
+    this.setReferenced(worker, true);
+    job.timer = setTimeout(() => this.retire(worker, new ApiError(422, 'RULE_TIMEOUT', 'Extension rules exceeded their execution deadline')), job.deadline);
+    worker.child.stdin.write(Buffer.concat([Buffer.from(job.input), Buffer.from('\n')]));
+  }
+  receive(worker, chunk) {
+    const job = worker.job;
+    if (!job) { this.retire(worker, new Error('Unexpected rule worker output')); return; }
+    worker.size += chunk.length;
+    if (worker.size > 2 * 1024 * 1024 + 1) { this.retire(worker, new ApiError(422, 'RULE_OUTPUT_LIMIT', 'Extension rules exceeded their output limit')); return; }
+    const newline = chunk.indexOf(10);
+    if (newline < 0) { worker.chunks.push(chunk); return; }
+    const stdout = Buffer.concat([...worker.chunks, chunk.subarray(0, newline)]), extra = newline + 1 < chunk.length;
+    clearTimeout(job.timer); worker.job = null; worker.chunks = []; worker.served++; worker.lastUsed = Date.now();
+    job.resolve({ code: 0, stdout });
+    // A worker owes exactly one reply line per request.
+    if (extra) { this.retire(worker, new Error('Unexpected rule worker output')); return; }
+    if (worker.served >= WORKER_REQUESTS) this.release(worker);
+    else { this.setReferenced(worker, false); worker.idle = setTimeout(() => this.release(worker), WORKER_IDLE_MS); worker.idle.unref?.(); }
+    this.dispatch(worker.pool);
+  }
+  release(worker) {
+    if (worker.done) return;
+    worker.done = true; clearTimeout(worker.idle); worker.pool.workers.delete(worker);
+    worker.child.stdin.end();
+    const kill = setTimeout(() => worker.child.kill('SIGKILL'), 2000); kill.unref?.();
+    this.dispatch(worker.pool);
+  }
+  retire(worker, error) {
+    if (worker.done) return;
+    worker.done = true; clearTimeout(worker.idle); worker.pool.workers.delete(worker);
+    worker.child.kill('SIGKILL');
+    const job = worker.job; worker.job = null;
+    if (job) {
+      clearTimeout(job.timer);
+      if (this.closed) job.reject(new ApiError(503, 'RULE_UNAVAILABLE', 'Rule execution interrupted'));
+      // A reused worker can die between requests; give its job one fresh worker.
+      else if (!(error instanceof ApiError) && worker.served > 0 && !job.retried) { job.retried = true; worker.pool.queue.unshift(job); }
+      else job.reject(error);
+    }
+    this.dispatch(worker.pool);
+  }
   developmentProjection(request) {
     let result;
     switch (request.op) {
@@ -141,5 +228,11 @@ export class RuleEngine {
     if (jsonBytes(result).length > 2 * 1024 * 1024) throw new ApiError(422, 'RULE_OUTPUT_LIMIT', 'Development projection exceeded the rule output limit');
     return result;
   }
-  close() { this.closed = true; for (const child of this.children) child.kill('SIGKILL'); }
+  close() {
+    this.closed = true;
+    for (const pool of this.pools.values()) for (const job of pool.queue.splice(0)) job.reject(new ApiError(503, 'RULE_UNAVAILABLE', 'Rule execution interrupted'));
+    for (const worker of this.workers()) this.retire(worker, new ApiError(503, 'RULE_UNAVAILABLE', 'Rule execution interrupted'));
+    this.pools.clear();
+    for (const child of this.children) child.kill('SIGKILL');
+  }
 }
