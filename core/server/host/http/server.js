@@ -220,7 +220,7 @@ export class QuizForgeServer {
       if (pathname === '/api/settings/ai' && method === 'PUT') return { ...await this.aiSettings.update(await this.writeRequest(context)), canManage: true };
       if (pathname.endsWith('/test') && method === 'POST') { await this.writeRequest(context); return this.aiGateway.testConnection(); }
     }
-    if (pathname === '/api/settings/development') { if (method === 'GET') return this.developmentSettings.status(this.canManage(context)); if (method === 'PUT') { this.requireLocal(context); return this.developmentSettings.update(await this.writeRequest(context)); } }
+    if (pathname === '/api/settings/development') { if (method === 'GET') return this.developmentSettings.status(this.canManage(context)); if (method === 'PUT') { this.requireLocal(context); const value = this.developmentSettings.update(await this.writeRequest(context)); this.library.invalidate(); return value; } }
     if (parts[1] === 'development') {
       this.rejectTypeQuery(context);
       if (parts.length === 3 && parts[2] === 'resources' && method === 'POST') return this.uploadResource(context, true);

@@ -48,7 +48,7 @@ test('desktop graceful shutdown finishes an accepted save and its HTTP response 
 });
 
 test('conditional question reads reuse one checked binding and return updated answers on a stale stamp', async t => {
-  const {api, service, raw} = await fixture(t);
+  const {api, service, raw, root} = await fixture(t);
   const q = '/api/collections/bank/bank1/questions/' + raw.questions[0].id;
   const original = (await api(q)).data;
   let scans = 0, projections = 0;
@@ -58,17 +58,22 @@ test('conditional question reads reuse one checked binding and return updated an
   const headers = {'X-QuizForge-Question-Stamp': JSON.stringify(original.stamp)};
   const warm = await api(q, {headers});
   assert.equal(warm.status, 200); assert.deepEqual(warm.data, {unchanged:true, stamp:original.stamp});
-  assert.equal(scans, 1); assert.equal(projections, 0);
-  scans = 0; await api(q + '/stamp'); assert.equal(scans, 1);
-  scans = 0; await api('/api/collections/bank/bank1'); assert.equal(scans, 1);
+  // Warm reads recheck only this bank's own inputs, never the whole library index.
+  assert.equal(scans, 0); assert.equal(projections, 0);
+  await api(q + '/stamp'); assert.equal(scans, 0);
+  await api('/api/collections/bank/bank1'); assert.equal(scans, 0);
   const answer = {selectedOptionId: raw.questions[0].data.correctOptionId};
   assert.equal((await api(q + '/actions', {method:'POST', body:{action:'draft', requestId:'conditional-draft', revision:0, data:{answer}}})).status, 200);
   scans = 0; projections = 0;
   const changed = await api(q, {headers});
   assert.equal(changed.data.unchanged, undefined); assert.deepEqual(changed.data.state.answer, answer);
-  assert.equal(changed.data.stamp.revision, 1); assert.equal(scans, 1); assert.equal(projections, 1);
+  assert.equal(changed.data.stamp.revision, 1); assert.equal(scans, 0); assert.equal(projections, 1);
   assert.equal((await api(q, {headers:{'X-QuizForge-Question-Stamp':'bad'}})).status, 400);
   assert.equal((await api(q, {headers:{'X-QuizForge-Question-Stamp':JSON.stringify({...changed.data.stamp, packageVersion:'old'})}})).data.unchanged, undefined);
+  // An outside edit to the opened bank is still seen by the very next read.
+  const file = path.join(root, 'question-banks', 'bank.json'), edited = readJson(file); edited.title = 'Edited outside QuizForge'; fs.writeFileSync(file, jsonBytes(edited));
+  scans = 0; const reloaded = await api('/api/collections/bank/bank1');
+  assert.equal(reloaded.data.title, 'Edited outside QuizForge'); assert.ok(scans > 0, 'A changed bank goes through the full loader');
 });
 test('startup and metadata do not validate unopened banks; opening validates only the selected bank', async t => {
   const operations=[];

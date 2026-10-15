@@ -24,6 +24,7 @@ import { eachReference } from './identity.js';
 import { BankLocations } from './bank-locations.js';
 import { validateImportLibrary } from './import-validation.js';
 
+const RUNTIME_ENVIRONMENT_REUSE_MS = 30 * 1000;
 export class Library {
   constructor(root, codeRoot, engine, settings = new DevelopmentSettings(root)) {
     this.root = path.resolve(root); this.codeRoot = path.resolve(codeRoot); this.engine = engine; this.settings = settings;
@@ -31,6 +32,7 @@ export class Library {
     this.richtext = new RichTextService(codeRoot); this.management = new LibraryManagement(root); this.indexer = new LibraryIndex(root, settings); this.validationCache = new ValidationCache(root);
     this.coordinator = new LoadCoordinator(); this.managementTransactions = new SerialTransactions();
     this.loaded = new Map(); this.extensionCache = new Map(); this.statuses = new Map(); this.closed = false; this.generation = 0; this.environmentPending = null; this.backgroundRunning = false;
+    this.recentEnvironment = null; this.now = Date.now;
     this.files = new FileCache();
     this.pendingImports = new Map();
     this.bankLocations = new BankLocations(root);
@@ -67,13 +69,33 @@ export class Library {
         }
       } finally { this.backgroundRunning = false; }
     };
-    this.backgroundTask = run();
+    // Foreground saves and reads go ahead of these batches in the rule workers.
+    this.backgroundTask = this.engine.background ? this.engine.background(run) : run();
     this.backgroundTask.catch(() => {});
   }
   async environment() {
     if (this.environmentPending) return this.environmentPending;
     const pending = this.engine.validationEnvironment(); this.environmentPending = pending;
-    try { return await pending; } finally { if (this.environmentPending === pending) this.environmentPending = null; }
+    try { const value = await pending; this.recentEnvironment = value === 'unavailable' ? null : { value, at: this.now() }; return value; } finally { if (this.environmentPending === pending) this.environmentPending = null; }
+  }
+  // The Node binary and rule dependencies only change with an app update.
+  // Reads reuse a recent fingerprint; loads and import checks call environment().
+  async runtimeEnvironment() {
+    const recent = this.recentEnvironment;
+    if (recent && this.now() - recent.at < RUNTIME_ENVIRONMENT_REUSE_MS) return recent.value;
+    return this.environment();
+  }
+  // Reads recheck only the opened binding: its bank file, assets and extension
+  // folders. Unrelated banks are not rescanned. Moved or missing inputs, any
+  // host write (generation bump) and a newer completed index scan (catalog
+  // listing, refresh, import) fall back to the full loader.
+  async checkedRead(kind, collectionId) {
+    const cached = this.loaded.get(kind + ':' + collectionId), scanned = this.indexer.cached?.snapshot.revision;
+    if (!cached?.scope || cached.environment === 'unavailable' || scanned && scanned !== cached.indexRevision) return null;
+    let identity;
+    try { identity = this.contentIdentity(cached.scope); } catch { return null; }
+    if (identity !== cached.identity || await this.runtimeEnvironment() !== cached.environment) return null;
+    return this.loaded.get(kind + ':' + collectionId) === cached ? cached : null;
   }
   candidate(snapshot, kind, collectionId) {
     if (kind === 'development-bank') kind = 'bank';
@@ -140,12 +162,7 @@ export class Library {
   }
   async readCollection(kind, collectionId) {
     if (kind === 'exam' && this.examResolver) return this.examResolver(collectionId);
-    const cached = this.loaded.get(kind + ':' + collectionId);
-    if (cached) {
-      const snapshot = this.indexSnapshot(), scope = this.scope(snapshot, kind, collectionId);
-      if (cached.indexRevision === snapshot.revision && cached.identity === this.contentIdentity(scope) && cached.environment !== 'unavailable' && await this.environment() === cached.environment) return cached.collection;
-    }
-    return this.collection(kind, collectionId);
+    return (await this.checkedRead(kind, collectionId))?.collection ?? this.collection(kind, collectionId);
   }
   async writeCollection(kind, collectionId) {
     if (this.closed) throw new ApiError(503, 'LIBRARY_UNAVAILABLE', 'Library is closed');
@@ -283,7 +300,7 @@ export class Library {
     }
     return { collection, descriptor, row, scope, available, packages, originals, raw, source, cacheKey, successfulCheck: result.successfulCheck };
   }
-  async page(id, version) { return cloneJson((await this.load('page', id + '@' + version)).descriptor); }
+  async page(id, version) { const key = id + '@' + version; return cloneJson((await this.checkedRead('page', key) ?? await this.load('page', key)).descriptor); }
   editorPage(extension) { return editorPage(extension); }
   async development(folder) {
     const { collection } = await this.load('development', folder), extension = collection.extension;
@@ -352,7 +369,7 @@ export class Library {
     if (['extension', 'development'].includes(current.kind) || path.basename(source) === 'bank.json' && path.dirname(source) !== path.join(this.root, 'question-banks')) (current.kind.startsWith('development') ? this.developmentResources : this.resources).exportReferences(path.dirname(source), raw);
     return { path: source, before, after: jsonBytes(raw), collection: replacement, question: replacement.question(questionId) };
   }
-  invalidate() { this.generation++; this.loaded.clear(); this.extensionCache.clear(); this.statuses.clear(); this.coordinator.invalidate(() => true); }
+  invalidate() { this.generation++; this.recentEnvironment = null; this.loaded.clear(); this.extensionCache.clear(); this.statuses.clear(); this.coordinator.invalidate(() => true); }
   async developmentPublishPlan() { throw new ApiError(410, 'PUBLICATION_REMOVED', '拓展直接修改和使用，无需发布。'); }
   async publishDevelopment() { throw new ApiError(410, 'PUBLICATION_REMOVED', '拓展直接修改和使用，无需发布。'); }
   async manage(request) {

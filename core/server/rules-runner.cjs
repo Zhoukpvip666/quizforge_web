@@ -37,14 +37,11 @@ function selectRuleApi(value) {
   }
   return api;
 }
-let input = '';
 let development = false;
-process.stdin.setEncoding('utf8');
-process.stdin.on('data', chunk => {
-  input += chunk;
-  if (Buffer.byteLength(input) > LIMIT) { process.stderr.write('Input limit exceeded'); process.exit(2); }
-});
-process.stdin.on('end', () => {
+// Every request builds its own AJV instance and VM context; only the Node
+// startup and loaded modules are shared between requests of one worker.
+function handle(input) {
+  development = false;
   try {
     const request = JSON.parse(input);
     development = request.development === true;
@@ -263,10 +260,35 @@ process.stdin.on('end', () => {
     if (request.withCapabilities === true) output.capabilities = {canAiGrade:run('typeof __type.prepareAiGrading === "function" && typeof __type.review === "function"'),canOutlineItems};
     const encoded = JSON.stringify({ ok: true, data: output });
     if (Buffer.byteLength(encoded) > 2 * 1024 * 1024) throw new Error('Output limit exceeded');
-    process.stdout.write(encoded);
+    return { text: encoded, ok: true };
   } catch (error) {
     // Error stacks and paths stay inside the process. Java returns a bounded generic error.
-    process.stdout.write(JSON.stringify({ ok: false, code: ['SCORE_UNAVAILABLE','INVALID_API_VERSION','UNSUPPORTED_API_VERSION','INVALID_OUTLINE_ITEMS','INVALID_OUTLINE_STATES', ...(development ? ['DEVELOPMENT_NOT_IMPLEMENTED'] : [])].includes(error.code) ? error.code : undefined, error: String(error.message || error).slice(0, 200) }));
-    process.exitCode = 1;
+    return { ok: false, text: JSON.stringify({ ok: false, code: ['SCORE_UNAVAILABLE','INVALID_API_VERSION','UNSUPPORTED_API_VERSION','INVALID_OUTLINE_ITEMS','INVALID_OUTLINE_STATES', ...(development ? ['DEVELOPMENT_NOT_IMPLEMENTED'] : [])].includes(error.code) ? error.code : undefined, error: String(error.message || error).slice(0, 200) }) };
   }
-});
+}
+process.stdin.setEncoding('utf8');
+if (process.argv[2] === '--serve') {
+  // Persistent worker for one extension: the host keys workers by their
+  // read permissions, sends one JSON request per line and reads one reply line.
+  let pending = '';
+  process.stdin.on('data', chunk => {
+    pending += chunk;
+    for (let newline = pending.indexOf('\n'); newline >= 0; newline = pending.indexOf('\n')) {
+      const line = pending.slice(0, newline); pending = pending.slice(newline + 1);
+      process.stdout.write(handle(line).text + '\n');
+    }
+    if (Buffer.byteLength(pending) > LIMIT) { process.stderr.write('Input limit exceeded'); process.exit(2); }
+  });
+  process.stdin.on('end', () => process.exit(0));
+} else {
+  let input = '';
+  process.stdin.on('data', chunk => {
+    input += chunk;
+    if (Buffer.byteLength(input) > LIMIT) { process.stderr.write('Input limit exceeded'); process.exit(2); }
+  });
+  process.stdin.on('end', () => {
+    const response = handle(input);
+    process.stdout.write(response.text);
+    if (!response.ok) process.exitCode = 1;
+  });
+}

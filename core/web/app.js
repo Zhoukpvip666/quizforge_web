@@ -29,6 +29,7 @@ import {bindLibraryManagement} from './library/library-management.js';
 import {bindLibraryTransfer} from './library/library-transfer.js';
 import {bindLibraryResize} from './library/library-resize.js';
 import {bindSaveRecovery} from './practice/save-recovery.js';
+import {createQuestionStepper,stepTarget,adjacentQuestionIds,navigationShortcut,scheduleIdle} from './practice/question-navigation.js';
 
 const $=selector=>document.querySelector(selector);
 const catalog={banks:[],extensions:[],groups:{banks:[],extensions:[]},canManage:false,developmentEnabled:false},collections=new Map();
@@ -189,6 +190,7 @@ async function showQuestion(pane,qid,{payload:prepared,collection:descriptor=pan
     syncPracticeCamera(pane);
     pane.viewport.scrollTop=0;if(active()===pane){renderOutline();updateChrome();saveStatus(pane.payload.state.status==='unanswered'?'':practiceSaveLabel(pane));}
     if(pane.restartApplied){pane.scoreSummary=null;pane.restartRequest=null;pane.restartApplied=false;}
+    prefetchAdjacent(pane);
   }catch(error){if(candidatePlugin&&pane.plugin!==candidatePlugin){candidatePlugin.destroy();candidateHost?.remove();}if(!pane.plugin&&!pane.questionId)pane.questionId=qid;showPageFailure(pane,error,qid);throw error;}
   finally{pane.loading=false;if(pane.plugin&&!pane.pageFailure)syncPracticeCamera(pane);clearTimeout(loadingTimer);loading.remove();pane.node.dataset.loadMs=String(Math.round(performance.now()-started));}
 }
@@ -267,6 +269,27 @@ async function allowDiscardEditor(pane){
   if(accepted){clearTimeout(pane.editorTimer);await pane.editorDraftWrites;if(collectionFeature(pane,'history'))for(const entry of pane.editorSession.values())await request(editorDraftPath(pane,entry.id),{method:'DELETE'});disposeEditorSession(pane);}
   return accepted;
 }
+// Warm the neighbouring cards while idle. Navigation still revalidates the
+// stamp, so a prefetched payload only turns the next read into a short reply.
+function prefetchAdjacent(pane){
+  pane.cancelPrefetch?.();pane.cancelPrefetch=null;
+  if(pane.closed||pane.development||pane.view!=='practice')return;
+  const questionId=pane.questionId;
+  pane.cancelPrefetch=scheduleIdle(async()=>{
+    pane.cancelPrefetch=null;
+    const current=()=>!pane.closed&&active()===pane&&pane.view==='practice'&&pane.questionId===questionId;
+    if(!current())return;
+    for(const qid of adjacentQuestionIds(visibleQuestions(pane),navigationIndex(pane))){
+      if(!current())return;
+      try{
+        const payload=await questionsCache.load(questionCacheKey(pane,qid),()=>request(questionPath(pane.kind,pane.id,qid))),pkg=questionExtension(payload,pane.collection,qid);
+        if(!current()||!collectionHasExtension(pane.collection,qid,pkg))continue;
+        const page=pane.exam?{key:`exam:${pane.id}:${qid}`,path:`${questionPath('exam',pane.id,qid)}/page`}:extensionPageRoute(pkg,payload.stamp?.packageVersion);
+        await prepareAssets(await pagesCache.load(page.key,()=>request(page.path)));
+      }catch{/* Best effort: the real switch reports load failures. */}
+    }
+  });
+}
 async function navigateQuestion(pane,qid){
   if(pane.view==='edit'){await showEditorQuestion(pane,qid);return;}
   if(pane.view==='history'){await showHistoryQuestion(pane,qid);return;}
@@ -302,7 +325,7 @@ async function finishPractice(pane,summary){
     pane.loading=true;pendingWrites++;pane.node.inert=true;updateChrome();saveStatus(collectionFeature(pane,'history')?'保存中…':'当前会话 · 正在完成','saving');
     try{
       if(!pane.finishRequest||pane.finishRequest.summaryVersion!==summary.summaryVersion)pane.finishRequest={requestId:makeRequestId(),roundId:summary.roundId,summaryVersion:summary.summaryVersion};
-      const value=await request(`${collectionPath(pane.kind,pane.id)}/finish`,{method:'POST',body:JSON.stringify(pane.finishRequest)});
+      const value=await request(`${collectionPath(pane.kind,pane.id)}/finish`,{method:'POST',body:JSON.stringify(pane.finishRequest),timeoutMs:135000});
       questionsCache.deleteCollection(`${pane.key}:`);pane.scoreSummary=value;pane.historyRecords=[];pane.finishRequest=null;
       pane.collection=await request(collectionPath(pane.kind,pane.id));renderOutline();
       saveStatus(value.completionPending?'答案已提交，部分题目待评分；可返回题目重试 AI 或人工评分':value.historyId?'练习已完成':'当前会话 · 已完成');return value;
@@ -321,7 +344,7 @@ async function restartPractice(pane,summary){
     try{
       if(!pane.restartApplied){
         if(!pane.restartRequest||pane.restartRequest.summaryVersion!==summary.summaryVersion)pane.restartRequest={requestId:makeRequestId(),roundId:summary.roundId,summaryVersion:summary.summaryVersion};
-        await request(`${collectionPath(pane.kind,pane.id)}/restart`,{method:'POST',body:JSON.stringify(pane.restartRequest)});
+        await request(`${collectionPath(pane.kind,pane.id)}/restart`,{method:'POST',body:JSON.stringify(pane.restartRequest),timeoutMs:135000});
         pane.restartApplied=true;pane.finishRequest=null;pane.historyRecords=[];pane.answerPreviews?.clear();pane.answerStateSnapshots?.clear();
       }
       // Retry a failed load without resetting a round that already started on the server.
@@ -765,7 +788,14 @@ const libraryTransfer=bindLibraryTransfer({request,getContext:()=>({kind:listMod
 $('#library-new-group').addEventListener('click',()=>libraryManager.open('group',null,'create'));
 bindSaveRecovery({document,active,transitionTo,loadQuestion,showQuestion,saveInk,notice,collectionFeature,renderOutline});
 $('#draft-toggle').addEventListener('click',()=>transitionTo(()=>toggleDraftMode()));
-for(const [id,offset]of [['previous',-1],['next',1]])$(`#${id}`).addEventListener('click',()=>transitionTo(async()=>{const pane=active();if(!pane)return;const rows=visibleQuestions(pane),index=navigationIndex(pane),target=rows[index+offset];if(target)await navigateQuestion(pane,target.id);else if(index+offset===rows.length&&hasScoreSummary(pane))await showScoreSummary(pane);}));
+const questionStepper=createQuestionStepper(take=>transitionTo(async()=>{
+  const offset=take(),pane=active();if(!pane)return;
+  const rows=visibleQuestions(pane),target=stepTarget(navigationIndex(pane),offset,rows.length,{summary:hasScoreSummary(pane)});
+  if(target==null)return;
+  if(target===rows.length)await showScoreSummary(pane);else await navigateQuestion(pane,rows[target].id);
+}));
+for(const [id,offset]of [['previous',-1],['next',1]])$(`#${id}`).addEventListener('click',()=>questionStepper.step(offset));
+document.addEventListener('keydown',event=>{const pane=active();if(!pane||pane.richtextFrame)return;const offset=navigationShortcut(event,{document,draft:draftViewActive(pane)});if(!offset)return;event.preventDefault();questionStepper.step(offset);});
 for(const id of ['history-open','history-choose'])$(`#${id}`).addEventListener('click',()=>transitionTo(()=>openHistoryList(active())));
 $('#history-close').addEventListener('click',()=>$('#history-dialog').close());
 $('#history-dialog').addEventListener('cancel',event=>{if(historyDeleting)event.preventDefault();});

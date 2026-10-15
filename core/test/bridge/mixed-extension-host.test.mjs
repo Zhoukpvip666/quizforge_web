@@ -27,7 +27,7 @@ function fixture({requestImpl,collection}={}){
     remove(){if(this.parent)this.parent.children=this.parent.children.filter(child=>child!==this);this.parent=null;}
   }
   const pane={kind:'bank',id:'mixed',key:'bank:mixed',node:new Element(),frameHost:new Element(),viewport:{clientWidth:900,scrollTop:0,scrollLeft:0},tools:{},collection:collection||{extension:null,extensions:[single,text],questions:[{id:'a',type:single},{id:'b',type:text},{id:'c',type:single}],states:{}},ink:{clear(){}},whiteboard:{loads:[],load(value){this.loads.push(value);},setReadOnly(value){this.readOnly=value;},setMode(value){this.mode=value;}},view:'practice',plugin:null,draftMode:false};
-  const sandbox={performance:{now:()=>0},setTimeout,clearTimeout,structuredClone,Math,questionExtension,collectionHasExtension,extensionPageRoute,sameQuestionStamp,contextFor,collectionFeature,practiceSaveLabel,canViewDraft,draftViewActive,
+  const sandbox={performance:{now:()=>0},prefetchAdjacent(){},setTimeout,clearTimeout,structuredClone,Math,questionExtension,collectionHasExtension,extensionPageRoute,sameQuestionStamp,contextFor,collectionFeature,practiceSaveLabel,canViewDraft,draftViewActive,
     questionsCache:cache,pagesCache:pages,questionCacheKey:(pane,qid)=>`${pane.key}:${qid}`,
     questionPath:(_kind,_id,qid)=>`/api/questions/${qid}`,collectionPath:()=>'/api/collections/bank/mixed',
     request:async(path,options)=>{requests.push({path,options});return requestImpl(path,options);},
