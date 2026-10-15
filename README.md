@@ -4,7 +4,7 @@
 
 第一版功能范围已确定，后续以修复和发布验证为主。Windows 预览包通过 `QuizForge.exe` 启动，内置 Node 运行环境；当前源码目录也保留脚本启动入口。Web 版独立于 QuizForge V2，数据和包格式不互通。
 
-当前预览版为 **0.1.0-preview.1**。Windows 用户可从 [GitHub Releases](https://github.com/lear111/quizforge_web/releases) 下载完整 ZIP；发布范围、使用方式与已知问题见 [预览版说明](core/docs/releases/0.1.0-preview.1.md)。
+当前预览版为 **0.1.0-preview.2**。Windows 用户可从 [GitHub Releases](https://github.com/lear111/quizforge_web/releases) 下载完整 ZIP；发布范围、使用方式与已知问题见 [预览版说明](core/docs/releases/0.1.0-preview.2.md)。
 
 用户可见功能与逐项测试依据见 [功能清单](FEATURES.md)，包含画笔、纸张背景、框选、截图等具体操作及预期表现。清单描述功能要求，测试结果另行记录。
 
