@@ -144,11 +144,14 @@ test('latest extension preview coexists with banks pinned to older installed ver
   assert.equal((await library.page('quizforge.single-choice', '1.0.0')).html.includes('提交'), true);
 });
 
-test('warm collection reads revalidate after the rule runtime identity changes', async t => {
-  const { library, engine } = await fixture(t), original = await library.collection('extension', 'quizforge.single-choice');
+test('warm collection reads revalidate after the reused rule runtime identity expires', async t => {
+  const { library, engine } = await fixture(t);
+  let time = 0; library.now = () => time;
+  const original = await library.collection('extension', 'quizforge.single-choice');
   let runs = 0; const run = engine.run.bind(engine); engine.run = (...args) => { runs++; return run(...args); };
   engine.validationEnvironment = async () => 'updated-rule-runner';
-  const updated = await library.readCollection('extension', 'quizforge.single-choice');
+  time = 29 * 1000; assert.equal(await library.readCollection('extension', 'quizforge.single-choice'), original, 'Reads reuse a recent runtime fingerprint'); assert.equal(runs, 0);
+  time = 30 * 1000; const updated = await library.readCollection('extension', 'quizforge.single-choice');
   assert.notEqual(updated, original); assert.ok(runs > 0);
   assert.equal(updated.extensionFingerprint, original.extensionFingerprint, 'Changing host rules must not change a stored extension identity');
 });
