@@ -155,6 +155,17 @@ test('warm collection reads revalidate after the reused rule runtime identity ex
   assert.notEqual(updated, original); assert.ok(runs > 0);
   assert.equal(updated.extensionFingerprint, original.extensionFingerprint, 'Changing host rules must not change a stored extension identity');
 });
+test('warm reads keep the checked binding until a newer index scan completes', async t => {
+  const { root, library } = await fixture(t);
+  const original = await library.collection('extension', 'quizforge.single-choice');
+  const extension = path.join(root, 'extensions', 'choice'), raw = readJson(path.join(extension, readJson(path.join(extension, 'manifest.json')).examples));
+  raw.id = 'unrelated-bank'; fs.writeFileSync(path.join(root, 'question-banks', 'unrelated.json'), jsonBytes(raw));
+  assert.equal(await library.readCollection('extension', 'quizforge.single-choice'), original, 'Reads do not rescan unrelated banks');
+  library.index();
+  const reloaded = await library.readCollection('extension', 'quizforge.single-choice');
+  assert.notEqual(reloaded, original, 'A newer completed scan sends the next read through the full loader');
+  assert.equal(await library.readCollection('extension', 'quizforge.single-choice'), reloaded);
+});
 test('management display settings do not hide legacy banks or change collection identity', async t => {
   const { root, library } = await fixture(t, { rules: false });
   const extension = path.join(root, 'extensions', 'choice');

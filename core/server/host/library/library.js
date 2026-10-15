@@ -69,7 +69,8 @@ export class Library {
         }
       } finally { this.backgroundRunning = false; }
     };
-    this.backgroundTask = run();
+    // Foreground saves and reads go ahead of these batches in the rule workers.
+    this.backgroundTask = this.engine.background ? this.engine.background(run) : run();
     this.backgroundTask.catch(() => {});
   }
   async environment() {
@@ -85,11 +86,12 @@ export class Library {
     return this.environment();
   }
   // Reads recheck only the opened binding: its bank file, assets and extension
-  // folders. Unrelated banks are not rescanned. Moved or missing inputs, and
-  // any host write (generation bump), fall back to the full loader.
+  // folders. Unrelated banks are not rescanned. Moved or missing inputs, any
+  // host write (generation bump) and a newer completed index scan (catalog
+  // listing, refresh, import) fall back to the full loader.
   async checkedRead(kind, collectionId) {
-    const cached = this.loaded.get(kind + ':' + collectionId);
-    if (!cached?.scope || cached.environment === 'unavailable') return null;
+    const cached = this.loaded.get(kind + ':' + collectionId), scanned = this.indexer.cached?.snapshot.revision;
+    if (!cached?.scope || cached.environment === 'unavailable' || scanned && scanned !== cached.indexRevision) return null;
     let identity;
     try { identity = this.contentIdentity(cached.scope); } catch { return null; }
     if (identity !== cached.identity || await this.runtimeEnvironment() !== cached.environment) return null;

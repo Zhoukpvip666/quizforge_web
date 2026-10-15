@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -9,7 +10,9 @@ import { apiVersion } from './extension-api.js';
 import { fileIdentity, statIdentity } from '../platform/file-cache.js';
 
 // Persistent runners: one per extension permission set, two at most while
-// busy, recycled after idling or serving many requests.
+// busy plus one kept for foreground work while both run background batches,
+// recycled after idling or serving many requests.
+const backgroundWork = new AsyncLocalStorage();
 const WORKER_IDLE_MS = 60 * 1000, WORKER_REQUESTS = 500, WORKERS_PER_KEY = 2, WORKER_LIMIT = 12;
 const ENVIRONMENT = new Set(['SYSTEMROOT', 'WINDIR', 'PATH', 'TEMP', 'TMP', 'COMSPEC', 'PATHEXT']);
 const messages = {
@@ -67,6 +70,8 @@ export class RuleEngine {
       return fingerprint(files, 'quizforge-validation-environment-v1');
     } catch { return 'unavailable'; }
   }
+  // Rule requests started inside fn (startup validation) yield to foreground work.
+  background(fn) { return backgroundWork.run(true, fn); }
   async run(extension, input) {
     const request = cloneJson(input), development = extension.development != null;
     request.development = development;
@@ -91,7 +96,7 @@ export class RuleEngine {
     }
     args.push(runner);
     try {
-      const result = await this.serve(args, encoded, this.deadline, fs.statSync(runner, { bigint: true }).mtimeNs);
+      const result = await this.serve(args, encoded, this.deadline, fs.statSync(runner, { bigint: true }).mtimeNs, backgroundWork.getStore() !== true);
       const response = parseJson(result.stdout);
       if (messages[response?.code] && (response.code !== 'DEVELOPMENT_NOT_IMPLEMENTED' || development)) throw new ApiError(422, response.code, messages[response.code]);
       if (result.code !== 0 || !response?.ok) throw new ApiError(422, 'RULE_REJECTED', 'Extension rules rejected or could not process this data');
@@ -133,22 +138,26 @@ export class RuleEngine {
   // Each request still gets a fresh AJV instance and VM context inside the
   // runner; only Node startup and module loading are shared. A timeout, an
   // oversized reply or a crash kills the worker; the next request starts anew.
-  serve(args, input, deadline, revision = '') {
+  serve(args, input, deadline, revision = '', priority = true) {
     if (this.closed) return Promise.reject(new ApiError(503, 'RULE_UNAVAILABLE', 'Rule execution interrupted'));
     const key = [String(revision), ...args].join('\0');
     let pool = this.pools.get(key);
     if (!pool) { pool = { key, args, workers: new Set(), queue: [] }; this.pools.set(key, pool); }
-    return new Promise((resolve, reject) => { pool.queue.push({ input, deadline, resolve, reject, retried: false, timer: null }); this.dispatch(pool); });
+    return new Promise((resolve, reject) => { pool.queue.push({ input, deadline, priority, resolve, reject, retried: false, timer: null }); this.dispatch(pool); });
   }
   dispatch(pool) {
     while (pool.queue.length && !this.closed) {
+      const index = Math.max(0, pool.queue.findIndex(job => job.priority)), job = pool.queue[index], busy = [...pool.workers].filter(item => item.job);
+      // Background batches never hold more than the usual two workers.
+      if (!job.priority && busy.filter(item => !item.job.priority).length >= WORKERS_PER_KEY) return;
       let worker = [...pool.workers].find(item => !item.job);
       if (!worker) {
-        if (pool.workers.size >= WORKERS_PER_KEY) return;
+        const limit = job.priority && !busy.some(item => item.job.priority) ? WORKERS_PER_KEY + 1 : WORKERS_PER_KEY;
+        if (pool.workers.size >= limit) return;
         this.trimWorkers();
         worker = this.startWorker(pool);
       }
-      this.assign(worker, pool.queue.shift());
+      pool.queue.splice(index, 1); this.assign(worker, job);
     }
     if (!pool.workers.size && !pool.queue.length && this.pools.get(pool.key) === pool) this.pools.delete(pool.key);
   }

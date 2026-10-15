@@ -95,3 +95,18 @@ test('rejected rules keep the worker usable and closing rejects queued work', as
   assert.equal(engine.workers().length, 0);
   await assert.rejects(project(), { code: 'RULE_UNAVAILABLE' });
 });
+
+test('foreground requests skip queued background batches and get a reserved worker', async t => {
+  const { engine, extension, project } = await fixture(t);
+  await project();
+  const finished = [], slow = () => engine.background(() => engine.run(extension, { op: 'projectBatch', questions: Array.from({ length: 3 }, () => ({ data: { slow: true }, state: { submitted: false, result: null } })) }));
+  const background = [1, 2, 3].map(index => slow().then(() => finished.push('background-' + index)));
+  await new Promise(resolve => setTimeout(resolve, 50));
+  const foreground = project().then(value => { finished.push('foreground'); return value; });
+  assert.deepEqual(await foreground, { projected: { calls: 1, maxScore: 1 } });
+  assert.deepEqual(finished, ['foreground'], 'The foreground request does not wait for background batches');
+  assert.ok(engine.workers().length <= 3);
+  await Promise.all(background);
+  assert.deepEqual(finished.slice(1).sort(), ['background-1', 'background-2', 'background-3']);
+  assert.ok(engine.workers().length <= 3);
+});
