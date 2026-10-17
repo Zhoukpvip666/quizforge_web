@@ -2,6 +2,7 @@
   "name": "quizforge-web-local",
   "version": "0.1.0-preview.2",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "description": "Native Node.js QuizForge host, extension rule runner and browser checks",
   "engines": {

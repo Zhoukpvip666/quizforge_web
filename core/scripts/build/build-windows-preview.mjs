@@ -36,7 +36,7 @@ const productFilter = file => {
 const copy = (relative, filter = productFilter) => fs.cpSync(path.join(root, relative), path.join(target, relative), { recursive: true, filter });
 copy('QuizForge.exe');
 for (const directory of ['core/server', 'core/web', 'core/shared', 'core/docs', 'skills']) copy(directory);
-for (const file of ['core/package.json', 'core/package-lock.json', 'FEATURES.md']) copy(file);
+for (const file of ['LICENSE', 'core/package.json', 'core/package-lock.json', 'FEATURES.md']) copy(file);
 const basics = ['single-choice-richtext', 'multiple-choice-richtext', 'true-false-richtext', 'short-answer-richtext'];
 for (const name of basics) copy('extensions/' + name);
 copy('extensions/README.md');
