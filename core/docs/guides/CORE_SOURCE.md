@@ -66,7 +66,29 @@ Windows 也可运行 `Start-QuizForge-Web.cmd`，自动安装依赖并打开浏�
 
 `web/manifest.webmanifest` 由静态服务以 `application/manifest+json` 返回，与其他页面资源一样无需访问口令、带 `Cache-Control: no-store`。`start_url`、`scope` 和 `id` 均为 `/`，不含 `#token=`；`shared/api.js` 读取口令后立即从地址中移除，并只存入当前窗口的 `sessionStorage`，所以安装的应用每次启动都需要重新登录。图标为 `web/assets/` 中的 192／512 PNG，maskable 版本由 `quizforge-maskable.svg` 生成。
 
-应用刻意不注册 Service Worker：Chrome（移动版 108、桌面版 112 起）和 Edge 安装不再需要它，加了离线缓存反而可能让旧页面或旧拓展资源继续写入数据。浏览器只在 HTTPS 或 localhost 上提供安装，HTTP 局域网地址只能添加快捷方式；部署说明见 [使用手册](USER_GUIDE.md#安装到手机主屏幕)。
+应用刻意不注册 Service Worker：Chrome（移动版 108、桌面版 112 起）和 Edge 安装不再需要它，加了离线缓存反而可能让旧页面或旧拓展资源继续写入数据。浏览器只在 HTTPS 或 localhost 上提供安装，HTTP 局域网地址只能添加快捷方式；可开启下节的局域网 HTTPS，或用外部反向代理提供 HTTPS，部署说明见 [使用手册](USER_GUIDE.md#安装到手机主屏幕)。
+
+## 局域网 HTTPS
+
+`server/host/http/lan-certificates.js` 生成并维护本机根证书和服务器证书，文件在数据目录 `.state/lan-https/`（`root-ca.key`、`root-ca.crt`、`root-ca.json`、`server.key`、`server.crt`）。目录首次创建时，POSIX 设为 `0700`、Windows 用 `icacls` 去掉继承权限只授权当前用户；文件经 `replaceFile` 以 `0600` 写入。
+
+- 根证书：RSA 2048、SHA-256、10 年，`basicConstraints CA:TRUE, pathlen:0`、`keyUsage keyCertSign/cRLSign`，并带关键的 `nameConstraints`：只允许 `127.0.0.0/8`、`10.0.0.0/8`、`172.16.0.0/12`、`192.168.0.0/16`、`::1/128`、`fc00::/7` 以及 `localhost`、生成时的主机名和 `主机名.local`。
+- 服务器证书：397 天（iOS 上限 825 天），`serverAuth`，SAN 为 `localhost`、主机名、当前所有落在上述范围内的局域网地址、`127.0.0.1`、`::1`。`ensure()` 在地址不再被覆盖、距到期不足 30 天或文件缺失时换发；HTTPS 端口通过 `setSecureContext` 热替换，根证书不变。服务每 60 秒及每次读取网络设置时检查一次。
+- 名称约束的取舍：Chrome（BoringSSL 与 Chrome 自带校验器）、Android 系统校验和 Apple 的 Security 框架都按 RFC 5280 执行 `nameConstraints`，包括 IP 约束；OpenSSL 同样执行，自动测试用它确认越界证书被拒绝。代价是公网 IPv6 前缀会变，无法预先约束，因此不写入 SAN；修改电脑名称后需重新生成根证书才能使用新名称。手机端实际行为需真机确认。
+
+`server.js` 在局域网连接端口之外开一个 HTTPS 监听（`networkSettings.config.httpsPort`，默认连接端口 + 1，TLS ≥ 1.2）。它与连接端口共用 `remote` 处理：`validateHost` 要求局域网开关、私有对端地址和局域网 Host（另接受证书里的主机名，不接受公网地址配置），Host 端口按 443 默认值比较；`validateOrigin` 比较 `https:` 来源；`canManage` 始终为 false，需要连接密码。HTTPS 只在局域网开关打开时可开启，关闭时停止监听但保留证书。
+
+`GET /quizforge-lan-ca.crt` 是唯一读取 `.state` 的页面路径：只在 HTTPS 运行时返回根证书 DER（`application/x-x509-ca-cert`），路径精确匹配，不经过静态文件解析，也不需要密码。`POST /api/settings/network/https/regenerate` 仅限本机，重新生成根证书和服务器证书。
+
+依赖选型：
+
+| 方案 | 结论 |
+| --- | --- |
+| Node 内置 `crypto` + 自写 DER 编码（采用） | 无新依赖；`generateKeyPair`／`sign` 负责密钥和签名，`X509Certificate` 负责解析、校验和 `checkIP`／`checkHost`。只需编码固定的证书结构，`nameConstraints` 完全可控。 |
+| `@peculiar/x509` 2.x（MIT） | API 完整，但依赖 `tsyringe`、`tslib`、`pvtsutils` 及 8 个 `@peculiar/asn1-*` 包，打包体积和供应链面明显增大。 |
+| `node-forge` 1.x（BSD-3-Clause 或 GPL-2.0） | 单包，但纯 JS RSA，内置扩展不含 `nameConstraints`，需手写原始 DER；历史上多次出现签名校验相关漏洞。 |
+
+二维码在后端用 `qrcode-generator@2.0.4`（MIT，Kazuhiko Arase，无依赖，许可证写在 `dist/` 文件头）生成 SVG，以 `data:image/svg+xml;base64,` 返回，前端只接受这一前缀；版本锁定在 `package.json`，并由 `scripts/build/runtime-dependencies.mjs` 打包。
 
 ## 评分、考试与历史
 
