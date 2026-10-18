@@ -6,7 +6,7 @@
 
 ![QuizForge 主界面：左侧题库列表，中间作答区，右侧题目大纲](core/docs/images/main-window.png)
 
-当前版本 **0.1.0-preview.2**（预览版）。第一版功能范围已确定，后续以修复和发布验证为主；发布范围与已知问题见 [预览版说明](core/docs/releases/0.1.0-preview.2.md)。
+当前版本 **0.1.0-preview.3**（预览版）。第一版功能范围已确定，后续以修复和发布验证为主；发布范围与已知问题见 [预览版说明](core/docs/releases/0.1.0-preview.3.md)。
 
 ## 功能
 

@@ -8,7 +8,7 @@ import yazl from 'yazl';
 import { copyRuntimeDependencies } from './runtime-dependencies.mjs';
 
 const root = fileURLToPath(new URL('../../../', import.meta.url));
-const options = { version: '0.1.0-preview.2', node: process.execPath, output: path.join(root, 'dist'), license: null, sourceCommit: null };
+const options = { version: '0.1.0-preview.3', node: process.execPath, output: path.join(root, 'dist'), license: null, sourceCommit: null };
 for (let i = 2; i < process.argv.length; i++) {
   const key = { '--version': 'version', '--node': 'node', '--output': 'output', '--node-license': 'license', '--source-commit': 'sourceCommit' }[process.argv[i]];
   if (!key || ++i >= process.argv.length) throw new Error('Unknown package option'); options[key] = process.argv[i];
