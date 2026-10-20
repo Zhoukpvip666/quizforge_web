@@ -12,9 +12,10 @@ using System.Windows.Forms;
 
 namespace QuizForge.Desktop
 {
-    internal sealed class TrayContext : ApplicationContext
+    internal sealed partial class TrayContext : ApplicationContext
     {
         private readonly Options options;
+        private readonly HubPackageImport hub;
         private readonly Form dispatcher = new Form { ShowInTaskbar = false };
         private readonly NotifyIcon tray = new NotifyIcon();
         private readonly ToolStripMenuItem statusItem = new ToolStripMenuItem { Enabled = false };
@@ -34,13 +35,15 @@ namespace QuizForge.Desktop
         private volatile bool quitting, disposed;
         private int openRequests;
 
-        internal TrayContext(Options options)
+        internal TrayContext(Options options, HubPackageImport hub = null)
         {
             this.options = options;
+            this.hub = hub ?? new HubPackageImport();
             var unused = dispatcher.Handle;
             var menu = new ContextMenuStrip();
             menu.Items.Add(statusItem); menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add(openItem); menu.Items.Add("运行情况…", null, (sender, args) => ShowStatus());
+            menu.Items.Add("打开数据文件夹", null, (sender, args) => OpenDataFolder());
             menu.Items.Add(new ToolStripSeparator()); menu.Items.Add(quitItem);
             tray.ContextMenuStrip = menu;
             tray.MouseClick += (sender, args) => { if (args.Button == MouseButtons.Left) OpenPage(); };
@@ -49,6 +52,8 @@ namespace QuizForge.Desktop
             SetState("启动中", detail); tray.Visible = true;
             Task.Run(() => SingleInstance.Listen(options.PipeName, HandleCommand, cancellation.Token));
             startup = Task.Run((Func<Task>)StartService);
+            if (options.ImportFile != null) QueueImport(options.ImportFile);
+            if (options.HubImport != null) QueueHubImport(options.HubImport);
         }
         private void Post(Action action)
         {
@@ -61,19 +66,28 @@ namespace QuizForge.Desktop
             var result = new TaskCompletionSource<string>();
             Post(() =>
             {
-                if (command == "open") OpenPage();
-                // Let the pipe reply before the UI and listener are disposed.
-                if (command == "quit") Task.Delay(150).ContinueWith(_ => Post(BeginQuit));
-                result.TrySetResult(StatusJson());
+                try
+                {
+                    string file = LocalPackageImport.CommandFile(command);
+                    if (file != null) { result.TrySetResult(StatusJson(QueueImport(file))); return; }
+                    var hubRequest = HubImportRequest.FromCommand(command);
+                    if (hubRequest != null) { result.TrySetResult(StatusJson(QueueHubImport(hubRequest))); return; }
+                    if (command == "open") OpenPage();
+                    // Let the pipe reply before the UI and listener are disposed.
+                    if (command == "quit") Task.Delay(150).ContinueWith(_ => Post(BeginQuit));
+                    result.TrySetResult(StatusJson());
+                }
+                catch (Exception error) { result.TrySetResult(json.Serialize(new { error = error.Message })); }
             });
             return result.Task;
         }
-        private string StatusJson()
+        private string StatusJson(string acceptedImportId = null)
         {
             return json.Serialize(new { state, url, detail, launcherPid = Process.GetCurrentProcess().Id,
-                servicePid = service == null ? 0 : service.Id, root = options.Root,
+                servicePid = service == null ? 0 : service.Id, root = options.DataRoot, programRoot = options.Root, dataRoot = options.DataRoot, installed = options.Installed,
                 startedAt = startedAt.HasValue ? startedAt.Value.ToUniversalTime().ToString("o") : null,
-                browserOpenRequests = openRequests, noBrowser = options.NoBrowser });
+                browserOpenRequests = openRequests, lastOpenedUrl, noBrowser = options.NoBrowser,
+                acceptedImportId, pendingImports = activeImports.Count, lastImport, hubCleanupWarning });
         }
         private static string Quote(string value)
         {
@@ -118,8 +132,11 @@ namespace QuizForge.Desktop
                         throw new IOException("运行环境版本不符，需要 Node.js 24。");
                 }
                 if (quitting) return;
+                Directory.CreateDirectory(options.DataRoot);
                 var process = new Process();
-                process.StartInfo = new ProcessStartInfo(node, Quote(entry) + " --root " + Quote(options.Root) + " --host 127.0.0.1 --port " + options.Port + " --desktop")
+                string arguments = Quote(entry) + " --root " + Quote(options.DataRoot) + " --code-root " + Quote(Path.Combine(options.Root, "core")) + " --host 127.0.0.1 --port " + options.Port + " --desktop";
+                if (options.Installed) arguments += " --initial-content " + Quote(Path.Combine(options.Root, "defaults"));
+                process.StartInfo = new ProcessStartInfo(node, arguments)
                 {
                     WorkingDirectory = options.Root, UseShellExecute = false, CreateNoWindow = true,
                     RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true,
@@ -149,6 +166,7 @@ namespace QuizForge.Desktop
             }
             catch (Exception error)
             {
+                ready.TrySetResult(false);
                 Post(() =>
                 {
                     if (quitting) return;
@@ -181,7 +199,8 @@ namespace QuizForge.Desktop
                 {
                     if (quitting || service.HasExited) return;
                     url = "http://127.0.0.1:" + port + "/"; startedAt = DateTime.Now;
-                    SetState("运行中", "服务已就绪。"); ready.TrySetResult(true); OpenPage();
+                    HubPackageImport.CleanStale(options.DataRoot, RecordHubCleanupWarning);
+                    SetState("运行中", "服务已就绪。"); ready.TrySetResult(true); if (activeImports.Count == 0) OpenPage();
                 });
             }
             catch { Post(() => SetState("启动失败", "服务启动消息无效。")); }
@@ -207,15 +226,16 @@ namespace QuizForge.Desktop
         {
             return File.Exists(Path.Combine(options.Root, "core", "package-lock.json")) && !File.Exists(Path.Combine(options.Root, "RELEASE.json"));
         }
-        private void OpenPage()
+        private void OpenPage(string bankId = null)
         {
             if (state != "运行中" || quitting)
             {
                 tray.ShowBalloonTip(3000, "QuizForge · " + state, detail, ToolTipIcon.Info); return;
             }
             openRequests++;
+            lastOpenedUrl = url + (bankId == null ? "" : "?imported-bank=" + Uri.EscapeDataString(bankId));
             if (options.NoBrowser) return;
-            try { Process.Start(new ProcessStartInfo(url) { UseShellExecute = true }); }
+            try { Process.Start(new ProcessStartInfo(lastOpenedUrl) { UseShellExecute = true }); }
             catch { tray.ShowBalloonTip(4000, "QuizForge", "无法打开默认浏览器，请在浏览器访问：" + url, ToolTipIcon.Warning); }
         }
         private void SetState(string next, string message)
@@ -242,23 +262,35 @@ namespace QuizForge.Desktop
         }
         private void ShowStatus()
         {
-            var dialog = new Form { Text = "QuizForge · 运行情况", ClientSize = new Size(480, 240), StartPosition = FormStartPosition.CenterScreen,
+            var dialog = new Form { Text = "QuizForge · 运行情况", ClientSize = new Size(480, 370), StartPosition = FormStartPosition.CenterScreen,
                 FormBorderStyle = FormBorderStyle.FixedDialog, MaximizeBox = false, MinimizeBox = false, Icon = tray.Icon };
             string elapsed = startedAt.HasValue ? ((int)(DateTime.Now - startedAt.Value).TotalMinutes) + " 分钟" : "尚未就绪";
             dialog.Controls.Add(new Label { Text = "服务状态：" + state + "\n\n本机地址：" + (url == "" ? "尚未就绪" : url) + "\n\n运行时长：" + elapsed,
                 AutoSize = false, Location = new Point(20, 20), Size = new Size(440, 90) });
-            dialog.Controls.Add(new TextBox { Text = detail, ReadOnly = true, Multiline = true, BorderStyle = BorderStyle.None,
-                BackColor = dialog.BackColor, Location = new Point(20, 120), Size = new Size(440, 60) });
-            var close = new Button { Text = "关闭", DialogResult = DialogResult.OK, Location = new Point(370, 195), Size = new Size(90, 30) };
+            var details = new TextBox { Text = detail, ReadOnly = true, Multiline = true, BorderStyle = BorderStyle.None,
+                BackColor = dialog.BackColor, Location = new Point(20, 120), Size = new Size(440, 120), ScrollBars = ScrollBars.Vertical };
+            dialog.Controls.Add(details);
+            var refresh = new System.Windows.Forms.Timer { Interval = 500 };
+            refresh.Tick += (sender, args) => { details.Text = detail + (lastImport == null ? "" : "\r\n\r\n导入任务：" + lastImport.state + "\r\n" + lastImport.message) + (hubCleanupWarning == null ? "" : "\r\n" + hubCleanupWarning); };
+            refresh.Start();
+            dialog.Controls.Add(new TextBox { Text = "数据文件夹：" + options.DataRoot, ReadOnly = true, BorderStyle = BorderStyle.None, BackColor = dialog.BackColor, Location = new Point(20, 255), Size = new Size(440, 40), Multiline = true });
+            var close = new Button { Text = "关闭", DialogResult = DialogResult.OK, Location = new Point(370, 325), Size = new Size(90, 30) };
             dialog.Controls.Add(close); dialog.AcceptButton = close; dialog.CancelButton = close;
-            using (dialog) dialog.ShowDialog();
+            using (refresh) using (dialog) dialog.ShowDialog();
+        }
+        private void OpenDataFolder()
+        {
+            try { Directory.CreateDirectory(options.DataRoot); Process.Start(new ProcessStartInfo(options.DataRoot) { UseShellExecute = true }); }
+            catch { tray.ShowBalloonTip(4000, "QuizForge", "无法打开数据文件夹，请在运行情况中查看路径。", ToolTipIcon.Warning); }
         }
         private async void BeginQuit()
         {
             if (quitting) return;
             quitting = true; quitItem.Enabled = false; SetState("正在退出", "正在等待服务处理完已收到的保存请求…");
+            if (!startedAt.HasValue) ready.TrySetResult(false);
             try
             {
+                await importWork;
                 if (service != null && !service.HasExited)
                 {
                     try { service.StandardInput.WriteLine("quit"); service.StandardInput.Flush(); service.StandardInput.Close(); }

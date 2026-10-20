@@ -15,8 +15,8 @@ const codeRoot = fileURLToPath(new URL('../../../', import.meta.url));
 test('mixed collections retain their state identity and question owners', () => {
   const a = { id: 'a', version: '1.0.0', fingerprint: 'a'.repeat(64), directory: 'a', outlineItemsDeclared: true, providerRevision: '' };
   const b = { ...a, id: 'b', fingerprint: 'b'.repeat(64) };
-  const raw = { id: 'sample', title: 'Mixed', questions: [{ id: 'q1', title: 'One', extension: { id: 'a', version: '1.0.0' }, data: {}, outline: { level: 'parts', items: [{ id: 'p1', label: '1' }] } }, { id: 'q2', title: 'Two', extension: { id: 'b', version: '1.0.0' }, data: {} }] };
-  const prepared = prepareCollection(raw, 'bank', null, 'sample', new Map([['a@1.0.0', a], ['b@1.0.0', b]]));
+  const raw = { id: 'sample', title: 'Mixed', questions: [{ id: 'q1', title: 'One', extension: { path: 'extensions/Group/a' }, data: {}, outline: { level: 'parts', items: [{ id: 'p1', label: '1' }] } }, { id: 'q2', title: 'Two', extension: { path: 'extensions/Group/b' }, data: {} }] };
+  const prepared = prepareCollection(raw, 'bank', null, 'sample', new Map([['path:extensions/Group/a', a], ['path:extensions/Group/b', b]]));
   const collection = new Collection(prepared);
   assert.equal(collection.stateKey(), 'bank:sample:mixed');
   assert.equal(collection.question('q1').extension, a); assert.equal(collection.question('q2').extension, b);
@@ -59,8 +59,8 @@ test('unchanged legacy packages load and validate through the native collection 
   const directory = path.join(codeRoot, 'test', 'fixtures', 'legacy-extensions', 'single-choice-1.0.0');
   const service = new RichTextService(codeRoot);
   const extension = readExtension(directory, service, () => {});
-  const raw = parseJson(fs.readFileSync(extension.examples));
-  const prepared = prepareCollection(raw, 'extension', extension, extension.id, new Map([[extension.id + '@' + extension.version, extension]]));
+  const raw = parseJson(fs.readFileSync(extension.examples)); raw.extension = { path: 'extensions/Group/choice' };
+  const prepared = prepareCollection(raw, 'extension', extension, extension.id, new Map([['path:extensions/Group/choice', extension]]));
   const engine = await RuleEngine.create(codeRoot); t.after(() => engine.close());
   const result = await finishCollection(engine, prepared);
   assert.equal(result.collection.stateKey(), 'extension:quizforge.single-choice:quizforge.single-choice:1.0.0');

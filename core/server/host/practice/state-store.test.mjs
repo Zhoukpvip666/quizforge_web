@@ -1,3 +1,4 @@
+import { copyFixture, writeFixture } from '../../../test/fixtures/installed-library.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -16,8 +17,8 @@ const codeRoot = fileURLToPath(new URL('../../../', import.meta.url)), temporary
 async function fixture(t, activeReports = false) {
   safeDirectory(temporaryRoot, true); const root = fs.mkdtempSync(path.join(temporaryRoot, 'state-'));
   fs.mkdirSync(path.join(root, 'extensions')); fs.mkdirSync(path.join(root, 'question-banks'));
-  fs.cpSync(path.join(codeRoot, 'test', 'fixtures', 'legacy-extensions', 'single-choice-1.0.0'), path.join(root, 'extensions', 'choice'), { recursive: true });
-  if (activeReports) { const file=path.join(root,'extensions','choice','manifest.json'),manifest=readJson(file);manifest.requiresApi={major:1,minMinor:3,capabilities:['outline-items','answer-state']};fs.writeFileSync(file,jsonBytes(manifest)); }
+  copyFixture(path.join(codeRoot, 'test', 'fixtures', 'legacy-extensions', 'single-choice-1.0.0'), path.join(root, 'extensions', 'Test', 'choice'), { recursive: true });
+  if (activeReports) { const file=path.join(root,'extensions','Test','choice','manifest.json'),manifest=readJson(file);manifest.requiresApi={major:1,minMinor:3,capabilities:['outline-items','answer-state']};writeFixture(file,jsonBytes(manifest)); }
   const engine = await RuleEngine.create(codeRoot); engine.validationEnvironment = async () => 'fixture'; const library = new Library(root, codeRoot, engine), store = new StateStore(root, engine), collection = await library.collection('extension', 'quizforge.single-choice');
   t.after(() => { library.close(); engine.close(); assert.ok(within(temporaryRoot, root) && root !== temporaryRoot); fs.rmSync(root, { recursive: true, force: true }); }); return { root, library, engine, store, collection };
 }
@@ -57,7 +58,7 @@ test('active answer reports persist and reload without pre-submit scoring, and r
 });
 test('editing question content clears reported progress while title-only edits preserve it',async t=>{
  const {root,store,library,collection}=await fixture(t,true),raw=readJson(collection.extension.examples);
- raw.id='active-state-edits';fs.writeFileSync(path.join(root,'question-banks','active-state-edits.json'),jsonBytes(raw));
+ raw.id='active-state-edits';writeFixture(path.join(root,'question-banks', 'active-state-edits', 'bank.json'),jsonBytes(raw));
  let bank=await library.collection('bank',raw.id),question=bank.questions[0];const answerState={status:'draft',outlineStates:[]};
  await store.act(bank,question,action(0,'draft',{answer:{selectedOptionId:'A'},answerState}));
  const edit=async(title,data)=>{const editor=await store.editor(library,bank,question);return store.edit(library,bank,question,{requestId:'edit-state-'+Math.random().toString(36).slice(2),revision:editor.revision,contentVersion:editor.contentVersion,sourceVersion:editor.sourceVersion,title,data});};
@@ -79,9 +80,9 @@ test('draft, submit and idempotent receipts retain old persistent file identity'
 
 test('Java v1 saved practice and history open unchanged, including after a native restart', async t => {
   const { root, library, engine, store } = await fixture(t), fixtures = path.join(codeRoot, 'test', 'fixtures', 'node-host');
-  fs.copyFileSync(path.join(fixtures, 'java-bank-v1.json'), path.join(root, 'question-banks', 'oracle-bank.json'));
+  const raw = readJson(path.join(fixtures, 'java-bank-v1.json')); raw.extension = { path: 'extensions/Test/choice' }; writeFixture(path.join(root, 'question-banks', 'oracle-bank', 'bank.json'), jsonBytes(raw));
   const collection = await library.collection('bank', 'oracle-bank');
-  const oldBytes = fs.readFileSync(path.join(fixtures, 'java-state-v1.json')); fs.writeFileSync(store.file(collection), oldBytes);
+  const oldBytes = fs.readFileSync(path.join(fixtures, 'java-state-v1.json')); writeFixture(store.file(collection), oldBytes);
   const expected = readJson(path.join(fixtures, 'java-history-v1.json'));
   const summary = await store.summary(collection); assert.equal(summary.finished, true); assert.equal(summary.score, 1);
   assert.deepEqual(await store.history('bank', collection.id, expected.id), expected);
@@ -122,7 +123,7 @@ test('temporary practice has no durable state or historical browsing', async t =
 });
 test('grouped bank edits atomically update source and state without losing old history', async t => {
   const { root, store, engine, library } = await fixture(t), original = await library.collection('extension', 'quizforge.single-choice');
-  const raw = readJson(original.extension.examples); raw.id = 'grouped-bank'; fs.mkdirSync(path.join(root, 'question-banks', 'Group', 'Bank'), { recursive: true }); fs.writeFileSync(path.join(root, 'question-banks', 'Group', 'Bank', 'bank.json'), jsonBytes(raw));
+  const raw = readJson(original.extension.examples); raw.id = 'grouped-bank'; fs.mkdirSync(path.join(root, 'question-banks', 'Group', 'Bank'), { recursive: true }); writeFixture(path.join(root, 'question-banks', 'Group', 'Bank', 'bank.json'), jsonBytes(raw));
   const collection = await library.collection('bank', 'grouped-bank'), question = collection.questions[0]; await store.act(collection, question, action(0, 'submit', { answer: { selectedOptionId: 'A' } }));
   const frozen = (await store.history('bank', collection.id)).records[0]; const editor = await store.editor(library, collection, question), data = cloneJson(question.data); data.stem += ' changed';
   const edited = await store.edit(library, collection, question, { requestId: 'edit-grouped', revision: editor.revision, contentVersion: editor.contentVersion, sourceVersion: editor.sourceVersion, title: question.title, data }); assert.equal(edited.payload.state.status, 'unanswered');

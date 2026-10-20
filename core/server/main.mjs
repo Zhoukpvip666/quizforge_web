@@ -9,15 +9,16 @@ try {
   for (let i = 2; i < process.argv.length; i++) {
     const flag = process.argv[i];
     if (flag === '--help') {
-      console.log('node core/server/main.mjs [--root DIRECTORY] [--host ADDRESS] [--port 8080] [--token TOKEN] [--node EXECUTABLE] [--desktop] [--upgrade-short-answer | --upgrade-short-answer-auto] [--upgrade-only]');
+      console.log('node core/server/main.mjs [--root DATA_DIRECTORY] [--code-root CORE_DIRECTORY] [--initial-content DEFAULTS_DIRECTORY] [--host ADDRESS] [--port 8080] [--token TOKEN] [--node EXECUTABLE] [--desktop] [--upgrade-short-answer | --upgrade-short-answer-auto] [--upgrade-only]');
       process.exit(0);
     }
     if (flag === '--upgrade-short-answer') { upgrade = true; continue; }
     if (flag === '--upgrade-short-answer-auto') { upgradeAutomatic = true; continue; }
     if (flag === '--upgrade-only') { only = true; continue; }
     if (flag === '--desktop') { desktopMode = true; continue; }
-    if (!['--root', '--host', '--port', '--token', '--node'].includes(flag) || ++i >= process.argv.length) throw new Error('Unknown option or missing value: ' + flag);
-    options[flag.slice(2)] = flag === '--port' ? Number(process.argv[i]) : process.argv[i];
+    if (!['--root', '--code-root', '--initial-content', '--host', '--port', '--token', '--node'].includes(flag) || ++i >= process.argv.length) throw new Error('Unknown option or missing value: ' + flag);
+    const key = { '--code-root': 'codeRoot', '--initial-content': 'initialContent' }[flag] ?? flag.slice(2);
+    options[key] = flag === '--port' ? Number(process.argv[i]) : process.argv[i];
   }
   if (Number(process.versions.node.split('.')[0]) !== 24) throw new Error('QuizForge requires Node.js 24');
   if (only && !upgrade && !upgradeAutomatic) throw new Error('--upgrade-only requires an upgrade option');

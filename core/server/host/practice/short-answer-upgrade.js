@@ -12,21 +12,21 @@ const nodeText = node => node?.type === 'text' ? node.text ?? '' : (node?.conten
 async function prepare(library, current, automatic) {
   const latest = await library.load('bank', current.id);
   if (catalogRevision(latest.collection) !== catalogRevision(current)) throw new ApiError(409, 'CONTENT_CONFLICT', 'Bank changed before upgrade');
-  const version = automatic ? '1.3.0' : '1.2.2', targetLoaded = await library.load('page', 'quizforge.short-answer@' + version), target = targetLoaded.available.get('quizforge.short-answer@' + version);
+  const version = automatic ? '1.3.0' : '1.2.2', targetLoaded = await library.load('page', 'quizforge.short-answer@' + version), target = [...targetLoaded.available.values()].find(extension => extension.id === 'quizforge.short-answer' && extension.version === version);
   if (!target) throw new ApiError(422, 'MISSING_EXTENSION', 'Advanced short-answer ' + version + ' is not installed');
   const before = readBytes(latest.source, 8 * 1024 * 1024), raw = readJson(latest.source);
   if (!jsonEqual(raw, latest.raw)) throw new ApiError(409, 'CONTENT_CONFLICT', 'Bank changed while reading upgrade source');
-  if (eligible(raw.extension, automatic)) raw.extension.version = version;
+  if (raw.extension && eligible(current.extension, automatic)) raw.extension = { path: target.referencePath };
   for (const item of raw.questions) {
     const previous = current.extensionFor(current.question(item.id)); if (!eligible(previous, automatic)) continue;
-    if (item.extension) item.extension.version = version;
+    if (item.extension) item.extension = { path: target.referencePath };
     if (!automatic && ['1.0.0', '1.1.0'].includes(previous.version)) {
       const title = item.title.trim(), content = item.data.stem.content;
       if (title && (!content.length || nodeText(content[0]).trim() !== title)) content.unshift({ type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: title }] });
     }
   }
-  const available = new Map(latest.available); available.set(target.id + '@' + target.version, target);
-  const { collection } = await finishCollection(library.engine, prepareCollection(raw, 'bank', current.extension ? target : null, current.id, available));
+  const available = new Map(latest.available); available.set('path:' + target.referencePath, target);
+  const { collection } = await finishCollection(library.engine, prepareCollection(raw, 'bank', current.extension ? target : null, current.id, available, current.bankId ?? current.id));
   const after = jsonBytes(raw); if (after.length > 8 * 1024 * 1024) throw new ApiError(413, 'BANK_SIZE_LIMIT', 'Bank exceeds the size limit');
   return { path: latest.source, before, after, collection, question: null };
 }

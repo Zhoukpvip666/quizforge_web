@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 
-const roots=['single-choice-richtext','short-answer-richtext'];
+const roots=['单选题','简答题'];
 function reference(leaf){
-  const root=new URL('../../../extensions/'+leaf+'/',import.meta.url);
+  const root=new URL('../../../extensions/基础题型/'+leaf+'/',import.meta.url);
   const read=file=>readFileSync(new URL(file,root),'utf8');
   const manifest=JSON.parse(read('manifest.json'));
   const examples=JSON.parse(read(manifest.examples));
@@ -15,7 +15,7 @@ function reference(leaf){
 for(const leaf of roots){
   test(leaf+' sample projections hide answer keys until submission',()=>{
     const {manifest,examples,type}=reference(leaf);
-    assert.deepEqual(examples.extension,{id:manifest.id,version:manifest.version});
+    assert.deepEqual(examples.extension,{path:'extensions/基础题型/'+leaf});
     for(const {data} of examples.questions){
       assert.equal(type.validateQuestion(data),true);
       const projected=JSON.parse(JSON.stringify(type.project(data,{submitted:false})));
@@ -30,12 +30,12 @@ for(const leaf of roots){
   });
   test(leaf+' grades a saved partial answer through its rule interface',()=>{
     const {examples,type}=reference(leaf),data=examples.questions[0].data;
-    const answer=leaf.startsWith('single')?{selectedOptionId:data.correctOptionId}:{responses:{}};
+    const answer=leaf==='单选题'?{selectedOptionId:data.correctOptionId}:{responses:{}};
     assert.equal(type.validateAnswer(answer,data),true);const result=type.grade(data,answer);assert.ok(Number.isFinite(result.score));assert.ok(Number.isFinite(result.maxScore));
   });
 }
 test('shared-material reference keeps its explicit parent outline and stable child scoring IDs',()=>{
-  const {examples,type}=reference('short-answer-richtext');
+  const {examples,type}=reference('简答题');
   const question=examples.questions.find(question=>question.data.parts.length>1);
   assert.ok(question,'The reference must include a shared-material example.');
   // The sample chooses a parent outline; part IDs remain available for grading.

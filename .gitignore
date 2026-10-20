@@ -16,10 +16,12 @@ node_modules/
 /question-banks/基础题型/EXTENSIONS_LAYOUT.md
 /extensions/*
 !/extensions/README.md
-!/extensions/single-choice-richtext/
-!/extensions/multiple-choice-richtext/
-!/extensions/true-false-richtext/
-!/extensions/short-answer-richtext/
+!/extensions/基础题型/
+/extensions/基础题型/*
+!/extensions/基础题型/单选题/
+!/extensions/基础题型/多选题/
+!/extensions/基础题型/判断题/
+!/extensions/基础题型/简答题/
 *.log
 .env
 .env.*

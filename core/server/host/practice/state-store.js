@@ -178,7 +178,7 @@ export class StateStore {
   }
   async overviewValue(collection, persisted) {
     const states = await this.publicStates(collection, collection.questions, collection.questions.map(question => questionState(persisted, collection, question)));
-    return { id: collection.id, title: collection.title, kind: collection.kind, ...collectionMetadata(collection), questions: collection.questions.map(question => attachOutline({ id: question.id, title: question.title, type: extensionMetadata(collection.extensionFor(question)) }, question)), states: Object.fromEntries(collection.questions.map((question, index) => [question.id, states[index]])) };
+    return { id: collection.id, title: collection.title, kind: collection.kind, revision: catalogRevision(collection), ...collectionMetadata(collection), questions: collection.questions.map(question => attachOutline({ id: question.id, title: question.title, type: extensionMetadata(collection.extensionFor(question)) }, question)), states: Object.fromEntries(collection.questions.map((question, index) => [question.id, states[index]])) };
   }
   overview(collection) { return this.overviewValue(collection, this.load(collection)); }
   rememberAiSupport(extension, evaluated) { if (typeof evaluated?.capabilities?.canAiGrade !== 'boolean') return; this.aiSupport.set(extension.fingerprint, evaluated.capabilities.canAiGrade); while (this.aiSupport.size > 32) this.aiSupport.delete(this.aiSupport.keys().next().value); }

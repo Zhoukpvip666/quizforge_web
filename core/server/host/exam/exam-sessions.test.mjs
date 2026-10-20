@@ -1,3 +1,4 @@
+import { copyFixture, writeFixture } from '../../../test/fixtures/installed-library.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -16,28 +17,28 @@ import { jsonBytes } from '../platform/json.js';
 const codeRoot = fileURLToPath(new URL('../../../', import.meta.url)), temporaryRoot = path.join(path.dirname(codeRoot), '.temp', 'node-migration');
 async function fixture(t, history = true, activeReports = false) {
   safeDirectory(temporaryRoot, true); const root = fs.mkdtempSync(path.join(temporaryRoot, 'exam-')); fs.mkdirSync(path.join(root, 'extensions')); fs.mkdirSync(path.join(root, 'question-banks'));
-  fs.cpSync(path.join(codeRoot, 'test', 'fixtures', 'legacy-extensions', 'single-choice-1.0.0'), path.join(root, 'extensions', 'choice'), { recursive: true });
-  if(activeReports){const file=path.join(root,'extensions','choice','manifest.json'),manifest=readJson(file);manifest.requiresApi={major:1,minMinor:3,capabilities:['outline-items','answer-state']};fs.writeFileSync(file,jsonBytes(manifest));}
-  const raw = readJson(path.join(root, 'extensions', 'choice', 'examples.json')); raw.id = 'bank'; raw.features = { history }; fs.writeFileSync(path.join(root, 'question-banks', 'bank.json'), jsonBytes(raw));
+  copyFixture(path.join(codeRoot, 'test', 'fixtures', 'legacy-extensions', 'single-choice-1.0.0'), path.join(root, 'extensions', 'Test', 'choice'), { recursive: true });
+  if(activeReports){const file=path.join(root,'extensions','Test','choice','manifest.json'),manifest=readJson(file);manifest.requiresApi={major:1,minMinor:3,capabilities:['outline-items','answer-state']};writeFixture(file,jsonBytes(manifest));}
+  const raw = readJson(path.join(root, 'extensions', 'Test', 'choice', 'examples.json')); raw.id = 'bank'; raw.features = { history }; writeFixture(path.join(root, 'question-banks', 'bank', 'bank.json'), jsonBytes(raw));
   const engine = await RuleEngine.create(codeRoot); engine.validationEnvironment = async () => 'fixture'; const library = new Library(root, codeRoot, engine), states = new StateStore(root, engine), gateway = { freeze() { return this; }, generate() { throw new Error('No model calls expected'); } }, ai = new AiGradingService(root, states, library, gateway), writes = { read: async context => context.body, validateOrigin() {} }, routes = new CollectionRoutes(library, states, ai, writes, () => false);
   let now = Date.now(); const options = { now: () => now }, exams = new ExamSessions(root, library, states, ai, routes, writes, () => false, options), source = await library.collection('bank', 'bank');
   t.after(() => { exams.close(); ai.close(); library.close(); engine.close(); assert.ok(within(temporaryRoot, root) && root !== temporaryRoot); fs.rmSync(root, { recursive: true, force: true }); }); return { root, exams, states, library, ai, writes, routes, options, source, advance: milliseconds => now += milliseconds };
 }
 function context(body, owner) { return { body, request: { headers: { ...(owner ? { 'x-quizforge-practice-session': owner } : {}) } }, url: new URL('http://127.0.0.1/') }; }
 test('same runtime code in distinct extension paths remains independently frozen in an exam',async t=>{
- const f=await fixture(t),directory=path.join(f.root,'extensions/choice');
- fs.cpSync(directory,path.join(f.root,'extensions/second'),{recursive:true});
- const file=path.join(f.root,'question-banks/bank.json'),raw=readJson(file);
- raw.extension={id:raw.extension.id,path:'extensions/choice'};raw.questions[1].extension={id:raw.extension.id,path:'extensions/second'};fs.writeFileSync(file,jsonBytes(raw));
+ const f=await fixture(t),directory=path.join(f.root,'extensions/Test/choice');
+ copyFixture(directory,path.join(f.root,'extensions/Test/second'),{recursive:true});
+ const file=path.join(f.root,'question-banks/bank/bank.json'),raw=readJson(file);
+ raw.extension={path:'extensions/Test/choice'};raw.questions[1].extension={path:'extensions/Test/second'};writeFixture(file,jsonBytes(raw));
  const source=await f.library.collection('bank','bank');assert.equal(source.extensions.length,2);assert.equal(source.extensions[0].fingerprint,source.extensions[1].fingerprint);
  const started=await f.exams.start(source,{requestId:'exam-path-bindings',durationMinutes:null}),frozen=f.exams.collection(started.id);
- assert.equal(frozen.extensions.length,2);assert.equal(frozen.questions[1].extension.referencePath,'extensions/second');
+ assert.equal(frozen.extensions.length,2);assert.equal(frozen.questions[1].extension.referencePath,'extensions/Test/second');
  const reopened=new ExamSessions(f.root,f.library,f.states,f.ai,f.routes,f.writes,()=>false,f.options);t.after(()=>reopened.close());assert.equal(reopened.collection(started.id).extensions.length,2);
 });
 test('moving a UUID bank retains the unfinished exam association without rewriting its snapshot',async t=>{
- const f=await fixture(t),file=path.join(f.root,'question-banks/bank.json'),raw=readJson(file);raw.id='a6c9d20d-77e8-466c-945c-10bc6c978791';fs.writeFileSync(file,jsonBytes(raw));
+ const f=await fixture(t),file=path.join(f.root,'question-banks/bank/bank.json'),raw=readJson(file);raw.id='a6c9d20d-77e8-466c-945c-10bc6c978791';writeFixture(file,jsonBytes(raw));
  await f.library.manage({kind:'bank',action:'create',target:'group',name:'One'});await f.library.manage({kind:'bank',action:'create',target:'group',name:'Two'});
- await f.library.manage({kind:'bank',action:'update',target:'item',path:'bank.json',name:raw.title,group:'One'});
+ await f.library.manage({kind:'bank',action:'update',target:'item',path:'bank',name:raw.title,group:'One'});
  const row=f.library.index().banks[0],source=await f.library.collection('bank',row.id),started=await f.exams.start(source,{requestId:'exam-moving-bank',durationMinutes:null});
  const snapshot=path.join(f.root,'.state/exams',started.id,'snapshot.json'),before=fs.readFileSync(snapshot);
  const result=await f.library.manage({kind:'bank',action:'update',target:'item',path:row.path,name:raw.title,group:'Two'}),newId=result.catalog.banks[0].id;
@@ -68,7 +69,7 @@ test('exam hides per-question submit and summary until hand-in, then aggregates 
 test('deadline locks and submits once; frozen packages survive source changes and a restart', async t => {
   const { root, exams, source, states, library, ai, writes, routes, options, advance } = await fixture(t), started = await exams.start(source, { requestId: 'exam-timeout-fixture', durationMinutes: 1 }); const collection = exams.collection(started.id), question = collection.questions[0];
   await states.act(collection, question, { requestId: 'exam-saved-fixture', revision: 0, action: 'draft', data: { answer: { selectedOptionId: 'A' } } }); advance(60001); await exams.tick(); const ended = exams.publicRecord(exams.require(started.id)); assert.equal(ended.status, 'completed'); assert.equal(ended.submissionReason, 'timeout');
-  fs.writeFileSync(source.extension.rules, 'throw new Error("source changed");'); const reopened = new ExamSessions(root, library, states, ai, routes, writes, () => false, options); t.after(() => reopened.close());
+  writeFixture(source.extension.rules, 'throw new Error("source changed");'); const reopened = new ExamSessions(root, library, states, ai, routes, writes, () => false, options); t.after(() => reopened.close());
   assert.equal((await reopened.list('bank', source.id)).records[0].status, 'completed'); const restored = reopened.collection(started.id); assert.equal((await states.question(restored, restored.questions[0])).state.result.correct, true);
 });
 test('deleting an unfinished exam cancels deadline processing across restart', async t => {

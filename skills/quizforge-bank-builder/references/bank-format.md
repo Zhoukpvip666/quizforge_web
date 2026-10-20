@@ -34,16 +34,16 @@ question-banks/my-exam/
     {
       "id": "q-001",
       "title": "题目的简短名称",
-      "extension": {"id": "f7aa4878-0e49-4f2f-a6d5-c6a7636b24ca", "path": "extensions/single-choice"},
+      "extension": {"path": "extensions/我的题库组/single-choice"},
       "data": {}
     }
   ]
 }
 ```
 
-`data` 按对应拓展 schema 填写。根默认 `extension` 与逐题覆盖均用 `{id,path}`，path 相对数据根目录；无默认时每题必须声明。不支持 latest、版本范围、只填 id、typeId 或 extensionGroup。题型 data 参考已有基础样例，再按实际 Schema 填写；混合库逐题绑定，不另建技能样例库。见[独立拓展与分组](extension-development.md)。
+`data` 按对应拓展 schema 填写。根默认 `extension` 与逐题覆盖均用 `{path}`，path 相对数据根目录；无默认时每题必须声明。不支持 latest、版本范围、只填 id、typeId 或 extensionGroup。题型 data 参考已有基础样例，再按实际 Schema 填写；混合库逐题绑定，不另建技能样例库。见[独立拓展与分组](extension-development.md)。
 
-旧 `{id,version}` 和 `extension:{"development":"叶名"}` 兼容读取，多个候选时应改为准确路径。新题库用 `{id,path}`。管理入口不影响加载，导出在暂存副本规范化绑定。`--preview-only` 不代表真实保存、评分或界面验收。
+旧 `{id,version}` 和 `extension:{"development":"叶名"}` 兼容读取，多个候选时应改为准确路径。新题库用 `{path}`。管理入口不影响加载，导出在暂存副本规范化绑定。`--preview-only` 不代表真实保存、评分或界面验收。
 
 - bank/question id：`^[A-Za-z0-9][A-Za-z0-9._-]{0,119}$`，同题库题 ID 唯一。
 - 顶层 `formatVersion` 当前只支持数字整数 `1`；旧文件缺省按 `1` 读取，不补写。仅为新题库和新拓展示例显式添加；与题型内部 `data.formatVersion` 相互独立。
@@ -65,18 +65,21 @@ question-banks/
     第二份练习/
       bank.json
 extensions/
-  choice/                         # 获准新建时直接存放，无物理分组
-    manifest.json
-    examples/bank.json
-  reading/
-    ...
+  我的题库组/                       # 一层物理分组
+    choice/
+      manifest.json
+      examples/bank.json
+    reading/
+      ...
 ```
 
-- 题库分组为一层物理目录，含 `.group.json` 稳定 UUID；题库含稳定 UUID、作者版本。同分组题库 UUID 与标题各自唯一，复制独立题库需新 UUID；不建嵌套分组。
-- 拓展为独立实体，逻辑分组不搬代码。题库通过 `{id,path}` 精确引用实际实体，path 相对数据根目录。复用基础拓展不改其文件；目录创建和既有数据迁移仍需用户授权。
-- 只按题库分组导出 `.qbank`；自动收集关联拓展，格式 2 包平铺到 `extensions/<实际目录>/`，题库保留分组及其 UUID；源文件不改变，没有开发/正式导出限制。
-- 包清单含 `format:"quizforge-bank-group"`、`formatVersion:2`、`group:{id,name}`、`extensions:[{path,id,version,hash}]`；普通 ZIP 改后缀不能替代完整包。旧非 UUID 数据继续旧格式兼容，不自动迁移。无法实际导出时只交付校验目录和操作步骤。
-- 不包含作答、白板、历史或设置。同组题库按 UUID、版本决定保留/替换；拓展 UUID/哈希一致复用，否则新增并处理实际目录冲突。完整规则及迁移交接见[宿主导入导出约定](../../../core/docs/reference/LIBRARY_PACKAGES.md)。
+- 分组和实体名称取实际文件夹名，不维护另一份逻辑显示名称。题库元数据 id 可使用普通字符串，不要求 UUID/全局唯一；题目和小题 ID 保持稳定。
+- 普通题库用 {path:"extensions/<分组>/<拓展>"} 引用；移动题库不改变路径。普通界面禁止拓展改名、移动和代码编辑。复制新叶仅在授权位置进行，原拓展不改。
+- 交付一个格式 3 .qbank，包含 question-banks/<组>/<题库>/ 与 extensions/<组>/<拓展>/。清单为 {format:"quizforge-bank-group",formatVersion:3,group:"组名"}，由宿主导出器收集依赖、重映射路径并保留资源，源文件不变。
+- 可以按分组导出，也可只导出一本题库。单题库包在清单增加 scope:"bank"，恰好包含一本题库及其实际依赖；包内沿用暂存分组结构，导入时该题库直接放到题库根目录，名称取下载文件基名，拓展仍有独立物理分组。省略 scope 的整组包不会因只有一本题库而变成根目录题库。使用宿主导出器，不手动混用两种语义；接口见宿主 API 的 Package import HTTP。
+- 导入每次新增独立副本，不比较 UUID、版本或哈希，重名自动编号；作答和历史不共享。旧包格式 1/2 不支持导入，需要重新导出新版。
+- 不包含作答、白板、历史、设置、旧逻辑分组表及宿主内部 .instance.json/.bundle.json。不自行编造内部保存身份。
+- 不能实际导出时交付校验目录和操作步骤，不把普通 ZIP 改后缀称为已验证题库包。完整规则见[宿主导入导出约定](../../../core/docs/reference/LIBRARY_PACKAGES.md)。
 
 逐本运行 validator，核对整组题库的所有依赖及资源；单本通过不等于整组已验证。实际生成包后核对其结构与分组、题库数量和依赖，并如实说明是否在隔离位置验证导入。交付报告列出分组名、每库路径／ID、依赖精确版本、包路径及检查结果。所有暂存／解包与验证中间文件仍只放 SKILL.md 指定的 `.temp`，最终目录与包放用户确认的交付位置。
 
@@ -110,8 +113,8 @@ extensions/
 
 | 参考叶 | 查看内容 |
 | --- | --- |
-| [single-choice-richtext](../../../extensions/single-choice-richtext) | 富文本题干、选项、正确选项 ID、答案与解析、满分，以及已有文字/图片/公式/表格样例 |
-| [short-answer-richtext](../../../extensions/short-answer-richtext) | 可选共享材料、稳定小题 ID、富文本题干与答案解析、各小题满分，以及单问/多问样例 |
+| [单选题](../../../extensions/基础题型/单选题) | 富文本题干、选项、正确选项 ID、答案与解析、满分，以及已有文字/图片/公式/表格样例 |
+| [简答题](../../../extensions/基础题型/简答题) | 可选共享材料、稳定小题 ID、富文本题干与答案解析、各小题满分，以及单问/多问样例 |
 
 读取 manifest.examples 对应文件及 question.schema.json、answer.schema.json、rules.js；按实际文件核对必填项、资源、答案结构、分值范围与步长，不把旧纯文本单选或旧简答 referenceAnswer/rubric 结构套给新题型。
 

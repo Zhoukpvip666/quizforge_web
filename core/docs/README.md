@@ -1,6 +1,6 @@
 # 开发者文档
 
-运行环境为 Node.js 24，Extension API 为 1.3，题库格式为 1。路径示例相对于产品根目录。
+运行环境为 Node.js 24，Extension API 为 1.4，题库格式为 1。路径示例相对于产品根目录。
 
 | 文档 | 内容 |
 | --- | --- |
@@ -8,9 +8,10 @@
 | [产品功能清单](../../FEATURES.md) | 用户可见功能、操作入口及功能测试预期 |
 | [API 文档](reference/API.md) | 页面 SDK、规则、HTTP 与保存约定 |
 | [开发与架构](guides/CORE_SOURCE.md) | 启动、测试、模块职责及数据流 |
+| [Windows 启动与安装构建](../desktop/README.md) | 托盘、程序与数据分离、ZIP/安装包及安装验收 |
 | [拓展开发](reference/EXTENSIONS.md) | 文件组织、分组、绑定、样例与兼容 |
 | [题库格式](reference/QUESTION_BANK_FORMAT.md) | bank.json、功能开关、资源及 .qbank |
-| [导入导出与迁移交接](reference/LIBRARY_PACKAGES.md) | UUID、路径绑定、版本选择、拓展去重和包格式 2 |
+| [导入导出与迁移交接](reference/LIBRARY_PACKAGES.md) | 物理分组、路径绑定、独立副本导入和包格式 3 |
 | [大纲与作答状态](reference/SUBQUESTION_OUTLINE.md) | 稳定 ID、定位、即时反馈及评分状态 |
 | [富文本服务](reference/RICHTEXT_SERVICE.md) | 文档约定、编辑器、图片与拍照 |
 | [考试模式](reference/EXAM_MODE.md) | 计时、交卷、权限与历史 |

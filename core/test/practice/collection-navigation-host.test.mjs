@@ -2,6 +2,7 @@ import {createLibraryIndexClient} from '../../web/library/library-index-client.j
 import {createCollectionLoading} from '../../web/practice/collection-loading.js';
 import {previewDraftAnswer,confirmAnswerPreview,answerStateForSave} from '../../web/practice/answer-preview.js';
 import {renderLibraryView} from '../../web/library/library-view.js';
+import {takeImportedBank} from '../../web/library/native-import.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -27,7 +28,7 @@ function fixture(t,{drawer=false,developmentEnabled=false}={}){
   const dom=new JSDOM(html,{url:'http://localhost/'});t.after(()=>dom.window.close());
   const document=dom.window.document,collections=new Map(),errors=[],saved=[];
   const descriptors=new Map();
-  const sandbox={createLibraryIndexClient,collectionLoading:createCollectionLoading(document),renderLibraryView,document,$:selector=>document.querySelector(selector),collections,activeKey:null,pendingLibraryKey:null,listMode:'bank',transition:Promise.resolve(),
+  const sandbox={createLibraryIndexClient,takeImportedBank:catalog=>takeImportedBank(catalog,dom.window.location,dom.window.history),collectionLoading:createCollectionLoading(document),renderLibraryView,document,$:selector=>document.querySelector(selector),collections,activeKey:null,pendingLibraryKey:null,listMode:'bank',transition:Promise.resolve(),
     catalog:{banks:[],extensions:[],developmentEnabled},collapsedExtensionGroups:new Set(),extensionGroups,createDraftBuffer,collectionFeature,practiceSaveLabel,previewDraftAnswer,confirmAnswerPreview,
     sidebarPreferences:{library:true,outline:true},libraryDrawer:{matches:drawer},outlineDrawer:{matches:drawer},localStorage:dom.window.localStorage,
     active:()=>collections.get(sandbox.activeKey),notice(){},failure:error=>errors.push(error),renderOutline(){},renderRecovery(){},saveStatus(){},
@@ -69,6 +70,24 @@ test('startup renders a pending bank before its collection request finishes',asy
   assert.equal(f.document.querySelector('#collection-loading').hidden,false);
   assert.equal(f.document.querySelector('.library-item.active')?.dataset.itemId,'bank');
   release();await start;assert.equal(f.sandbox.activeKey,'bank:bank');assert.equal(f.document.querySelector('#collection-loading').hidden,true);f.host.refreshCatalog.client.stop();
+});
+
+test('startup opens the installed import hint instead of the first bank and consumes it',async t=>{
+  const f=fixture(t);f.add('first');f.add('imported');
+  f.dom.window.history.replaceState(null,'','/?keep=yes&imported-bank=imported#view');
+  const request=f.sandbox.request;
+  f.sandbox.request=async(path,options)=>{
+    if(path==='/api/library/index')return {...f.sandbox.catalog,canManage:true};
+    if(path==='/api/settings/development')return {enabled:false};
+    return request(path,options);
+  };
+  t.after(()=>f.host.refreshCatalog.client?.stop());
+  await f.host.start();
+  assert.equal(f.sandbox.activeKey,'bank:imported');
+  assert.equal(f.collections.has('bank:first'),false);
+  assert.equal(f.dom.window.location.search,'?keep=yes');
+  assert.equal(f.dom.window.location.hash,'#view');
+  assert.deepEqual(f.errors,[]);
 });
 
 test('returning to a suspended bank reads its question and overview concurrently',async t=>{

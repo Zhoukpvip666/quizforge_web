@@ -14,7 +14,6 @@ export function developmentRuleFailure(error) { return error instanceof ApiError
 export function resolveExtension(reference, available) {
   requireObject(reference, 'Extension references identify a single extension; typeId is unsupported');
   if (Object.hasOwn(reference, 'typeId')) throw bad('Extension references identify a single extension; typeId is unsupported');
-  if (Object.hasOwn(reference, 'development') && Object.keys(reference).length !== 1) throw bad('Development extension references require only development');
   const key = referenceIdentity(reference);
   const result = available.get(key);
   if (!result) throw bad('Missing extension');

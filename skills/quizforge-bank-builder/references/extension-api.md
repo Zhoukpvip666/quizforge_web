@@ -1,6 +1,6 @@
 # 外部题型拓展 API 参考
 
-适用当前 QuizForge Web：公共富文本服务 API v1.1（兼容 v1.0）、文档格式 v1。宿主通过 `core/shared/richtext/service.json` 选择兼容实现；Tiptap 是当前编辑实现，不是拓展依赖。基础设计与数据参考直接读取 `extensions/{single-choice-richtext,short-answer-richtext,multiple-choice-richtext,true-false-richtext}/` 及其已有 examples，四种均为正式 2.0.0；旧简答包仅在 `core/test/fixtures/legacy-extensions/` 供兼容测试，不是当前安装清单。以下接口已从实际宿主、规则执行器及 SDK 源码核对；不要根据名称推测额外接口。
+适用当前 QuizForge Web：公共富文本服务 API v1.1（兼容 v1.0）、文档格式 v1。宿主通过 `core/shared/richtext/service.json` 选择兼容实现；Tiptap 是当前编辑实现，不是拓展依赖。基础设计与数据参考直接读取 `extensions/基础题型/{单选题,简答题,多选题,判断题}/` 及其已有 examples，四种基础参考版本均为 2.0.0；旧简答包仅在 `core/test/fixtures/legacy-extensions/` 供兼容测试，不是当前安装清单。以下接口已从实际宿主、规则执行器及 SDK 源码核对；不要根据名称推测额外接口。
 
 ## 清单与公共服务声明
 
@@ -379,4 +379,4 @@ grade/review 把逐小题细节保存在正式 result 的自有 feedback 结构�
 
 完成练习由宿主先 flush，再提交已保存、已作答、未提交的题目，使用既有 grade(data,answer)。不依赖点击拓展页面按钮；空答、小题部分作答与总分由拓展处理。新声明answer-state的拓展负责准确上报draft/unanswered，旧拓展的保存草稿交由规则判断。AI/人工待评分仍是pending，不当作零分；处理完后完成同一轮。
 
-题库／拓展不再区分开发与正式状态；旧绑定兼容，新普通题库引用用 `{id,path}`，path 相对数据根目录。包与 UUID 约定见[宿主导入导出文档](../../../core/docs/reference/LIBRARY_PACKAGES.md)。新草稿固定760逻辑像素，手机使用本地缩放/平移；保留旧layout，不需要新增拓展页面接口。
+题库／拓展不再区分开发与正式状态；旧绑定兼容，新普通题库引用用 `{path}`，path 相对数据根目录。物理分组与格式 3 独立副本导入约定见[宿主导入导出文档](../../../core/docs/reference/LIBRARY_PACKAGES.md)。新草稿固定760逻辑像素，手机使用本地缩放/平移；保留旧layout，不需要新增拓展页面接口。

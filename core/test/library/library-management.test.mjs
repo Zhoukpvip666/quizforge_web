@@ -14,11 +14,11 @@ function fixture(t,overrides={}){
   const saved={document:globalThis.document,Option:globalThis.Option};globalThis.document=document;globalThis.Option=dom.window.Option;
   const dialog=document.querySelector('#library-manage-dialog');dialog.showModal=()=>{dialog.open=true;};dialog.close=()=>{dialog.open=false;};
   t.after(()=>{dom.window.close();Object.assign(globalThis,saved);});
-  const calls=[],changed=[];const catalog={canManage:true,groups:{banks:['资料','空分组'],extensions:['类型']}};
-  const config={request:async(path,options)=>{calls.push({path,...options});return {archivedTo:'.trash/library/test'};},getContext:()=>({kind:'bank',catalog}),beforeChange:async()=>{},onChanged:async(...args)=>changed.push(args),...overrides};
+  const calls=[],changed=[],exports=[];const catalog={canManage:true,groups:{banks:['资料','空分组'],extensions:['类型']}};
+  const config={request:async(path,options)=>{calls.push({path,...options});return {archivedTo:'.trash/library/test'};},getContext:()=>({kind:'bank',catalog}),beforeChange:async()=>{},onChanged:async(...args)=>changed.push(args),onExport:async(...args)=>exports.push(args),...overrides};
   const manager=bindLibraryManagement(config);
   const submit=async()=>{document.querySelector('#library-manage-form').dispatchEvent(new dom.window.Event('submit',{bubbles:true,cancelable:true}));for(let i=0;i<12;i++)await Promise.resolve();};
-  return {dom,document,dialog,config,catalog,manager,calls,changed,submit};
+  return {dom,document,dialog,config,catalog,manager,calls,changed,exports,submit};
 }
 test('editing a bank sends its physical path, name and chosen group only after preparation',async t=>{
   const f=fixture(t);
@@ -82,7 +82,7 @@ test('empty physical groups render and management buttons never open a collectio
 test('a server dependency check preserves the form for retry',async t=>{
   const f=fixture(t);let attempts=0;
   const manager=bindLibraryManagement({request:async()=>{attempts++;throw new Error('仍被题库使用');},getContext:()=>({kind:'extension',catalog:f.catalog}),beforeChange:async()=>{},onChanged:async()=>assert.fail('must not run')});
-  manager.open('item',{path:'type',name:'题型'},'delete');await f.submit();assert.equal(attempts,1);assert.equal(f.dialog.open,true);assert.match(f.document.querySelector('#library-manage-error').textContent,/仍被题库/);assert.equal(f.document.querySelector('#library-manage-confirm').disabled,false);
+  manager.open('item',{path:'type',name:'题型'});f.document.querySelector('#library-manage-delete').click();assert.equal(attempts,0);await f.submit();assert.equal(attempts,1);assert.equal(f.dialog.open,true);assert.match(f.document.querySelector('#library-manage-error').textContent,/仍被题库/);assert.equal(f.document.querySelector('#library-manage-confirm').disabled,false);
 });
 test('failed preparation prevents a write and keeps the dialog usable',async t=>{
   const f=fixture(t,{beforeChange:async()=>{throw new Error('请先保存或取消题目编辑');}});
@@ -99,12 +99,20 @@ test('directory preparation identifies the exact hidden development question wit
   sandbox.flushPane=async()=>true;await sandbox.prepare();
 });
 
+test('directory preparation restores page interactivity after flushing, including failures',async()=>{
+  const pane={node:{inert:false}},sandbox={collections:new Map([['active',pane]]),transitionTo:fn=>fn(),flushPane:async value=>{value.node.inert=true;return true;}};
+  vm.runInNewContext(source.slice(source.indexOf('const prepareLibraryChange='),source.indexOf('\nasync function applyLibraryChange('))+'\nglobalThis.prepare=prepareLibraryChange;',sandbox);
+  await sandbox.prepare();assert.equal(pane.node.inert,false);
+  sandbox.flushPane=async value=>{value.node.inert=true;throw new Error('save failed');};
+  await assert.rejects(sandbox.prepare(),/save failed/);assert.equal(pane.node.inert,false);
+});
+
 function changedFixture(){
   const a={id:'a',title:'A',path:'a.json',contentRevision:'rev-a'},b={id:'b',title:'B',path:'b.json',contentRevision:'rev-b'};
   const events=[],panes=new Map();
   for(const row of [a,b])panes.set(`bank:${row.id}`,{kind:'bank',id:row.id,key:`bank:${row.id}`,node:{remove(){events.push(`remove:${row.id}`);}},plugin:{destroy(){events.push(`destroy:${row.id}`);}},whiteboard:{destroy(){}}});
   const sandbox={catalog:{canManage:true,developmentEnabled:true,banks:[a,b],extensions:[]},collections:panes,activeKey:'bank:a',listMode:'bank',clearTimeout,
-    renderLibrary(){events.push('render');},refreshCatalog(){throw new Error('Returned catalog must be reused');},
+    renderLibrary(){events.push('render');},updateChrome(){events.push('chrome');},refreshCatalog(){throw new Error('Returned catalog must be reused');},
     questionsCache:{clear(){events.push('clearQuestions');}},pagesCache:{clear(){events.push('clearPages');}},
     disposeEditorSession(){},disposeScoreSummary(){},notice(value){events.push(value);},
     async activateReady(key){events.push(`activate:${key}`);},async openCollection(kind,id){events.push(`open:${kind}:${id}`);},activate(key){events.push(`empty:${key}`);}};
@@ -122,6 +130,28 @@ test('a changed surviving bank is refreshed even when deletion targeted another 
   const f=changedFixture();await f.apply([{...f.a,contentRevision:'new-revision'}]);
   assert.equal(f.panes.get('bank:a').needsRefresh,true);assert.ok(f.events.includes('activate:bank:a'));assert.ok(f.events.includes('clearQuestions'));
 });
+
+test('a verified rename updates titles without replacing the answer frame or clearing caches',async()=>{
+  const f=changedFixture(),pane=f.panes.get('bank:a');
+  pane.collection={title:'A',revision:'rev-a',states:{q:{status:'draft'}}};
+  const plugin=pane.plugin,states=pane.collection.states;
+  await f.sandbox.applyLibraryChange({catalog:{banks:[{...f.a,title:'Renamed',path:'Renamed',contentRevision:'rev-renamed'},f.b],extensions:[]},retainedCollections:[{kind:'bank',id:'a',previousRevision:'rev-a',revision:'rev-renamed',title:'Renamed'}]},{action:'update'});
+  assert.equal(pane.collection.title,'Renamed');assert.equal(pane.collection.revision,'rev-renamed');
+  assert.equal(pane.collection.states,states);assert.equal(pane.plugin,plugin);assert.equal(pane.needsRefresh,undefined);
+  assert.ok(f.events.includes('chrome'));assert.ok(!f.events.some(value=>value.startsWith('activate:')||value.startsWith('destroy:')||value==='clearQuestions'||value==='clearPages'));
+});
+
+test('a stale page cannot use a rename receipt for a newer server revision',async()=>{
+  const f=changedFixture(),pane=f.panes.get('bank:a');pane.collection={title:'A',revision:'older-page'};
+  await f.sandbox.applyLibraryChange({catalog:{banks:[{...f.a,title:'Renamed',contentRevision:'rev-renamed'},f.b],extensions:[]},retainedCollections:[{kind:'bank',id:'a',previousRevision:'rev-a',revision:'rev-renamed',title:'Renamed'}]},{action:'update'});
+  assert.equal(pane.needsRefresh,true);assert.ok(f.events.includes('activate:bank:a'));
+});
+
+test('a renamed summary refreshes its completion version instead of reusing a stale finish request',async()=>{
+  const f=changedFixture(),pane=f.panes.get('bank:a');pane.collection={title:'A',revision:'rev-a'};pane.view='summary';pane.summaryShown=true;
+  await f.sandbox.applyLibraryChange({catalog:{banks:[{...f.a,title:'Renamed',contentRevision:'rev-renamed'},f.b],extensions:[]},retainedCollections:[{kind:'bank',id:'a',previousRevision:'rev-a',revision:'rev-renamed',title:'Renamed'}]},{action:'update'});
+  assert.equal(pane.needsRefresh,true);assert.ok(f.events.includes('activate:bank:a'));
+});
 test('deleting the active bank closes it and opens the remaining bank',async()=>{
   const f=changedFixture();await f.apply([f.b]);assert.equal(f.panes.has('bank:a'),false);assert.ok(f.events.includes('open:bank:b'));
 });
@@ -132,7 +162,7 @@ test('renaming an extension label refreshes its current preview',async()=>{
   assert.ok(f.events.includes('activate:extension:x'));
 });
 
-for(const kind of ['bank','extension'])test(`${kind} group rename never submits a parent group`,async t=>{
+for(const kind of ['bank'])test(`${kind} group rename never submits a parent group`,async t=>{
   const f=fixture(t,{getContext:()=>({kind,catalog:{canManage:true,groups:{banks:['资料','另一组'],extensions:['资料','另一组']}}})});
   f.manager.open('group',{path:'资料',name:'资料'});
   const select=f.document.querySelector('#library-manage-group');
@@ -140,4 +170,39 @@ for(const kind of ['bank','extension'])test(`${kind} group rename never submits 
   select.append(new f.dom.window.Option('另一组','另一组'));select.value='另一组';
   f.document.querySelector('#library-manage-name').value='新名称';await f.submit();
   assert.deepEqual(JSON.parse(f.calls[0].body),{kind,target:'group',action:'update',path:'资料',name:'新名称',group:''});
+});
+test('extension management has deletion but cannot submit a rename or create a group',async t=>{
+ const f=fixture(t,{getContext:()=>({kind:'extension',catalog:{canManage:true,groups:{banks:[],extensions:['类型']}}})});
+ f.manager.open('group',null,'create');assert.equal(f.dialog.open,false);
+ for(const target of ['group','item']){
+  f.manager.open(target,{path:'类型',name:'类型'});assert.equal(f.dialog.open,true);
+  assert.equal(f.document.querySelector('#library-manage-fields').hidden,true);assert.equal(f.document.querySelector('#library-manage-confirm').hidden,true);assert.equal(f.document.querySelector('#library-manage-export').hidden,true);
+  await f.submit();assert.equal(f.calls.length,0);
+  f.document.querySelector('#library-manage-delete').click();assert.match(f.document.querySelector('#library-manage-title').textContent,/删除/);assert.equal(f.calls.length,0);
+  f.document.querySelector('#library-manage-cancel').click();assert.match(f.document.querySelector('#library-manage-title').textContent,/管理/);
+ }
+});
+test('extension lists expose one edit entry per item/group and no direct export or delete buttons',t=>{
+ const f=fixture(t);
+ renderLibraryView({document:f.document,catalog:{canManage:true,developmentEnabled:true,groups:{extensions:['组']},extensions:[{id:'x',path:'组/type',group:'组',name:'type'}],banks:[]},listMode:'extension',activeKey:null,collapsedGroups:new Set(),onNotice(){},onOpen(){},onManage(){},onExport(){}});
+ assert.equal(f.document.querySelector('#library-new-group').hidden,true);
+ assert.equal(f.document.querySelectorAll('[data-library-action=update]').length,2);
+ assert.equal(f.document.querySelector('[data-library-action=delete]'),null);assert.equal(f.document.querySelector('[data-library-action=export]'),null);
+});
+
+test('bank and group actions live in edit; export keeps unsaved fields and delete requires confirmation',async t=>{
+ let failExport=false;const f=fixture(t,{onExport:async(...args)=>{f.exports.push(args);if(failExport)throw new Error('导出失败，请重试');}}),opened=[];
+ renderLibraryView({document:f.document,catalog:{canManage:true,developmentEnabled:true,groups:{banks:['资料']},extensions:[],banks:[{id:'x',path:'资料/练习',group:'资料',title:'练习'}]},listMode:'bank',activeKey:null,collapsedGroups:new Set(),onNotice(){},onOpen:(...args)=>opened.push(args),onManage:(...args)=>f.manager.open(...args)});
+ assert.equal(f.document.querySelector('[data-library-action=export]'),null);assert.equal(f.document.querySelector('[data-library-action=delete]'),null);
+ const buttons=f.document.querySelectorAll('[data-library-action=update]');assert.equal(buttons.length,2);
+ for(const button of buttons){button.click();f.document.querySelector('#library-manage-export').click();for(let i=0;i<12;i++)await Promise.resolve();assert.equal(f.dialog.open,true);}
+ assert.equal(opened.length,0);assert.equal(f.calls.length,0);
+ assert.deepEqual(f.exports.map(([row,target])=>[row.path,target]),[['资料','group'],['资料/练习','item']]);
+ const name=f.document.querySelector('#library-manage-name');name.value='尚未保存的名称';
+ failExport=true;f.document.querySelector('#library-manage-export').click();for(let i=0;i<12;i++)await Promise.resolve();
+ assert.match(f.document.querySelector('#library-manage-error').textContent,/导出失败/);assert.equal(f.dialog.open,true);assert.equal(name.value,'尚未保存的名称');assert.equal(f.document.querySelector('#library-manage-export').disabled,false);failExport=false;
+ f.document.querySelector('#library-manage-delete').click();assert.equal(f.calls.length,0);assert.equal(f.document.querySelector('#library-manage-more').hidden,true);assert.match(f.document.querySelector('#library-manage-hint').textContent,/配套.*拓展组.*保留/);
+ f.document.querySelector('#library-manage-cancel').click();assert.equal(f.dialog.open,true);assert.equal(name.value,'尚未保存的名称');
+ f.document.querySelector('#library-manage-export').click();for(let i=0;i<12;i++)await Promise.resolve();assert.equal(f.exports.at(-1)[0].title,'练习');assert.equal(name.value,'尚未保存的名称');
+ f.document.querySelector('#library-manage-delete').click();await f.submit();assert.deepEqual(JSON.parse(f.calls[0].body),{kind:'bank',target:'item',action:'delete',path:'资料/练习'});
 });

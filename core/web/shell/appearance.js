@@ -10,8 +10,8 @@ export const THEMES=Object.freeze([
 ]);
 export const DEFAULT_DIM=30;
 // How much the library, outline and bars let the background through, per theme.
-// The defaults reproduce each theme's original look; the default theme has none.
-export const DEFAULT_CLEAR=Object.freeze({mist:40,paper:0,sepia:0,green:0,image:30});
+// Each theme has its own default; saved user choices take precedence.
+export const DEFAULT_CLEAR=Object.freeze({mist:40,paper:0,sepia:0,green:0,image:65});
 const STORAGE_KEY='quizforge-appearance',MAX_DIM=80,MAX_CLEAR=70,MAX_INPUT_BYTES=30*1024*1024;
 const validStep=(value,max)=>Number.isInteger(value)&&value>=0&&value<=max&&value%5===0;
 

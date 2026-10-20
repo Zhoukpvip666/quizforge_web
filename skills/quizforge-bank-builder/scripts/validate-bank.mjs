@@ -28,8 +28,8 @@ function reference(value,location,allowDevelopment=false){
   if(own(value,'typeId'))fail(location+'/typeId','MULTI_TYPE_BINDING_NOT_SUPPORTED');
   if(own(value,'path')){
     const relative=value.path;
-    if(!fields(value,['id','path'])||Object.keys(value).length!==2||typeof relative!=='string'||relative.length>1000||!relative.startsWith('extensions/')||relative.includes('\\')||/[:\x00-\x1f]/.test(relative)||relative.split('/').some(part=>!part||part==='.'||part==='..'||/[ .]$/.test(part)))fail(location,'INVALID_EXTENSION_REFERENCE');
-    return {id:id(value,'id',location),path:relative};
+    if(!fields(value,['id','path'])||typeof relative!=='string'||relative.length>1000||!relative.startsWith('extensions/')||relative.includes('\\')||/[:\x00-\x1f]/.test(relative)||relative.split('/').some(part=>!part||part==='.'||part==='..'||/[ .]$/.test(part)))fail(location,'INVALID_EXTENSION_REFERENCE');
+    return {...(own(value,'id')?{id:id(value,'id',location)}:{}),path:relative};
   }
   if(own(value,'development')){
     if(Object.keys(value).length!==1)fail(location,'INVALID_EXTENSION_REFERENCE');
@@ -38,7 +38,7 @@ function reference(value,location,allowDevelopment=false){
   if(!fields(value,['id','version'])||Object.keys(value).length!==2)fail(location,'INVALID_EXTENSION_REFERENCE');
   return {id:id(value,'id',location),version:id(value,'version',location)};
 }
-const key=ref=>ref.path?'path:'+ref.path+'#'+ref.id:ref.development?'development:'+ref.development:ref.id+'@'+ref.version;
+const key=ref=>ref.path?'path:'+ref.path:ref.development?'development:'+ref.development:ref.id+'@'+ref.version;
 function singleTypeDeclaration(value,location){
   if(['types','packageFormatVersion','typeId'].some(field=>own(value,field)))fail(location,'MULTI_TYPE_EXTENSION_NOT_SUPPORTED');
 }
@@ -241,7 +241,7 @@ async function extensionIndex(roots,allowDevelopment=false){
         }catch(error){if(!(error instanceof Invalid))throw error;report.warnings.push({location:error.location,code:'INVALID_UNRELATED_MANIFEST'});continue;}
         const referencePath='extensions/'+path.relative(root,directory).split(path.sep).join('/');
         const candidate={directory,manifest,location:where,referencePath};
-        singleTypeDeclaration(manifest,where+'/manifest.json');add(key(manifest),candidate);add(key({id:manifest.id,path:referencePath}),candidate);
+        singleTypeDeclaration(manifest,where+'/manifest.json');if(!await optionalExists(path.join(path.dirname(directory),'.bundle.json'),where+'/bundle'))add(key(manifest),candidate);add(key({path:referencePath}),candidate);
       }
     };await visit(root,0);
   }return index;
@@ -385,7 +385,7 @@ function documentRows(document,location='',owner=null,allowDevelopment=false){
   }
   const bankId=id(document,'id',location);text(document,'title',300,location);text(document,'description',4000,location,true);
   const fallback=own(document,'extension')?reference(document.extension,location+'/extension',allowDevelopment):null;
-  const ownsReference=extension=>extension.path?extension.id===owner.id:key(extension)===key({id:owner.id,version:owner.version})||Boolean(owner.development&&extension.development===owner.development);
+  const ownsReference=extension=>extension.path?extension.path===owner.referencePath&&(extension.id===undefined||extension.id===owner.id):key(extension)===key({id:owner.id,version:owner.version})||Boolean(owner.development&&extension.development===owner.development);
   if(owner&&(bankId!=='examples'||fallback&&!ownsReference(fallback)))fail(location+'/extension','INVALID_EXAMPLE_BINDING');
   if(!Array.isArray(document.questions)||!document.questions.length||document.questions.length>10000)fail(location+'/questions','QUESTION_COUNT_LIMIT');
   const rows=[],groups=new Map(),seen=new Set();document.questions.forEach((question,index)=>{
@@ -454,6 +454,8 @@ async function validate(options){
     const candidates=index.get(identity);if(!candidates)fail(identity===key(fallback??{})?'/extension':'/questions/'+groups.get(identity)[0].index+'/extension','EXTENSION_NOT_FOUND');
     if(identity.startsWith('development:')&&candidates.length>1)fail(candidates[1].location,'DEVELOPMENT_FOLDER_CONFLICT');
     let first;for(const candidate of candidates){const current=await loadExtension(candidate,coreRoot,options.previewOnly);if(first&&first.fingerprint!==current.fingerprint)fail(current.location,'EXTENSION_VERSION_CONTENT_CONFLICT');first??=current;}loaded.set(identity,first);
+    for(const row of rows)if(key(row.extension)===identity&&row.extension.path&&row.extension.id!==undefined&&row.extension.id!==first.manifest.id)fail(row.location+'/extension','EXTENSION_ID_MISMATCH');
+    if(fallback?.path&&key(fallback)===identity&&fallback.id!==undefined&&fallback.id!==first.manifest.id)fail('/extension','EXTENSION_ID_MISMATCH');
   }
   const directoryBank=path.basename(bankFile)==='bank.json'&&path.dirname(bankFile)!==path.join(project,'question-banks');
   const bankAssets=directoryBank?await images(path.dirname(bankFile),'bank/assets'):new Map(),usedBankAssets=new Set(),usedExtensionAssets=new Map();report.summary.images=bankAssets.size;
@@ -466,7 +468,7 @@ async function validate(options){
     const extension=loaded.get(identity),where=extension.location+'/examples';
     if(!extension.files.examples){report.warnings.push({location:where,code:'DEVELOPMENT_EXAMPLES_MISSING'});continue;}
     const examples=await jsonFile(extension.files.examples,8*MiB,where);
-    const exampleRows=documentRows(examples,where,{...extension.manifest,development:extension.development},options.allowDevelopment).rows;
+    const exampleRows=documentRows(examples,where,{...extension.manifest,referencePath:extension.referencePath,development:extension.development},options.allowDevelopment).rows;
     for(const row of exampleRows)row.extension=extension.development?{development:extension.development}:identity.startsWith('path:')?{id:extension.manifest.id,path:extension.referencePath}:{id:extension.manifest.id,version:extension.manifest.version};
     report.summary.exampleQuestions+=exampleRows.length;
     checkImages(exampleRows,loaded,new Map(),new Set(),usedExtensionAssets);if(options.previewOnly)checkPreviewSchemas(exampleRows,loaded);exampleGroups.set(identity,exampleRows);

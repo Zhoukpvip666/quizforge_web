@@ -26,6 +26,7 @@ import {questionExtension,collectionHasExtension,extensionPageRoute,sameQuestion
 import {renderLibraryView} from './library/library-view.js';
 import {renderOutlineView} from './outline/outline-view.js';
 import {bindLibraryManagement} from './library/library-management.js';
+import {takeImportedBank} from './library/native-import.js';
 import {bindLibraryTransfer} from './library/library-transfer.js';
 import {bindLibraryResize} from './library/library-resize.js';
 import {bindSaveRecovery} from './practice/save-recovery.js';
@@ -670,7 +671,7 @@ async function activateReady(key){
 function renderLibrary(){
   listMode=renderLibraryView({document,catalog,listMode,activeKey:pendingLibraryKey??activeKey,collapsedGroups:collapsedExtensionGroups,onNotice:notice,
     onOpen:(kind,id)=>transitionTo(()=>openCollection(kind,id)),
-    onManage:(target,row,action)=>libraryManager.open(target,row,action),onExport:row=>libraryTransfer.exportGroup(row)});
+    onManage:(target,row,action)=>libraryManager.open(target,row,action)});
 }
 function renderOutline(){
   const pane=active();
@@ -755,9 +756,12 @@ $('#show-banks').addEventListener('click',()=>switchList('bank'));$('#show-exten
 $('#refresh').addEventListener('click',()=>transitionTo(async()=>{for(const pane of collections.values())await flushPane(pane);questionsCache.clear();pagesCache.clear();await refreshCatalog();for(const pane of collections.values())pane.needsRefresh=true;if(activeKey)await activateReady(activeKey);}));
 const prepareLibraryChange=()=>transitionTo(async()=>{
     if([...collections.values()].some(pane=>pane.view==='edit'))throw new Error('请先保存或取消题目编辑，再修改目录。');
-    for(const pane of collections.values())if(await flushPane(pane)===false){
-      const title=pane.collection?.title||pane.development?.name||pane.id||'开发题库',question=pane.payload?.question?.title||pane.questionId||'当前题目';
-      throw new Error(`「${title}」中的「${question}」仍有未保存输入。请返回该题重试保存，完成后再修改目录。`);
+    for(const pane of collections.values()){
+      const inert=pane.node?.inert;
+      try{if(await flushPane(pane)===false){
+        const title=pane.collection?.title||pane.development?.name||pane.id||'开发题库',question=pane.payload?.question?.title||pane.questionId||'当前题目';
+        throw new Error(`「${title}」中的「${question}」仍有未保存输入。请返回该题重试保存，完成后再修改目录。`);
+      }}finally{if(pane.node)pane.node.inert=inert;}
     }
   });
 
@@ -771,6 +775,11 @@ async function applyLibraryChange(result,operation){
       const matches=row=>row.id===pane.id&&(row.kind||(['extension','development'].includes(pane.kind)?'extension':'bank'))===pane.kind&&!row.error;
       const row=rows.find(matches),oldRows=['extension','development'].includes(pane.kind)?previous.extensions:previous.banks,old=oldRows.find(matches);
       if(row){
+        const retained=result.retainedCollections?.find(value=>value.kind===pane.kind&&value.id===pane.id);
+        if(retained&&pane.collection&&!pane.needsRefresh&&!pane.summaryShown&&pane.view!=='summary'&&pane.collection.revision===retained.previousRevision){
+          pane.collection={...pane.collection,title:retained.title,revision:retained.revision};
+          continue;
+        }
         if(!old?.contentRevision||row.contentRevision!==old.contentRevision||row.title!==old.title||row.name!==old.name||row.path!==old.path){pane.needsRefresh=true;anyChanged=true;activeChanged||=pane.key===activeKey;}
         continue;
       }
@@ -779,15 +788,17 @@ async function applyLibraryChange(result,operation){
     if(anyChanged||!collections.has(activeKey)){questionsCache.clear();pagesCache.clear();}
     if(!collections.has(activeKey)){activeKey=null;const first=(listMode==='bank'?catalog.banks:catalog.extensions).find(row=>!row.error);if(first)await openCollection(first.kind||listMode,first.id);else activate(null);}
     else if(activeChanged)await activateReady(activeKey);
-    notice(operation.action==='delete'?`已移入回收目录：${result.archivedTo}`:'目录已更新。');
+    updateChrome();
+    notice(operation.action==='delete'?`已移入回收目录：${result.archivedTo}${result.removedExtensionGroups?.length?'；已一并移除配套拓展组：'+result.removedExtensionGroups.join('、'):''}${result.retainedExtensionGroups?.length?'；保留仍被使用或引用无法确认的拓展组：'+result.retainedExtensionGroups.join('、'):''}`:'目录已更新。');
 }
 const libraryManager=bindLibraryManagement({request,getContext:()=>({kind:listMode,catalog}),beforeChange:prepareLibraryChange,
+  onExport:(row,target)=>target==='item'?libraryTransfer.exportBank(row,{throwOnError:true}):libraryTransfer.exportGroup(row,{throwOnError:true}),
   onChanged:(result,operation)=>transitionTo(()=>applyLibraryChange(result,operation))});
 const libraryTransfer=bindLibraryTransfer({request,getContext:()=>({kind:listMode,catalog}),beforeChange:prepareLibraryChange,onMessage:notice,
   onImported:result=>transitionTo(async()=>{
     await refreshCatalog();questionsCache.clear();pagesCache.clear();
     if(!activeKey){const first=catalog.banks.find(row=>!row.error);if(first)await openCollection(first.kind||'bank',first.id);}
-    notice(`已导入「${result.group}」：${result.importedBanks} 本题库、${result.importedExtensions} 个拓展；跳过 ${result.skippedBanks} 本相同题库、${result.skippedExtensions} 个相同拓展。`);
+    notice(`已新增「${result.name||result.group}」${result.scope==='bank'?'到题库根目录':''}：${result.importedBanks} 本题库、${result.importedExtensions} 个拓展。已有题库与进度保留。`);
   })});
 $('#library-new-group').addEventListener('click',()=>libraryManager.open('group',null,'create'));
 bindSaveRecovery({document,active,transitionTo,loadQuestion,showQuestion,saveInk,notice,collectionFeature,renderOutline});
@@ -842,5 +853,5 @@ $('#access-form').addEventListener('submit',async event=>{
 window.addEventListener('beforeunload',event=>{if(pendingWrites||[...collections.values()].some(pane=>pane.ink.pending||pane.writes.hasFailures||pane.editorSession?.isDirty||pane.plugin?.hasUnsavedInput||pane.retainedQuestions?.size)){event.preventDefault();event.returnValue='';}});
 window.addEventListener('pagehide',()=>refreshCatalog.client?.stop());
 document.addEventListener('visibilitychange',()=>{refreshCatalog.client?.visibilityChanged();if(document.visibilityState==='hidden'){const pane=active();if(pane&&!pane.loading&&pane.view==='practice'){pane.whiteboard.flush();saveInk(pane).catch(()=>{});}}});
-async function start(){await refreshCatalog();const first=catalog.banks.find(row=>!row.error);if(first&&!collections.size)await transitionTo(()=>openCollection(first.kind||'bank',first.id));}
+async function start(){await refreshCatalog();const imported=takeImportedBank(catalog),first=imported||catalog.banks.find(row=>!row.error);if(first&&(!collections.size||imported))await transitionTo(()=>openCollection(first.kind||'bank',first.id));if(imported)notice(`已导入并打开「${imported.title}」。`);}
 start().catch(failure);

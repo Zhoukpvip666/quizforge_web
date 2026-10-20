@@ -125,7 +125,7 @@
           aria-label="关闭导入">×</button>
       </div>
       <p id="library-import-name" class="library-manage-hint"></p>
-      <p class="library-manage-hint">导入题库分组及随附拓展。同一题库的高版本自动替换，其他版本由你选择；相同拓展内容复用，不同内容独立保存。个人历史快照保留。请选择可信来源的 .qbank 文件。</p>
+      <p class="library-manage-hint">导入新版 .qbank 及配套拓展：单题库放到题库根目录，分组包按组添加。每次创建独立副本，重名自动加序号。已有题库、作答和历史保留。旧格式包请联系制作者升级后导入。</p>
       <p id="library-import-error" class="library-manage-error" role="alert" hidden></p>
       <div class="dialog-actions"><button id="library-import-cancel" type="button">取消</button><button
           id="library-import-confirm" type="submit">导入</button></div>
@@ -140,9 +140,13 @@
       <p id="library-manage-hint" class="library-manage-hint"></p>
       <div id="library-manage-fields"><label>名称<input id="library-manage-name" maxlength="300"
             autocomplete="off"></label><label>所属分组<select id="library-manage-group"></select></label></div>
+      <p id="library-manage-status" class="library-manage-hint" role="status" hidden></p>
       <p id="library-manage-error" class="library-manage-error" role="alert" hidden></p>
-      <div class="dialog-actions"><button id="library-manage-cancel" type="button">取消</button><button
-          id="library-manage-confirm" type="submit">保存</button></div>
+      <div class="library-manage-footer">
+        <div id="library-manage-more" class="library-manage-more" hidden><button id="library-manage-export" type="button">导出题库</button><button id="library-manage-delete" type="button">删除</button></div>
+        <div class="dialog-actions"><button id="library-manage-cancel" type="button">取消</button><button
+            id="library-manage-confirm" type="submit">保存</button></div>
+      </div>
     </form>
   </dialog>
   <dialog id="history-dialog" class="history-dialog" aria-labelledby="history-title">

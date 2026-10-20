@@ -1,16 +1,16 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { ApiError, bad, id, text } from '../platform/errors.js';
-import { checkPath, exists, readBytes, readJson, replaceFile, safeDirectory, safeFile, walkFiles } from '../platform/files.js';
+import { checkPath, exists, readBytes, readJson, replaceFile, safeDirectory, safeFile, walkFiles, within } from '../platform/files.js';
 import { cloneJson, fingerprint, hash, jsonBytes, jsonEqual } from '../platform/json.js';
 import { BankFeatures } from './features.js';
 import { ResourceStore } from '../resources/resources.js';
 import { RichTextService, validateSdk } from '../resources/richtext-service.js';
 import { DevelopmentSettings } from '../extensions/development-settings.js';
 import { LibraryManagement } from './library-management.js';
-import { LibraryIndex, bankDevelopmentMetadata, catalogError, referenceKey, compareVersion } from './library-index.js';
+import { LibraryIndex, catalogError, referenceKey, compareVersion } from './library-index.js';
 import { bankItem, scanBanks, scanExtensions } from './directories.js';
-import { bindRuntimeExamples, declaration, developmentRevision, editorPage, markedDevelopment, packageSnapshot, snapshotRevision, readDevelopment, readExtension, runtimeExtension, runtimeId, snapshotPage, staticAssets } from '../extensions/extension-packages.js';
+import { declaration, developmentRevision, editorPage, readExtension, snapshotPage, staticAssets } from '../extensions/extension-packages.js';
 import { extensionGroup } from './directories.js';
 import { runRuleBatches } from '../practice/outline.js';
 import { catalogRevision, developmentFolders, finishCollection, optional, prepareCollection } from './collections.js';
@@ -19,7 +19,6 @@ import { LoadCoordinator, SerialTransactions } from '../platform/transactions.js
 import { LibraryArchive } from './library-archive.js';
 import { FileCache } from '../platform/file-cache.js';
 import { findExtension, referenceIdentity, relativeExtension } from './identity.js';
-import { randomUUID } from 'node:crypto';
 import { eachReference } from './identity.js';
 import { BankLocations } from './bank-locations.js';
 import { validateImportLibrary } from './import-validation.js';
@@ -34,7 +33,6 @@ export class Library {
     this.loaded = new Map(); this.extensionCache = new Map(); this.statuses = new Map(); this.closed = false; this.generation = 0; this.environmentPending = null; this.backgroundRunning = false;
     this.recentEnvironment = null; this.now = Date.now;
     this.files = new FileCache();
-    this.pendingImports = new Map();
     this.bankLocations = new BankLocations(root);
   }
   indexSnapshot() { return this.indexer.scan(); }
@@ -99,9 +97,9 @@ export class Library {
   }
   candidate(snapshot, kind, collectionId) {
     if (kind === 'development-bank') kind = 'bank';
-    if (kind === 'development') return this.candidate(snapshot, 'extension', snapshot.candidates.find(row => row.kind === 'extension' && row.metadata.legacyFolder === collectionId)?.id ?? collectionId);
+    if (kind === 'development') return this.candidate(snapshot, 'extension', snapshot.candidates.find(row => row.kind === 'extension' && !row.metadata.bundleScoped && row.metadata.legacyFolder === collectionId)?.id ?? collectionId);
     let candidates = snapshot.candidates.filter(candidate => candidate.kind === kind && candidate.id === collectionId);
-    if (!candidates.length && kind === 'extension') candidates = snapshot.candidates.filter(candidate => candidate.kind === kind && candidate.metadata.extensionId === collectionId);
+    if (!candidates.length && kind === 'extension') candidates = snapshot.candidates.filter(candidate => candidate.kind === kind && !candidate.metadata.bundleScoped && candidate.metadata.extensionId === collectionId);
     if (!candidates.length && kind === 'bank') {
       const routed = this.bankLocations.read().routes[collectionId];
       candidates = snapshot.candidates.filter(candidate => candidate.kind === kind && candidate.id === routed);
@@ -116,7 +114,7 @@ export class Library {
   scope(snapshot, kind, collectionId) {
     if (kind === 'page') {
       const separator = collectionId.lastIndexOf('@'), extensionId = collectionId.slice(0, separator), version = collectionId.slice(separator + 1);
-      const matches = snapshot.candidates.filter(candidate => candidate.kind === 'extension' && (candidate.id === extensionId || candidate.metadata.extensionId === extensionId) && candidate.metadata.version === version);
+      const matches = snapshot.candidates.filter(candidate => candidate.kind === 'extension' && (candidate.id === extensionId || !candidate.metadata.bundleScoped && candidate.metadata.extensionId === extensionId) && candidate.metadata.version === version);
       if (matches.length !== 1) throw new ApiError(404, 'EXTENSION_NOT_FOUND', 'Extension is unavailable');
       return { candidate: matches[0], folders: [matches[0].source], source: null };
     }
@@ -134,14 +132,14 @@ export class Library {
     }
     return { candidate, folders: [...new Set(folders)], source: candidate.source };
   }
-  contentIdentity(scope, folders = new Map()) {
-    const values = [];
+  contentIdentity(scope, folders = new Map()) { return this.contentIdentities(scope, folders).current; }
+  contentIdentities(scope, folders = new Map(), previousSource = null) {
+    const values = []; let sourceOffset;
     for (const directory of [...scope.folders].sort()) {
       let inputs = folders.get(directory);
       if (!inputs) {
-        const development = markedDevelopment(directory), config = declaration(directory, development);
+        const config = declaration(directory);
         inputs = [directory, config];
-        if (development) inputs.push(readJson(safeFile(directory, 'development.json'), 256 * 1024));
         for (const file of walkFiles(directory).sort()) {
           if (!fs.lstatSync(file).isFile()) continue;
           inputs.push(path.relative(directory, file), this.files.hash(file));
@@ -152,13 +150,17 @@ export class Library {
       for (const input of inputs) values.push(input);
     }
     if (scope.source) {
+      sourceOffset = values.length;
       values.push(scope.source, this.files.hash(scope.source));
       const assets = path.join(path.dirname(scope.source), 'assets');
       if (path.basename(scope.source) === 'bank.json' && path.dirname(scope.source) !== path.join(this.root, 'question-banks') && exists(assets)) for (const file of walkFiles(assets).sort()) if (fs.lstatSync(file).isFile()) values.push(path.relative(path.dirname(scope.source), file), this.files.hash(file, 4 * 1024 * 1024));
     }
     const registry = path.join(this.codeRoot, 'shared', 'richtext', 'service.json');
     if (exists(registry)) values.push(readJson(registry, 64 * 1024));
-    return fingerprint(values, 'quizforge-node-library-source-v1');
+    const current = fingerprint(values, 'quizforge-node-library-source-v1');
+    if (!previousSource || sourceOffset === undefined) return { current };
+    values[sourceOffset] = previousSource.path; values[sourceOffset + 1] = previousSource.hash;
+    return { current, previous: fingerprint(values, 'quizforge-node-library-source-v1') };
   }
   async readCollection(kind, collectionId) {
     if (kind === 'exam' && this.examResolver) return this.examResolver(collectionId);
@@ -185,6 +187,7 @@ export class Library {
   }
   async load(kind, collectionId, foreground = true) {
     if (this.closed) throw new ApiError(503, 'LIBRARY_UNAVAILABLE', 'Library is closed');
+    if (kind === 'development' || kind === 'development-bank') throw new ApiError(422, 'COLLECTION_KIND_UPGRADE_REQUIRED', '旧开发版入口已退役，请从当前题库或拓展列表重新打开。');
     const snapshot = this.indexSnapshot(), scope = this.scope(snapshot, kind, collectionId), identity = this.contentIdentity(scope), generation = this.generation;
     const target = kind + ':' + collectionId;
     const cached = this.loaded.get(target);
@@ -221,53 +224,46 @@ export class Library {
     });
   }
   async loadScope(snapshot, scope, identity, environment, kind, collectionId, options = {}) {
-    const available = new Map(), packages = new Map(), originals = new Map(), legacyAvailable = new Map();
+    const available = new Map();
     kind = scope.candidate.kind === 'bank' ? 'bank' : kind === 'page' ? kind : 'extension';
     if (kind !== 'page') collectionId = scope.candidate.id;
     for (const directory of scope.folders) {
       let shared = options.extensions?.get(directory);
       if (!shared) {
-        const development = markedDevelopment(directory), packageValue = development ? readDevelopment(directory) : null;
-        const original = readExtension(directory, this.richtext, (id, version) => this.resolveSdk(id, version), packageValue);
-        this.resources.importExtensionAssets(directory, staticAssets(directory, declaration(directory, development)));
-        shared = { development, packageValue, original }; options.extensions?.set(directory, shared);
+        const original = readExtension(directory, this.richtext, (id, version) => this.resolveSdk(id, version));
+        this.resources.importExtensionAssets(directory, staticAssets(directory, declaration(directory)));
+        shared = { original }; options.extensions?.set(directory, shared);
       }
-      const { development, packageValue, original } = shared;
+      const { original } = shared;
       const extension = original;
       extension.referencePath = relativeExtension(this.root, directory);
       extension.pageId = snapshot.candidates.find(row => row.kind === 'extension' && row.source === directory)?.id ?? original.id;
-      const folder = path.basename(directory);
-      available.set('development:' + folder, extension);
-      if (development) { packages.set(packageValue.folder, packageValue); originals.set(packageValue.folder, original); legacyAvailable.set('development:' + folder, runtimeExtension(original, packageValue)); }
-      else legacyAvailable.set('development:' + folder, extension);
-      legacyAvailable.set(extension.id + '@' + extension.version, extension);
-      available.set(extension.id + '@' + extension.version, extension);
-      available.set('path:' + extension.referencePath + '#' + extension.id, extension);
+      available.set('path:' + extension.referencePath, extension);
       this.extensionCache.set(extension.referencePath, extension);
     }
     if (kind === 'page') {
       const extension = [...available.values()].find(value => value.pageId + '@' + value.version === collectionId || value.id + '@' + value.version === collectionId);
       if (!extension) throw new ApiError(404, 'EXTENSION_NOT_FOUND', 'Extension is unavailable');
-      return { descriptor: snapshotPage(extension), collection: null, row: { validationStatus: 'ready' }, scope, available, packages, originals };
+      return { descriptor: snapshotPage(extension), collection: null, row: { validationStatus: 'ready' }, scope, available };
     }
     let extension = null, raw;
     if (scope.source) raw = readJson(scope.source, 8 * 1024 * 1024);
     else {
       extension = [...available.values()].find(value => value.directory === scope.candidate.source);
-      const original = kind === 'development' ? originals.get(collectionId) : extension;
-      raw = extension.examples ? readJson(extension.examples, 8 * 1024 * 1024) : { id: 'examples', title: extension.name, extension: { id: original.id, version: original.version }, questions: [{ id: 'preview', title: extension.name, data: {} }] };
+      raw = extension.examples ? readJson(extension.examples, 8 * 1024 * 1024) : { id: 'examples', title: extension.name, extension: { path: extension.referencePath }, questions: [{ id: 'preview', title: extension.name, data: {} }] };
       if (raw.id !== 'examples') throw bad('Invalid example ID');
-      if (kind === 'development') raw = bindRuntimeExamples(raw, original, extension);
       raw = cloneJson(raw);
-      eachReference(raw, (owner, reference) => {
-        if (reference.id === extension.id) owner.extension = { id: extension.id, path: extension.referencePath };
-        else if (reference.development === path.basename(extension.directory)) owner.extension = { id: extension.id, path: extension.referencePath };
+      eachReference(raw, (_owner, reference) => {
+        if (reference.path !== extension.referencePath) throw new ApiError(422, 'EXAMPLE_BINDING_UPGRADE_REQUIRED', '拓展样例必须通过准确路径绑定自身，请同步样例引用。');
+        findExtension(reference, [{ referencePath: extension.referencePath, extensionId: extension.id }]);
       });
     }
     const prepared = prepareCollection(raw, kind, extension, collectionId, available, scope.candidate.metadata.bankId ?? collectionId);
+    prepared.title = scope.candidate.metadata.title ?? scope.candidate.metadata.name ?? prepared.title;
     const cacheKey = environment === 'unavailable' ? null : fingerprint({ collection: prepared.checkKey, environment, sources: identity }, 'quizforge-node-validation-v1');
     const result = await finishCollection(options.engine ?? this.engine, prepared, this.validationCache.read(cacheKey, prepared.questions.length));
     const collection = result.collection, store = this.resources;
+    if (kind === 'bank') collection.bankId = raw.id;
     if (kind === 'bank' && scope.candidate.metadata.groupId) {
       collection.groupId = scope.candidate.metadata.groupId; collection.bankId = raw.id;
       // Old global-ID records remain available when only group metadata changes.
@@ -276,29 +272,11 @@ export class Library {
         collection.legacyCollection = new (collection.constructor)(legacy);
       }
     }
-    if (kind === 'bank' && developmentFolders(raw).length) {
-      const legacy = prepareCollection(raw, 'development-bank', null, raw.id, legacyAvailable);
-      collection.legacyCollection = new (collection.constructor)(legacy);
-    } else if (kind === 'extension' && markedDevelopment(extension.directory)) {
-      const old = legacyAvailable.get('development:' + path.basename(extension.directory));
-      const legacyRaw = cloneJson(raw); eachReference(legacyRaw, owner => { owner.extension = { id: old.id, version: old.version }; });
-      const legacy = prepareCollection(legacyRaw, 'development', old, path.basename(extension.directory), new Map([[old.id+'@'+old.version,old]]));
-      collection.legacyCollection = new (collection.constructor)(legacy);
-    }
     const source = scope.source ?? extension.examples;
     if (source && path.basename(source) === 'bank.json' && path.dirname(source) !== path.join(this.root, 'question-banks')) store.importAssets(path.dirname(source));
     const row = { validationStatus: 'ready', questionCount: collection.questions.length, contentRevision: catalogRevision(collection), extension: collection.extension ? { id: collection.extension.id, version: collection.extension.version } : null, extensions: collection.extensions.map(extension => ({ id: extension.id, version: extension.version })) };
-    let descriptor = null;
-    if (kind === 'development') {
-      const packageValue = packages.get(collectionId), page = snapshotPage(extension), editor = editorPage(extension);
-      descriptor = { id: collectionId, kind, title: packageValue.name, description: packageValue.description, revision: packageValue.revision, development: { folder: collectionId }, features: collection.features.json(), canEdit: editor !== null && collection.features.editing, page, collection: { kind, id: collectionId }, extension: { id: extension.id, version: extension.version }, legacyPage: page.legacyPage === true };
-      if (editor) descriptor.editor = editor;
-    } else if (kind === 'development-bank') {
-      const folders = developmentFolders(raw), canEdit = collection.extensions.some(extension => editorPage(extension) !== null);
-      descriptor = { id: collectionId, kind, title: collection.title, description: collection.description, development: bankDevelopmentMetadata(folders), features: collection.features.json(), canEdit: canEdit && collection.features.editing, collection: { kind, id: collectionId }, extensions: collection.extensions.map(extension => ({ id: extension.id, version: extension.version })), revision: this.bankRevision(raw, folders) };
-      if (folders.length === 1) { const owner = available.get('development:' + folders[0]); descriptor.page = snapshotPage(owner); const editor = editorPage(owner); if (editor) descriptor.editor = editor; descriptor.extension = { id: owner.id, version: owner.version }; }
-    }
-    return { collection, descriptor, row, scope, available, packages, originals, raw, source, cacheKey, successfulCheck: result.successfulCheck };
+    const descriptor = null;
+    return { collection, descriptor, row, scope, available, raw, source, cacheKey, successfulCheck: result.successfulCheck };
   }
   async page(id, version) { const key = id + '@' + version; return cloneJson((await this.checkedRead('page', key) ?? await this.load('page', key)).descriptor); }
   editorPage(extension) { return editorPage(extension); }
@@ -322,7 +300,6 @@ export class Library {
     const matches = this.indexSnapshot().candidates.filter(candidate => candidate.kind === 'bank' && candidate.id === collectionId);
     if (matches.length !== 1) throw new ApiError(404, 'DEVELOPMENT_BANK_NOT_FOUND', 'Development bank is unavailable');
     const raw = this.indexer.files.json(matches[0].source);
-    if (!developmentFolders(raw).length) throw new ApiError(404, 'DEVELOPMENT_BANK_NOT_FOUND', 'Development bank is unavailable');
     return { revision: this.bankRevision(raw) };
   }
   resolveSdk(id, version) {
@@ -351,7 +328,6 @@ export class Library {
     if (!source) throw new ApiError(422, 'DEVELOPMENT_NOT_IMPLEMENTED', '请先创建样例题库文件，再保存题目编辑；当前输入已保留。');
     const before = readBytes(source, 8 * 1024 * 1024), raw = readJson(source, 8 * 1024 * 1024);
     const parse = async document => {
-      if (current.kind === 'development') document = bindRuntimeExamples(document, loaded.originals.get(current.id), current.extension);
       if (current.kind === 'extension') {
         document = cloneJson(document);
         eachReference(document, (owner, reference) => {
@@ -359,6 +335,7 @@ export class Library {
         });
       }
       const prepared = prepareCollection(document, current.kind, current.extension, current.id, loaded.available, current.bankId ?? current.id);
+      prepared.title = current.title;
       const replacement = (await finishCollection(this.engine, prepared)).collection;
       for (const field of ['storageKey', 'bankId', 'groupId']) if (current[field]) replacement[field] = current[field];
       return replacement;
@@ -374,9 +351,18 @@ export class Library {
   async publishDevelopment() { throw new ApiError(410, 'PUBLICATION_REMOVED', '拓展直接修改和使用，无需发布。'); }
   async manage(request) {
     return this.managementTransactions.run(async () => {
-      const snapshot = this.index();
+      const snapshot = this.indexSnapshot().catalog;
+      const loaded = new Map(this.loaded), environment = this.recentEnvironment, relocated = new Map();
+      if (request.kind === 'bank' && request.action === 'update') {
+        const source = this.management.resolve(this.management.base('bank'), request.path);
+        for (const [key, entry] of loaded) if (entry.collection.kind === 'bank' && entry.source && within(source, entry.source)) {
+          try {
+            relocated.set(key, { path: entry.source, hash: this.files.hash(entry.source) });
+          } catch { /* Changed files must pass the full loader. */ }
+        }
+      }
       const moving = request.kind === 'bank' && request.action === 'update' && request.target === 'item' ? snapshot.banks.find(row => row.path === request.path) : null;
-      const previous = moving?.bankId && /^[a-f0-9-]{36}$/i.test(moving.bankId) ? await this.collection('bank', moving.id) : null;
+      const previous = moving && !moving.instanceId && /^[a-f0-9-]{36}$/i.test(moving.bankId) && (request.group ?? '') !== (moving.group ?? '') ? await this.collection('bank', moving.id) : null;
       const beforeMove = previous ? this.loaded.get('bank:' + moving.id) : null;
       const beforeBytes = beforeMove?.source ? readBytes(beforeMove.source, 8 * 1024 * 1024) : null;
       const result = this.management.change(request, snapshot); this.invalidate();
@@ -392,42 +378,49 @@ export class Library {
           }
         }
       }
-      return { ...result, catalog: this.index() };
+      const after = this.indexSnapshot(), retainedCollections = [];
+      const sharedFolders = new Map();
+      // A directory operation does not change rule output. Reuse only entries
+      // whose own inputs still match; the new index alone is not proof of that.
+      for (const [key, entry] of loaded) {
+        try {
+          if (entry.environment === 'unavailable') continue;
+          const scope = this.scope(after, entry.collection.kind, entry.collection.id), moved = relocated.get(key);
+          if (scope.candidate.kind !== entry.collection.kind || scope.candidate.id !== entry.collection.id) continue;
+          const raw = scope.source ? this.indexer.files.json(scope.source) : entry.raw;
+          const identities = this.contentIdentities(scope, sharedFolders, moved);
+          if (moved) {
+            // Normalize only the known path/title change. Every other bank
+            // field, asset and extension input must still match the old entry.
+            const expected = request.target === 'item' ? { ...entry.raw, title: request.name.trim() } : entry.raw;
+            if (!jsonEqual(raw, expected) || identities.previous !== entry.identity) continue;
+          } else if (identities.current !== entry.identity) continue;
+          const title = scope.candidate.metadata.title ?? scope.candidate.metadata.name ?? entry.collection.title;
+          const collection = Object.assign(Object.create(Object.getPrototypeOf(entry.collection)), entry.collection, { title });
+          const revision = catalogRevision(collection), row = { ...entry.row, contentRevision: revision };
+          const retained = { ...entry, collection, scope, raw, source: scope.source ?? entry.source, row, indexRevision: after.revision, identity: identities.current, ...(moved ? { cacheKey: null } : {}) };
+          this.loaded.set(key, retained);
+          this.statuses.set(key, { revision: after.revision, identity: retained.identity, row });
+          const catalogRow = after.catalog[collection.kind === 'bank' ? 'banks' : 'extensions'].find(value => value.kind === collection.kind && value.id === collection.id);
+          if (catalogRow) Object.assign(catalogRow, cloneJson(row));
+          retainedCollections.push({ kind: collection.kind, id: collection.id, previousRevision: catalogRevision(entry.collection), revision, title });
+        } catch { /* Missing, edited or ambiguous inputs reload on demand. */ }
+      }
+      this.recentEnvironment = environment;
+      return { ...result, catalog: after.catalog, retainedCollections };
     });
   }
   exportGroup(group) { return this.managementTransactions.run(() => new LibraryArchive(this.root, this.resources).exportGroup(group)); }
-  importPackage(input) {
+  exportBank(bank) { return this.managementTransactions.run(() => new LibraryArchive(this.root, this.resources).exportBank(bank)); }
+  importPackage(input, filename) {
     return this.managementTransactions.run(async () => {
-      this.pruneImports();
-      if (this.pendingImports.size >= 3) throw new ApiError(429, 'IMPORT_LIMIT', '请先完成或取消已有导入');
       const result = await new LibraryArchive(this.root, this.resources).importPackage(input, async staging => {
         const candidate = new Library(staging, this.codeRoot, this.engine);
         try { await validateImportLibrary(candidate); }
         finally { candidate.close(); }
-      });
-      if (result.prepared) {
-        if (result.conflicts.length) {
-          const importId = randomUUID(); result.expires = Date.now() + 10 * 60 * 1000; this.pendingImports.set(importId, result);
-          const close = result.close, timer = setTimeout(() => this.cancelImport(importId).catch(() => {}), 10 * 60 * 1000);
-          timer.unref(); result.close = () => { clearTimeout(timer); close(); };
-          return { needsConfirmation: true, importId, group: result.group, conflicts: result.conflicts };
-        }
-        try { const committed = await result.commit({}); this.invalidate(); return { ...committed, catalog: this.index() }; }
-        finally { result.close(); }
-      }
+      }, filename);
       this.invalidate(); return { ...result, catalog: this.index() };
     });
   }
-  pruneImports() { for (const [key, plan] of this.pendingImports) if (plan.expires < Date.now()) { this.pendingImports.delete(key); plan.close(); } }
-  commitImport(importId, choices) {
-    return this.managementTransactions.run(async () => {
-      this.pruneImports(); const plan = this.pendingImports.get(importId);
-      if (!plan) throw new ApiError(410, 'IMPORT_EXPIRED', '导入已取消或过期，请重新选择题库包');
-      this.pendingImports.delete(importId);
-      try { const result = await plan.commit(choices); this.invalidate(); return { ...result, catalog: this.index() }; }
-      finally { plan.close(); }
-    });
-  }
-  cancelImport(importId) { return this.managementTransactions.run(() => { const plan = this.pendingImports.get(importId); if (plan) { this.pendingImports.delete(importId); plan.close(); } return { cancelled: true }; }); }
-  close() { this.closed = true; for (const plan of this.pendingImports.values()) plan.close(); this.pendingImports.clear(); this.coordinator.close(); this.loaded.clear(); this.extensionCache.clear(); this.files.clear(); this.indexer.files.clear(); this.indexer.cached = null; }
+  close() { this.closed = true; this.coordinator.close(); this.loaded.clear(); this.extensionCache.clear(); this.files.clear(); this.indexer.files.clear(); this.indexer.cached = null; }
 }

@@ -6,9 +6,10 @@ import net from 'node:net';
 import { lookup } from 'node:dns/promises';
 import { randomUUID, timingSafeEqual } from 'node:crypto';
 import { pipeline } from 'node:stream/promises';
-import { ApiError, bad, routeId, text } from '../platform/errors.js';
+import { ApiError, bad, routeId, text, requireObject } from '../platform/errors.js';
 import { jsonBytes, parseJson, hash, fingerprint } from '../platform/json.js';
 import { checkPath, exists, readBytes, readJson, replaceFile, resolveLayout, safeDirectory, safeFile } from '../platform/files.js';
+import { initializeContent } from '../platform/initial-content.js';
 import { RuleEngine } from '../extensions/rule-engine.js';
 import { Library } from '../library/library.js';
 import { StateStore } from '../practice/state-store.js';
@@ -56,15 +57,16 @@ const listen = (server, port, host) => new Promise((resolve, reject) => {
 const closeServer = (server, graceful = false) => new Promise(resolve => { if (!server?.listening) return resolve(); server.close(() => resolve()); if (!graceful) server.closeAllConnections(); });
 
 export class QuizForgeServer {
-  static async create({ root = '.', host = '127.0.0.1', port = 8080, token = null, node = process.execPath, codeRoot = null, tailscale = new TailscaleProbe() } = {}) {
+  static async create({ root = '.', host = '127.0.0.1', port = 8080, token = null, node = process.execPath, codeRoot = null, initialContent = null, tailscale = new TailscaleProbe() } = {}) {
     if (token !== null && !/^[A-Za-z0-9._~-]{16,256}$/.test(token)) throw new Error('Token must contain 16..256 URL-safe characters');
     if (!Number.isInteger(port) || port < 0 || port > 65535) throw new Error('Invalid port');
     const layout = resolveLayout(root), service = new QuizForgeServer();
-    Object.assign(service, layout, { root: layout.dataRoot, codeRoot: codeRoot ?? layout.codeRoot, host, token, active: 0, ready: false, closed: false, tailscaleProbe: tailscale, tailscale: { state: 'unavailable' } });
+    Object.assign(service, layout, { root: layout.dataRoot, codeRoot: codeRoot === null ? layout.codeRoot : checkPath(codeRoot, { directory: true }), host, token, active: 0, ready: false, closed: false, tailscaleProbe: tailscale, tailscale: { state: 'unavailable' } });
     service.server = service.newListener(false);
     try {
       // Reserve the port and data directory before any state recovery or upgrade.
       await listen(service.server, port, host); service.claimRoot();
+      if (initialContent !== null) initializeContent(service.root, initialContent);
       service.ipv6Supported = await ipv6Available();
       service.engine = await RuleEngine.create(service.codeRoot, { node });
       service.developmentSettings = new DevelopmentSettings(service.root);
@@ -332,11 +334,15 @@ export class QuizForgeServer {
     if (parts[1] === 'extensions') this.rejectTypeQuery(context);
     if (pathname === '/api/library/index' && method === 'GET') return { ...this.library.index(), canManage: this.canManage(context) };
     if (pathname === '/api/catalog' && method === 'GET') { this.states.recover(); return { ...await this.library.catalog(), canManage: this.canManage(context) }; }
-    if (pathname === '/api/library/import' && method === 'POST') { this.requireLocal(context); this.validateOrigin(context); if (context.request.headers['content-type']?.split(';')[0].trim().toLowerCase() !== archiveMime) throw new ApiError(415, 'QBANK_REQUIRED', '请上传 QuizForge .qbank 文件'); return this.namespaceTransaction(() => this.library.importPackage(context.request)); }
+    if (pathname === '/api/library/import' && method === 'POST') {
+      this.requireLocal(context); this.validateOrigin(context);
+      if (context.request.headers['content-type']?.split(';')[0].trim().toLowerCase() !== archiveMime) throw new ApiError(415, 'QBANK_REQUIRED', '请上传 QuizForge .qbank 文件');
+      let filename; try { const header = context.request.headers['x-quizforge-filename']; if (header !== undefined) { if (typeof header !== 'string' || header.length > 4000) throw new Error(); filename = decodeURIComponent(header); } } catch { throw bad('Invalid package filename'); }
+      return this.namespaceTransaction(() => this.library.importPackage(context.request, filename));
+    }
     if (['/api/library/import/commit', '/api/library/import/cancel'].includes(pathname) && method === 'POST') {
       this.requireLocal(context); const body = await this.writeRequest(context);
-      const importId = routeId(body.importId);
-      return this.namespaceTransaction(() => pathname.endsWith('/cancel') ? this.library.cancelImport(importId) : this.library.commitImport(importId, body.choices));
+      throw new ApiError(410, 'IMPORT_CHOICES_REMOVED', '新版题库包始终新增独立副本，无需选择覆盖。请刷新页面后重新导入。');
     }
     if (pathname === '/api/library/manage' && method === 'POST') { this.requireLocal(context); const body = await this.writeRequest(context); return this.namespaceTransaction(async () => { const result = await this.library.manage(body); this.states.clearMemory(); this.developmentStates.clearMemory(); return result; }); }
     if (parts.length === 5 && parts[1] === 'extensions' && parts[4] === 'page' && method === 'GET') return this.library.page(routeId(parts[2]), routeId(parts[3]));
@@ -377,8 +383,11 @@ export class QuizForgeServer {
           const resourceId = pathname.slice((development ? '/api/development/resources/' : '/api/resources/').length), lease = await this.lease(context, false, false);
           try { const store = lease ? development ? lease.session.developmentResources : lease.session.resources : development ? this.developmentResources : this.resources, resource = store.read(resourceId); this.send(response, 200, resource.mime, resource.bytes); } finally { lease?.close(); }
         } else if (pathname === '/api/library/export' && request.method === 'POST') {
-          this.requireLocal(context); const group = text(await this.writeRequest(context), 'group', 120), download = await this.namespaceTransaction(() => this.library.exportGroup(group));
-          try { response.writeHead(200, { 'Content-Type': archiveMime, 'Content-Length': fs.statSync(download.file).size, 'Content-Disposition': "attachment; filename=quizforge-group.qbank; filename*=UTF-8''" + encodeURIComponent(group + '.qbank') }); await pipeline(fs.createReadStream(download.file), response); } finally { download.close(); }
+          this.requireLocal(context); const selection = requireObject(await this.writeRequest(context));
+          if (Object.keys(selection).length !== 1 || !['bank', 'group'].includes(Object.keys(selection)[0])) throw bad('请选择一个题库或题库分组导出');
+          const single = Object.hasOwn(selection, 'bank'), value = text(selection, single ? 'bank' : 'group', single ? 1000 : 120);
+          const download = await this.namespaceTransaction(() => single ? this.library.exportBank(value) : this.library.exportGroup(value));
+          try { response.writeHead(200, { 'Content-Type': archiveMime, 'Content-Length': fs.statSync(download.file).size, 'Content-Disposition': "attachment; filename=quizforge-package.qbank; filename*=UTF-8''" + encodeURIComponent(download.name + '.qbank') }); await pipeline(fs.createReadStream(download.file), response); } finally { download.close(); }
         } else this.send(response, 200, 'application/json; charset=utf-8', jsonBytes(await this.api(context, pathname)));
       } else if (pathname === CA_PATH) {
         // Public root certificate for phones; it is the only file served from .state and never includes a key.

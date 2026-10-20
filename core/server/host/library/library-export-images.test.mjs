@@ -1,3 +1,4 @@
+import { copyFixture, writeFixture } from '../../../test/fixtures/installed-library.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -26,8 +27,8 @@ function fixture(t) {
 function bank(root, bytes = png, suffix = 'png', identity = imageId) {
   const directory = path.join(root, 'question-banks/Group/Bank');
   fs.mkdirSync(path.join(directory, 'assets'), { recursive: true });
-  fs.writeFileSync(path.join(directory, 'bank.json'), jsonBytes(document));
-  fs.writeFileSync(path.join(directory, 'assets', `${identity}.${suffix}`), bytes);
+  writeFixture(path.join(directory, 'bank.json'), jsonBytes(document));
+  writeFixture(path.join(directory, 'assets', `${identity}.${suffix}`), bytes);
   return path.join(directory, 'bank.json');
 }
 
@@ -37,11 +38,11 @@ test('unopened bank export reads all supported local image formats without regis
   const images = [[png, 'png'], [Buffer.from([255, 216, 255, 217]), 'jpg'], [Buffer.from('RIFF0000WEBP'), 'webp'], [Buffer.from('GIF89a0000'), 'gif']];
   for (const [bytes, suffix] of images.slice(1)) {
     const identity = hash(bytes);
-    fs.writeFileSync(path.join(path.dirname(file), 'assets', `${identity}.${suffix}`), bytes);
+    writeFixture(path.join(path.dirname(file), 'assets', `${identity}.${suffix}`), bytes);
     raw.content.push({ type: 'image', attrs: { assetId: identity } });
   }
   raw.content.push(structuredClone(raw.content[0]));
-  fs.writeFileSync(file, jsonBytes(raw));
+  writeFixture(file, jsonBytes(raw));
   const before = fs.readFileSync(file), destination = path.join(root, '.temp/copy');
   resources.read = () => { throw new Error('Export must use bank-local images'); };
   archive.copyBank(file, destination);
@@ -62,17 +63,17 @@ test('local image type and 4 MiB limit remain enforced', t => {
   const { root, archive } = fixture(t), jpeg = Buffer.from([255, 216, 255, 217]);
   const file = bank(root, jpeg, 'png', hash(jpeg));
   const raw = { type: 'image', attrs: { assetId: hash(jpeg) } };
-  fs.writeFileSync(file, jsonBytes(raw));
+  writeFixture(file, jsonBytes(raw));
   assert.throws(() => archive.copyBank(file, path.join(root, '.temp/type-copy')), { code: 'INVALID_LIBRARY_ARCHIVE' });
-  fs.writeFileSync(path.join(path.dirname(file), 'assets', `${hash(jpeg)}.png`), Buffer.alloc(MAX_IMAGE_BYTES + 1));
+  writeFixture(path.join(path.dirname(file), 'assets', `${hash(jpeg)}.png`), Buffer.alloc(MAX_IMAGE_BYTES + 1));
   assert.throws(() => archive.copyBank(file, path.join(root, '.temp/size-copy')), { code: 'INVALID_LIBRARY_ARCHIVE' });
 });
 
 test('old standalone bank still exports images held only by the host resource store', t => {
   const { root, archive, resources } = fixture(t);
   resources.store('image/png', png);
-  const file = path.join(root, 'question-banks/old.json'), before = jsonBytes(document);
-  fs.writeFileSync(file, before);
+  const file = path.join(root, 'question-banks/old/bank.json'), before = jsonBytes(document);
+  writeFixture(file, before);
   const destination = path.join(root, '.temp/copy'); archive.copyBank(file, destination);
   assert.deepEqual(fs.readFileSync(path.join(destination, 'assets', `${imageId}.png`)), png);
   assert.deepEqual(fs.readFileSync(file), before);
@@ -81,7 +82,7 @@ test('old standalone bank still exports images held only by the host resource st
 
 test('missing local and global images still fail export', t => {
   const { root, archive } = fixture(t);
-  const file = path.join(root, 'question-banks/missing.json'); fs.writeFileSync(file, jsonBytes(document));
+  const file = path.join(root, 'question-banks/missing/bank.json'); writeFixture(file, jsonBytes(document));
   assert.throws(() => archive.copyBank(file, path.join(root, '.temp/copy')), { code: 'RESOURCE_NOT_FOUND' });
 });
 
@@ -97,24 +98,24 @@ test('fallback images respect expanded byte and entry limits before writing', t 
 });
 
 test('extension example images held in root assets are copied beside nested examples without global registration', t => {
-  const { root, archive, resources } = fixture(t), source = path.join(root, 'extensions/choice');
-  fs.cpSync(path.join(code, 'test/fixtures/legacy-extensions/single-choice-1.0.0'), source, { recursive: true });
+  const { root, archive, resources } = fixture(t), source = path.join(root, 'extensions/Test/choice');
+  copyFixture(path.join(code, 'test/fixtures/legacy-extensions/single-choice-1.0.0'), source, { recursive: true });
   const manifest = readJson(path.join(source, 'manifest.json')), raw = readJson(path.join(source, manifest.examples));
-  fs.mkdirSync(path.join(source, 'assets')); fs.writeFileSync(path.join(source, 'assets', `${imageId}.png`), png);
+  fs.mkdirSync(path.join(source, 'assets')); writeFixture(path.join(source, 'assets', `${imageId}.png`), png);
   fs.mkdirSync(path.join(source, 'examples')); fs.unlinkSync(path.join(source, manifest.examples));
   raw.description = document; manifest.examples = 'examples/bank.json';
-  fs.writeFileSync(path.join(source, manifest.examples), jsonBytes(raw));
-  fs.writeFileSync(path.join(source, 'manifest.json'), jsonBytes(manifest));
+  writeFixture(path.join(source, manifest.examples), jsonBytes(raw));
+  writeFixture(path.join(source, 'manifest.json'), jsonBytes(manifest));
   resources.read = () => { throw new Error('Export must use extension-local images'); };
-  const destination = path.join(root, '.temp/copy'); archive.copyExtension(source, destination);
+  const destination = path.join(root, '.temp/copy'); archive.copyExtension(source, destination, 'extensions/Group/choice');
   assert.deepEqual(fs.readFileSync(path.join(destination, 'examples/assets', `${imageId}.png`)), png);
   assert.equal(fs.existsSync(path.join(root, '.state/resources')), false);
 });
 
-for (const formatVersion of [1, 2]) test(`format ${formatVersion}: freshly imported image bank exports before opening and survives another import`, async t => {
+for (const formatVersion of [1, 2, 'single']) test(`case ${formatVersion}: freshly imported image bank exports before opening and survives another import`, async t => {
   const source = fixture(t), target = fixture(t), last = fixture(t);
-  const extension = path.join(source.root, 'extensions/short-answer');
-  fs.cpSync(path.join(code, 'test/fixtures/legacy-extensions/short-answer-1.3.0'), extension, { recursive: true });
+  const extension = path.join(source.root, 'extensions/Test/short-answer');
+  copyFixture(path.join(code, 'test/fixtures/legacy-extensions/short-answer-1.3.0'), extension, { recursive: true });
   const raw = readJson(path.join(extension, 'examples.json'));
   const originalImages = imageReferences(raw);
   const replaceImages = value => {
@@ -126,12 +127,12 @@ for (const formatVersion of [1, 2]) test(`format ${formatVersion}: freshly impor
   replaceImages(raw);
   raw.id = formatVersion === 1 ? 'image-bank' : '136832c4-69e0-4ef9-9b72-e86ce4317405';
   raw.version = '1.0';
-  const file = bank(source.root); fs.writeFileSync(file, jsonBytes(raw));
-  if (formatVersion === 2) fs.writeFileSync(path.join(source.root, 'question-banks/Group/.group.json'), jsonBytes({ schemaVersion: 1, kind: 'bank-group', id: 'ec7a70a3-4f7d-4fa5-b176-d8cb51dd3a07' }));
+  const file = bank(source.root); writeFixture(file, jsonBytes(raw));
+  if (formatVersion === 2) writeFixture(path.join(source.root, 'question-banks/Group/.group.json'), jsonBytes({ schemaVersion: 1, kind: 'bank-group', id: 'ec7a70a3-4f7d-4fa5-b176-d8cb51dd3a07' }));
   const engine = await RuleEngine.create(code); engine.validationEnvironment = async () => 'image-export-fixture';
   const libraries = [source, target, last].map(({ root }) => new Library(root, code, engine));
   t.after(() => { for (const library of libraries) library.close(); engine.close(); });
-  const exported = await libraries[0].exportGroup('Group');
+  const exported = await (formatVersion === 'single' ? libraries[0].exportBank('Group/Bank') : libraries[0].exportGroup('Group'));
   let imported;
   try { imported = await libraries[1].importPackage(fs.readFileSync(exported.file)); }
   finally { exported.close(); }
@@ -140,7 +141,7 @@ for (const formatVersion of [1, 2]) test(`format ${formatVersion}: freshly impor
   assert.throws(() => libraries[1].resources.read(imageId), { code: 'RESOURCE_NOT_FOUND' });
   const installed = imported.catalog.banks[0], bankFile = path.join(target.root, 'question-banks', installed.path, 'bank.json');
   const before = fs.readFileSync(bankFile);
-  const unopened = await libraries[1].exportGroup('Group');
+  const unopened = await (formatVersion === 'single' ? libraries[1].exportBank(installed.path) : libraries[1].exportGroup('Group'));
   try {
     assert.equal(libraries[1].loaded.size, 0);
     assert.throws(() => libraries[1].resources.read(imageId), { code: 'RESOURCE_NOT_FOUND' });

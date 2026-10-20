@@ -11,6 +11,8 @@ node core/server/main.mjs --root . --port 8787
 
 Windows 也可运行 `Start-QuizForge-Web.cmd`，自动安装依赖并打开浏览器。`--root` 指向含 `question-banks/`、`extensions/` 的产品根目录；按 Ctrl+C 停止服务。同一数据目录只能运行一个写入服务。
 
+安装版沿用相同源码模块，通过 `--root <用户数据目录> --code-root <程序目录/core> --initial-content <程序目录/defaults>` 分开程序与数据。只有首次启动初始化基础内容；升级不重写用户题库。源码与 ZIP 模式默认仍在原目录读写。Windows 安装配置、构建命令和显式安装验收见 [桌面启动器](../../desktop/README.md)。
+
 在 `core/` 执行：
 
 | 命令 | 用途 |

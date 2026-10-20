@@ -1,3 +1,4 @@
+import { copyFixture, writeFixture } from '../../../test/fixtures/installed-library.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -79,10 +80,10 @@ async function fixture(t) {
   const temporary = path.join(path.dirname(code), '.temp', 'import-validation-tests'); fs.mkdirSync(temporary, { recursive: true });
   const root = fs.mkdtempSync(path.join(temporary, 'test-'));
   fs.mkdirSync(path.join(root, 'question-banks'));
-  const directory = path.join(root, 'extensions', 'choice');
-  fs.cpSync(path.join(code, 'test/fixtures/legacy-extensions/single-choice-1.0.0'), directory, { recursive: true });
+  const directory = path.join(root, 'extensions', 'Test', 'choice');
+  copyFixture(path.join(code, 'test/fixtures/legacy-extensions/single-choice-1.0.0'), directory, { recursive: true });
   const example = JSON.parse(fs.readFileSync(path.join(directory, 'examples.json')));
-  for (let index = 0; index < 4; index++) fs.writeFileSync(path.join(root, 'question-banks', 'bank-' + index + '.json'), JSON.stringify({ ...example, id: 'bank-' + index }));
+  for (let index = 0; index < 4; index++) writeFixture(path.join(root, 'question-banks', 'bank-' + index, 'bank.json'), JSON.stringify({ ...example, id: 'bank-' + index }));
   const engine = await RuleEngine.create(code); engine.validationEnvironment = async () => 'fixture';
   const library = new Library(root, code, engine);
   t.after(() => { library.close(); engine.close(); assert.ok(within(temporary, root)); fs.rmSync(root, { recursive: true, force: true }); });
@@ -93,14 +94,14 @@ test('isolated import still rejects schema errors in a later bank and invalid im
   const { root, library, engine } = await fixture(t), run = engine.run.bind(engine), calls = [];
   engine.run = async (...args) => { calls.push(args[1]); return run(...args); };
   await validateImportLibrary(library); assert.ok(calls.length < 5);
-  const file = path.join(root, 'question-banks', 'bank-3.json'), raw = JSON.parse(fs.readFileSync(file));
-  raw.questions[0].data.options = 'invalid'; fs.writeFileSync(file, JSON.stringify(raw));
+  const file = path.join(root, 'question-banks', 'bank-3', 'bank.json'), raw = JSON.parse(fs.readFileSync(file));
+  raw.questions[0].data.options = 'invalid'; writeFixture(file, JSON.stringify(raw));
   await assert.rejects(validateImportLibrary(library), { code: 'INVALID_LIBRARY_ARCHIVE' });
   assert.equal(library.loaded.size, 0);
-  fs.writeFileSync(file, fs.readFileSync(path.join(root, 'question-banks', 'bank-0.json')).toString().replace('"bank-0"', '"bank-3"'));
+  writeFixture(file, fs.readFileSync(path.join(root, 'question-banks', 'bank-0', 'bank.json')).toString().replace('"bank-0"', '"bank-3"'));
   const directory = path.join(root, 'question-banks', 'bad-resources'); fs.mkdirSync(path.join(directory, 'assets'), { recursive: true });
   const valid = JSON.parse(fs.readFileSync(file)); valid.id = 'bad-resources';
-  fs.writeFileSync(path.join(directory, 'bank.json'), JSON.stringify(valid)); fs.writeFileSync(path.join(directory, 'assets', 'broken.png'), 'invalid image bytes');
+  writeFixture(path.join(directory, 'bank.json'), JSON.stringify(valid)); writeFixture(path.join(directory, 'assets', 'broken.png'), 'invalid image bytes');
   await assert.rejects(validateImportLibrary(library), { code: 'INVALID_LIBRARY_ARCHIVE' });
 });
 
@@ -109,7 +110,7 @@ test('import rejects content and runtime changes detected at the final validatio
   let changed = false;
   engine.run = async (...args) => {
     const result = await run(...args);
-    if (!changed) { changed = true; fs.appendFileSync(path.join(root, 'extensions/choice/practice.css'), '\n/* changed during validation */'); }
+    if (!changed) { changed = true; fs.appendFileSync(path.join(root, 'extensions/Test/choice/practice.css'), '\n/* changed during validation */'); }
     return result;
   };
   await assert.rejects(validateImportLibrary(library), { code: 'INVALID_LIBRARY_ARCHIVE' });
@@ -118,17 +119,17 @@ test('import rejects content and runtime changes detected at the final validatio
 });
 
 test('real import outlines preserve original per-bank globals and reject a later invalid outline', async t => {
-  const { root, library } = await fixture(t), directory = path.join(root, 'extensions', 'choice');
+  const { root, library } = await fixture(t), directory = path.join(root, 'extensions', 'Test', 'choice');
   const manifest = JSON.parse(fs.readFileSync(path.join(directory, 'manifest.json')));
   manifest.requiresApi = { major: 1, minMinor: 3, capabilities: ['outline-items'] };
-  fs.writeFileSync(path.join(directory, 'manifest.json'), JSON.stringify(manifest));
-  fs.writeFileSync(path.join(directory, 'rules.js'), `let count=0;QF.defineType({project(){return {};},grade(){return {};},getOutlineItems(data){return [{id:'child',label:data.stem==='reject-outline'?'<unsafe>':String(++count)}];}});`);
+  writeFixture(path.join(directory, 'manifest.json'), JSON.stringify(manifest));
+  writeFixture(path.join(directory, 'rules.js'), `let count=0;QF.defineType({project(){return {};},grade(){return {};},getOutlineItems(data){return [{id:'child',label:data.stem==='reject-outline'?'<unsafe>':String(++count)}];}});`);
   const loaded = [], load = library.loadScope.bind(library);
   library.loadScope = async (...args) => { const result = await load(...args); loaded.push(result.collection); return result; };
   await validateImportLibrary(library);
   assert.equal(loaded.length, 5);
   for (const collection of loaded) assert.deepEqual(collection.questions.map(question => question.outlineItems[0].label), ['1', '2', '3']);
-  const file = path.join(root, 'question-banks', 'bank-3.json'), raw = JSON.parse(fs.readFileSync(file));
-  raw.questions[0].data.stem = 'reject-outline'; fs.writeFileSync(file, JSON.stringify(raw));
+  const file = path.join(root, 'question-banks', 'bank-3', 'bank.json'), raw = JSON.parse(fs.readFileSync(file));
+  raw.questions[0].data.stem = 'reject-outline'; writeFixture(file, JSON.stringify(raw));
   await assert.rejects(validateImportLibrary(library), { code: 'INVALID_LIBRARY_ARCHIVE' });
 });

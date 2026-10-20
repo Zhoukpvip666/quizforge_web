@@ -149,8 +149,7 @@
         "maxScore": 2
       },
       "extension": {
-        "id": "quizforge.single-choice",
-        "path": "extensions/single-choice-richtext"
+        "path": "extensions/基础题型/单选题"
       }
     },
     {
@@ -326,8 +325,7 @@
         "maxScore": 2
       },
       "extension": {
-        "id": "quizforge.single-choice",
-        "path": "extensions/single-choice-richtext"
+        "path": "extensions/基础题型/单选题"
       }
     },
     {
@@ -938,8 +936,7 @@
         "maxScore": 2
       },
       "extension": {
-        "id": "quizforge.single-choice",
-        "path": "extensions/single-choice-richtext"
+        "path": "extensions/基础题型/单选题"
       }
     },
     {
@@ -1024,8 +1021,7 @@
         ]
       },
       "extension": {
-        "id": "quizforge.short-answer",
-        "path": "extensions/short-answer-richtext"
+        "path": "extensions/基础题型/简答题"
       }
     },
     {
@@ -1118,8 +1114,7 @@
         ]
       },
       "extension": {
-        "id": "quizforge.short-answer",
-        "path": "extensions/short-answer-richtext"
+        "path": "extensions/基础题型/简答题"
       }
     },
     {
@@ -1369,8 +1364,7 @@
         ]
       },
       "extension": {
-        "id": "quizforge.short-answer",
-        "path": "extensions/short-answer-richtext"
+        "path": "extensions/基础题型/简答题"
       }
     },
     {
@@ -1509,8 +1503,7 @@
         "label": "7"
       },
       "extension": {
-        "id": "quizforge.multiple-choice",
-        "path": "extensions/multiple-choice-richtext"
+        "path": "extensions/基础题型/多选题"
       }
     },
     {
@@ -1919,8 +1912,7 @@
         "label": "8"
       },
       "extension": {
-        "id": "quizforge.multiple-choice",
-        "path": "extensions/multiple-choice-richtext"
+        "path": "extensions/基础题型/多选题"
       }
     },
     {
@@ -1964,8 +1956,7 @@
         "label": "9"
       },
       "extension": {
-        "id": "quizforge.true-false",
-        "path": "extensions/true-false-richtext"
+        "path": "extensions/基础题型/判断题"
       }
     },
     {
@@ -2049,8 +2040,7 @@
         "label": "10"
       },
       "extension": {
-        "id": "quizforge.true-false",
-        "path": "extensions/true-false-richtext"
+        "path": "extensions/基础题型/判断题"
       }
     }
   ]

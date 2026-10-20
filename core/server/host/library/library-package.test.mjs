@@ -1,3 +1,4 @@
+import { copyFixture, writeFixture } from '../../../test/fixtures/installed-library.mjs';
 import test, { before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -10,6 +11,7 @@ import { StateStore } from '../practice/state-store.js';
 import { readJson, within } from '../platform/files.js';
 import { bankLocator } from './identity.js';
 import { AiGradingService } from '../ai/ai-grading-service.js';
+import { LibraryArchive } from './library-archive.js';
 
 const code = fileURLToPath(new URL('../../../', import.meta.url));
 const temporary = path.join(path.dirname(code), '.temp', 'package-v2-tests');
@@ -25,115 +27,236 @@ function fixture(t, populated = true) {
   t.after(() => { library.close(); assert.ok(within(temporary, root)); fs.rmSync(root, { recursive: true, force: true }); });
   if (populated) {
     install(root, 'choice');
-    const raw = readJson(path.join(root, 'extensions/choice/examples.json'));
-    raw.id = bankId; raw.version = '1.0'; raw.extension = { id: extensionId, path: 'extensions/choice' };
+    const raw = readJson(path.join(root, 'extensions/Test/choice/examples.json'));
+    raw.id = bankId; raw.version = '1.0'; raw.extension = { id: extensionId, path: 'extensions/Test/choice' };
     raw.questions[1].extension = { ...raw.extension };
     fs.mkdirSync(path.join(root, 'question-banks/Group/leaf'), { recursive: true });
-    fs.writeFileSync(path.join(root, 'question-banks/Group/.group.json'), JSON.stringify({ schemaVersion: 1, kind: 'bank-group', id: groupId }));
-    fs.writeFileSync(path.join(root, 'question-banks/Group/leaf/bank.json'), JSON.stringify(raw));
+    writeFixture(path.join(root, 'question-banks/Group/.group.json'), JSON.stringify({ schemaVersion: 1, kind: 'bank-group', id: groupId }));
+    writeFixture(path.join(root, 'question-banks/Group/leaf/bank.json'), JSON.stringify(raw));
   }
   return { root, library, file: path.join(root, 'question-banks/Group/leaf/bank.json') };
 }
 function install(root, name) {
-  const directory = path.join(root, 'extensions', name);
-  fs.cpSync(path.join(code, 'test/fixtures/legacy-extensions/single-choice-1.0.0'), directory, { recursive: true });
+  const directory = path.join(root, 'extensions', 'Test', name);
+  copyFixture(path.join(code, 'test/fixtures/legacy-extensions/single-choice-1.0.0'), directory, { recursive: true });
   const manifest = readJson(path.join(directory, 'manifest.json')); manifest.id = extensionId;
-  fs.writeFileSync(path.join(directory, 'manifest.json'), JSON.stringify(manifest));
+  writeFixture(path.join(directory, 'manifest.json'), JSON.stringify(manifest));
   const raw = readJson(path.join(directory, 'examples.json')); raw.extension.id = extensionId;
-  fs.writeFileSync(path.join(directory, 'examples.json'), JSON.stringify(raw));
+  writeFixture(path.join(directory, 'examples.json'), JSON.stringify(raw));
   return directory;
 }
 async function pack(source) { const result = await source.library.exportGroup('Group'); try { return fs.readFileSync(result.file); } finally { result.close(); } }
-test('v2 reuses matching UUID/hash at a different path and rewrites default and per-question references only in imported banks', async t => {
-  const source = fixture(t), target = fixture(t, false), before = fs.readFileSync(source.file);
-  install(target.root, '本地选择题');
-  const result = await target.library.importPackage(await pack(source));
-  assert.equal(result.importedExtensions, 0); assert.equal(result.skippedExtensions, 1);
+test('repeated identical imports create independent physical bundles and local practice identities', async t => {
+  const source = fixture(t), target = fixture(t, false), bytes = await pack(source);
+  const first = await target.library.importPackage(bytes), row = first.catalog.banks[0];
+  const states = new StateStore(target.root, engine), collection = await target.library.collection('bank', row.id), q = collection.questions[0];
+  await states.act(collection, q, { requestId: randomUUID(), revision: 0, action: 'draft', data: { answer: { selectedOptionId: q.data.correctOptionId } } });
+  const second = await target.library.importPackage(bytes);
+  assert.equal(first.group, 'Group'); assert.equal(second.group, 'Group（2）');
+  assert.equal(second.importedBanks, 1); assert.equal(second.importedExtensions, 1);
+  assert.equal(second.needsConfirmation, undefined);
+  assert.equal(second.catalog.banks.length, 2); assert.equal(second.catalog.extensions.length, 2);
+  assert.equal(new Set(second.catalog.banks.map(item => item.id)).size, 2);
+  for (const item of second.catalog.banks) {
+    const value = await target.library.collection('bank', item.id);
+    assert.equal(value.extensionFor(value.questions[1]).referencePath, 'extensions/' + item.group + '/choice');
+    assert.equal((await states.question(value, value.questions[0])).state.status, item.id === row.id ? 'draft' : 'unanswered');
+    assert.equal(item.title, 'leaf');
+  }
+  for (const item of second.catalog.extensions) assert.equal((await target.library.collection('extension', item.id)).extension.referencePath, item.referencePath);
+});
+test('bank and extension group suffixes are allocated separately; filename controls new group name', async t => {
+  const source = fixture(t), target = fixture(t, false);
+  fs.mkdirSync(path.join(target.root, 'extensions/我的练习'));
+  const result = await target.library.importPackage(await pack(source), '我的练习.qbank');
+  assert.equal(result.group, '我的练习'); assert.equal(result.extensionGroup, '我的练习（2）');
   const row = result.catalog.banks[0], raw = readJson(path.join(target.root, 'question-banks', row.path, 'bank.json'));
-  assert.equal(raw.extension.path, 'extensions/本地选择题'); assert.equal(raw.questions[1].extension.path, raw.extension.path);
-  assert.deepEqual(fs.readFileSync(source.file), before);
-  const collection = await target.library.collection('bank', row.id);
-  assert.equal(collection.extensionFor(collection.questions[1]).referencePath, raw.extension.path);
-  const example = await target.library.collection('extension', result.catalog.extensions[0].id);
-  assert.equal(example.extension.referencePath, raw.extension.path);
+  assert.deepEqual(raw.extension, { path: 'extensions/我的练习（2）/choice' });
+  assert.deepEqual(raw.questions[1].extension, raw.extension);
+  assert.equal((await target.library.collection('bank', row.id)).extensionFor((await target.library.collection('bank', row.id)).questions[1]).referencePath, raw.extension.path);
 });
-test('same UUID/version with changed code installs a suffixed physical directory, keeps display name and independently loads examples', async t => {
-  const source = fixture(t), target = fixture(t, false), directory = install(target.root, 'choice');
-  fs.appendFileSync(path.join(directory, 'practice.css'), '\n/* local variant */');
-  const before = fs.readFileSync(path.join(directory, 'practice.css'));
-  const result = await target.library.importPackage(await pack(source));
-  assert.equal(result.importedExtensions, 1); assert.equal(result.catalog.extensions.length, 2);
-  assert.equal(new Set(result.catalog.extensions.map(row => row.id)).size, 2);
-  assert.equal(new Set(result.catalog.extensions.map(row => row.name)).size, 1);
-  assert.deepEqual(fs.readFileSync(path.join(directory, 'practice.css')), before);
-  assert.equal(result.catalog.banks[0].extension.path, 'extensions/choice（2）');
-  for (const row of result.catalog.extensions) assert.equal((await target.library.collection('extension', row.id)).extension.referencePath, row.referencePath);
-});
-test('equal version requires a choice; replacement inherits frozen history and higher numeric version replaces automatically', async t => {
-  const source = fixture(t), target = fixture(t), states = new StateStore(target.root, engine);
+test('changed or higher versions always add a copy and preserve existing source, state and frozen history', async t => {
+  const source = fixture(t), target = fixture(t), before = fs.readFileSync(target.file), states = new StateStore(target.root, engine);
   const collection = await target.library.collection('bank', bankLocator(groupId, bankId)), q = collection.questions[0];
   await states.act(collection, q, { requestId: randomUUID(), revision: 0, action: 'submit', data: { answer: { selectedOptionId: q.data.correctOptionId } } });
   const summary = await states.summary(collection);
   await states.finish(collection, { requestId: randomUUID(), roundId: summary.roundId, summaryVersion: summary.summaryVersion });
   const history = (await states.history('bank', collection.id)).records;
-  const raw = readJson(source.file); raw.title = '新版标题'; raw.questions[0].data.stem += ' updated'; fs.writeFileSync(source.file, JSON.stringify(raw));
-  let preview = await target.library.importPackage(await pack(source));
-  assert.equal(preview.needsConfirmation, true); assert.equal(preview.conflicts[0].existingVersion, '1.0');
-  await target.library.commitImport(preview.importId, { [bankId]: 'keep' }); assert.notEqual(readJson(target.file).title, raw.title);
-  preview = await target.library.importPackage(await pack(source));
-  await target.library.commitImport(preview.importId, { [bankId]: 'replace' });
-  const updated = await target.library.collection('bank', collection.id);
-  await states.question(updated, updated.questions[0]);
+  const frozen = await states.history('bank', collection.id, history[0].id);
+  const raw = readJson(source.file); raw.version = '99.0'; raw.questions[0].data.stem += ' updated'; writeFixture(source.file, JSON.stringify(raw));
+  const result = await target.library.importPackage(await pack(source));
+  assert.equal(result.group, 'Group（2）'); assert.equal(result.importedBanks, 1);
+  assert.deepEqual(fs.readFileSync(target.file), before);
   assert.deepEqual((await states.history('bank', collection.id)).records, history);
-  assert.equal(readJson(target.file).title, raw.title);
-  raw.version = '1.10'; fs.writeFileSync(source.file, JSON.stringify(raw));
-  const result = await target.library.importPackage(await pack(source)); assert.equal(result.replacedBanks, 1); assert.equal(result.needsConfirmation, undefined);
+  assert.deepEqual(await states.history('bank', collection.id, history[0].id), frozen);
+  const imported = await target.library.collection('bank', result.catalog.banks.find(row => row.group === result.group).id);
+  assert.equal((await states.question(imported, imported.questions[0])).state.status, 'unanswered');
+  const deleted = await target.library.manage({ kind: 'bank', target: 'group', action: 'delete', path: 'Group' });
+  assert.deepEqual(deleted.removedExtensionGroups, ['Test']); states.clearMemory();
+  assert.deepEqual((await states.history('bank', collection.id)).records, history);
+  assert.deepEqual(await states.history('bank', collection.id, history[0].id), frozen);
 });
-test('same bank UUID in different groups has independent state; moving a bank retains its state and history', async t => {
-  const f = fixture(t), states = new StateStore(f.root, engine), oldId = bankLocator(groupId, bankId);
-  const collection = await f.library.collection('bank', oldId), q = collection.questions[0];
+test('importing identical IDs leaves installed exact-path bindings unchanged', async t => {
+  const source = fixture(t), target = fixture(t), raw = readJson(target.file);
+  raw.extension = { path: 'extensions/Test/choice' }; delete raw.questions[1].extension; writeFixture(target.file, JSON.stringify(raw));
+  const previous = await target.library.collection('bank', bankLocator(groupId, bankId)), before = fs.readFileSync(target.file);
+  fs.appendFileSync(path.join(source.root, 'extensions/Test/choice/practice.css'), '\n/* variant */');
+  await target.library.importPackage(await pack(source));
+  assert.equal((await target.library.collection('bank', previous.id)).questions[0].fingerprint, previous.questions[0].fingerprint);
+  assert.deepEqual(fs.readFileSync(target.file), before);
+});
+test('renaming and moving imported banks and groups preserve answers, stable identities and extension paths', async t => {
+  const source = fixture(t), target = fixture(t, false), result = await target.library.importPackage(await pack(source));
+  const row = result.catalog.banks[0], collection = await target.library.collection('bank', row.id), states = new StateStore(target.root, engine), q = collection.questions[0];
   await states.act(collection, q, { requestId: randomUUID(), revision: 0, action: 'draft', data: { answer: { selectedOptionId: q.data.correctOptionId } } });
-  await f.library.manage({ kind: 'bank', action: 'create', target: 'group', name: 'Other' });
-  const moved = await f.library.manage({ kind: 'bank', action: 'update', target: 'item', path: 'Group/leaf', name: collection.title, group: 'Other' });
-  const row = moved.catalog.banks[0], current = await f.library.collection('bank', row.id);
-  assert.notEqual(row.id, oldId); assert.notEqual(current.stateKey(), collection.stateKey());
-  assert.equal((await states.question(current, current.questions[0])).state.status, 'draft');
-  assert.equal((await f.library.collection('bank', oldId)).id, row.id);
-  fs.mkdirSync(path.dirname(f.file), { recursive: true }); fs.copyFileSync(path.join(f.root, 'question-banks/Other/leaf/bank.json'), f.file);
-  states.clearMemory();
-  const copy = await f.library.collection('bank', oldId); assert.notEqual(copy.stateKey(), current.stateKey());
-  assert.equal((await states.question(copy, copy.questions[0])).state.status, 'unanswered');
+  await target.library.manage({ kind: 'bank', target: 'group', action: 'create', name: '新分组' });
+  const moved = await target.library.manage({ kind: 'bank', target: 'item', action: 'update', path: row.path, name: '新题库', group: '新分组' });
+  assert.equal(moved.path, '新分组/新题库');
+  await target.library.manage({ kind: 'bank', target: 'group', action: 'update', path: '新分组', name: '改名分组' });
+  const current = await target.library.collection('bank', row.id);
+  assert.equal(current.title, '新题库'); assert.equal(current.stateKey(), collection.stateKey());
+  assert.equal(current.extensionFor(current.questions[0]).referencePath, 'extensions/Group/choice');
+  states.clearMemory(); assert.equal((await states.question(current, current.questions[0])).state.status, 'draft');
 });
-test('logical extension grouping changes only host metadata; deleting a group leaves extension files intact', async t => {
-  const f = fixture(t), row = f.library.index().extensions[0], before = fs.readFileSync(path.join(f.root, 'extensions/choice/manifest.json'));
-  await f.library.manage({ kind: 'extension', action: 'create', target: 'group', name: '基础' });
-  await f.library.manage({ kind: 'extension', action: 'update', target: 'item', path: row.path, name: '显示名称', group: '基础' });
-  assert.equal(f.library.index().extensions[0].group, '基础');
-  await f.library.manage({ kind: 'extension', action: 'delete', target: 'group', path: '基础' });
-  assert.equal(f.library.index().extensions[0].group, undefined);
-  assert.deepEqual(fs.readFileSync(path.join(f.root, 'extensions/choice/manifest.json')), before);
+test('extension structural writes are blocked and physical group deletion checks bank references', async t => {
+  const source = fixture(t), target = fixture(t, false), result = await target.library.importPackage(await pack(source));
+  const file = path.join(target.root, 'extensions/Group/choice/manifest.json'), before = fs.readFileSync(file);
+  for (const request of [{ action: 'create', target: 'group', name: 'Other' }, { action: 'update', target: 'group', path: 'Group', name: 'Other' }, { action: 'update', target: 'item', path: 'Group/choice', name: 'Other', group: '' }]) {
+    await assert.rejects(target.library.manage({ kind: 'extension', ...request }), { code: 'EXTENSION_STRUCTURE_READ_ONLY' });
+  }
+  await assert.rejects(target.library.manage({ kind: 'extension', action: 'delete', target: 'group', path: 'Group' }), { code: 'EXTENSION_IN_USE' });
+  assert.deepEqual(fs.readFileSync(file), before);
+  const removed = await target.library.manage({ kind: 'bank', action: 'delete', target: 'group', path: result.group });
+  assert.deepEqual(removed.removedExtensionGroups, ['Group']);
+  assert.ok(fs.existsSync(path.join(target.root, removed.archivedTo, 'extensions/Group/choice/manifest.json')));
+  assert.equal(fs.existsSync(file), false);
 });
-test('AI tasks follow a recorded bank move without relaxing content or answer guards',()=>{
- const task={value:{kind:'bank',collectionId:'old',stateKey:'bank:old:mixed',questionId:'q',createdAt:'2026-10-01T00:00:00Z',snapshot:{stateKey:'bank:old:mixed',questionFingerprint:'guard',submissionGeneration:3}}};
- let persisted=0;const service={file(){},live:new Map([['task',task]]),library:{bankLocations:{historical:()=> 'new'}},persist(){persisted++;}};
- const collection={kind:'bank',id:'new',stateKey:()=> 'bank:new:mixed'};
- AiGradingService.prototype.scoped.call(service,collection,{id:'q'},'task');
- assert.equal(task.value.collectionId,'new');assert.equal(task.value.snapshot.stateKey,'bank:new:mixed');assert.equal(task.value.snapshot.questionFingerprint,'guard');assert.equal(task.value.snapshot.submissionGeneration,3);assert.equal(persisted,1);
- service.library.bankLocations.historical=()=> 'other';assert.throws(()=>AiGradingService.prototype.scoped.call(service,{...collection,id:'copy',stateKey:()=> 'bank:copy:mixed'},{id:'q'},'task'),{code:'AI_TASK_NOT_FOUND'});
+
+test('single bank export includes only its dependencies, imports at root, and can be re-exported', async t => {
+  const source = fixture(t), target = fixture(t, false);
+  const other = install(source.root, 'unused'), another = readJson(source.file);
+  another.extension = { path: 'extensions/Test/unused' }; delete another.questions[1].extension;
+  writeFixture(path.join(source.root, 'question-banks/Group/second/bank.json'), JSON.stringify(another));
+  const before = fs.readFileSync(source.file), manifestBefore = fs.readFileSync(path.join(other, 'manifest.json'));
+  const exported = await source.library.exportBank('Group/leaf');
+  let bytes;
+  try {
+    const archive = new LibraryArchive(source.root, source.library.resources), staging = path.join(exported.workspace, 'inspect'); fs.mkdirSync(staging);
+    await archive.unzip(exported.file, staging);
+    assert.equal(readJson(path.join(staging, 'quizforge-package.json')).scope, 'bank');
+    assert.deepEqual(fs.readdirSync(path.join(staging, 'question-banks/leaf')), ['leaf']);
+    assert.deepEqual(fs.readdirSync(path.join(staging, 'extensions/leaf')), ['choice']);
+    bytes = fs.readFileSync(exported.file);
+  } finally { exported.close(); }
+  fs.mkdirSync(path.join(target.root, 'extensions/我的练习'));
+  const first = await target.library.importPackage(bytes, '我的练习.qbank');
+  const second = await target.library.importPackage(bytes, '我的练习.qbank');
+  assert.equal(first.scope, 'bank'); assert.equal(first.group, ''); assert.equal(first.name, '我的练习');
+  assert.equal(first.extensionGroup, '我的练习（2）'); assert.equal(second.name, '我的练习（2）');
+  assert.equal(second.extensionGroup, '我的练习（3）'); assert.equal(second.catalog.banks.length, 2);
+  assert.equal(first.importedExtensions, 1); assert.deepEqual(second.catalog.groups.banks, []);
+  for (const row of second.catalog.banks) {
+    assert.equal(row.group ?? '', ''); assert.ok(!row.path.includes('/'));
+    const bank = await target.library.collection('bank', row.id);
+    assert.equal(bank.title, row.path); assert.equal(bank.questions.length, 3);
+    const ref = readJson(path.join(target.root, 'question-banks', row.path, 'bank.json')).extension;
+    assert.equal(bank.extensionFor(bank.questions[1]).referencePath, ref.path);
+  }
+  assert.notEqual(second.catalog.banks[0].id, second.catalog.banks[1].id);
+  for (const row of second.catalog.extensions) await target.library.collection('extension', row.id);
+  const roundtrip = await target.library.exportBank(first.path);
+  try { const third = fixture(t, false), result = await third.library.importPackage(fs.readFileSync(roundtrip.file)); assert.equal(result.group, ''); assert.equal(result.importedBanks, 1); }
+  finally { roundtrip.close(); }
+  assert.deepEqual(fs.readFileSync(source.file), before); assert.deepEqual(fs.readFileSync(path.join(other, 'manifest.json')), manifestBefore);
+  await assert.rejects(source.library.exportBank('../Group/leaf'), { code: 'BANK_NOT_FOUND' });
 });
-test('installing a variant never makes an existing legacy ID/version bank silently ambiguous',async t=>{
- const source=fixture(t),target=fixture(t),raw=readJson(target.file);raw.extension={id:extensionId,version:'1.0.0'};delete raw.questions[1].extension;fs.writeFileSync(target.file,JSON.stringify(raw));
- fs.appendFileSync(path.join(source.root,'extensions/choice/practice.css'),'\n/* variant */');const before=fs.readFileSync(target.file);
- await assert.rejects(target.library.importPackage(await pack(source)),{code:'LIBRARY_IMPORT_CONFLICT'});
- assert.deepEqual(fs.readFileSync(target.file),before);assert.deepEqual(fs.readdirSync(path.join(target.root,'extensions')),['choice']);
+
+test('a single-bank group remains grouped; invalid single scope cannot install multiple banks', async t => {
+  const source = fixture(t), target = fixture(t, false);
+  const grouped = await target.library.importPackage(await pack(source)); assert.equal(grouped.scope, 'group'); assert.equal(grouped.group, 'Group');
+  copyFixture(path.dirname(source.file), path.join(source.root, 'question-banks/Group/second'), { recursive: true });
+  const exported = await source.library.exportGroup('Group');
+  try {
+    const archive = new LibraryArchive(source.root, source.library.resources), staging = path.join(exported.workspace, 'tampered'); fs.mkdirSync(staging);
+    await archive.unzip(exported.file, staging);
+    for (const scope of ['bank', 'invalid']) {
+      const marker = readJson(path.join(staging, 'quizforge-package.json')); marker.scope = scope;
+      writeFixture(path.join(staging, 'quizforge-package.json'), JSON.stringify(marker));
+      const zip = path.join(exported.workspace, scope + '.qbank'); await archive.zip(staging, zip);
+      await assert.rejects(target.library.importPackage(fs.readFileSync(zip)), { code: 'INVALID_LIBRARY_ARCHIVE' });
+    }
+    assert.equal(target.library.index().banks.length, 1);
+  } finally { exported.close(); }
 });
-test('failed bank installation rolls back installed extensions and restores replaced bank', async t => {
-  const source = fixture(t), target = fixture(t), original = fs.readFileSync(target.file);
-  fs.appendFileSync(path.join(source.root, 'extensions/choice/practice.css'), '\n/* new variant */');
-  const preview = await target.library.importPackage(await pack(source)), rename = fs.renameSync;
-  fs.renameSync = (from, to) => { if (to === path.dirname(target.file) && String(from).includes('content')) throw new Error('injected installation failure'); return rename(from, to); };
-  try { await assert.rejects(target.library.commitImport(preview.importId, { [bankId]: 'replace' }), /injected/); }
-  finally { fs.renameSync = rename; }
-  assert.deepEqual(fs.readFileSync(target.file), original);
-  assert.deepEqual(fs.readdirSync(path.join(target.root, 'extensions')), ['choice']);
+
+test('failed single-bank installation rolls back the extension group', async t => {
+  const source = fixture(t), target = fixture(t, false), exported = await source.library.exportBank('Group/leaf');
+  const bytes = fs.readFileSync(exported.file); exported.close(); const rename = fs.renameSync;
+  fs.renameSync = (from, to) => { if (to === path.join(target.root, 'question-banks/leaf')) throw new Error('single installation failed'); return rename(from, to); };
+  try { await assert.rejects(target.library.importPackage(bytes), /single installation failed/); } finally { fs.renameSync = rename; }
+  assert.deepEqual(fs.readdirSync(path.join(target.root, 'question-banks')), []);
+  assert.deepEqual(fs.readdirSync(path.join(target.root, 'extensions')), []);
+});
+test('old logical grouping and labels are ignored without altering their files', t => {
+  const f = fixture(t), state = path.join(f.root, '.state'); fs.mkdirSync(state, { recursive: true });
+  for (const name of ['extension-groups.json', 'library-labels.json']) writeFixture(path.join(state, name), 'old invalid metadata');
+  const row = f.library.index().extensions[0]; assert.equal(row.name, 'choice'); assert.equal(row.group, 'Test');
+  assert.equal(fs.readFileSync(path.join(state, 'extension-groups.json'), 'utf8'), 'old invalid metadata');
+});
+test('same original bank IDs within a bundle are independently loaded', async t => {
+  const source = fixture(t), target = fixture(t, false);
+  copyFixture(path.dirname(source.file), path.join(source.root, 'question-banks/Group/second'), { recursive: true });
+  const result = await target.library.importPackage(await pack(source));
+  assert.equal(result.importedBanks, 2); assert.equal(new Set(result.catalog.banks.map(row => row.id)).size, 2);
+  for (const row of result.catalog.banks) assert.equal((await target.library.collection('bank', row.id)).questions.length, 3);
+});
+test('authoring UUIDs and versions are optional in new packages and internal instance IDs are not exported', async t => {
+  const source = fixture(t), target = fixture(t, false);
+  const manifestFile = path.join(source.root, 'extensions/Test/choice/manifest.json'), manifest = readJson(manifestFile); delete manifest.id; delete manifest.version;
+  writeFixture(manifestFile, JSON.stringify(manifest));
+  const raw = readJson(source.file); delete raw.id; raw.extension = { path: 'extensions/Test/choice' }; raw.questions[1].extension = { ...raw.extension }; writeFixture(source.file, JSON.stringify(raw));
+  const result = await target.library.importPackage(await pack(source)), row = result.catalog.banks[0];
+  assert.ok(fs.existsSync(path.join(target.root, 'question-banks', row.path, '.instance.json')));
+  const exported = await target.library.exportGroup(result.group);
+  try {
+    const second = fixture(t, false), again = await second.library.importPackage(fs.readFileSync(exported.file));
+    assert.notEqual(again.catalog.banks[0].id, row.id);
+  } finally { exported.close(); }
+});
+test('failed bank directory installation rolls back its paired extension directory and preserves existing files', async t => {
+  const source = fixture(t), target = fixture(t), original = fs.readFileSync(target.file), bytes = await pack(source), rename = fs.renameSync;
+  fs.renameSync = (from, to) => { if (to === path.join(target.root, 'question-banks/Group（2）')) throw new Error('injected installation failure'); return rename(from, to); };
+  try { await assert.rejects(target.library.importPackage(bytes), /injected/); } finally { fs.renameSync = rename; }
+  assert.deepEqual(fs.readFileSync(target.file), original); assert.equal(fs.existsSync(path.join(target.root, 'extensions/Group')), false);
+  assert.equal(fs.readdirSync(path.join(target.root, '.temp')).length, 0);
+});
+test('new imports do not shadow installed path bindings or prevent their later export',async t=>{
+ const source=fixture(t),target=fixture(t),raw=readJson(target.file);
+ raw.extension={path:'extensions/Test/choice'};delete raw.questions[1].extension;writeFixture(target.file,JSON.stringify(raw));
+ const previous=await target.library.collection('bank',bankLocator(groupId,bankId));
+ await target.library.importPackage(await pack(source));
+ assert.equal((await target.library.collection('bank',previous.id)).questions[0].fingerprint,previous.questions[0].fingerprint);
+ const exported=await target.library.exportGroup('Group');exported.close();
+});
+test('same-named extensions from different groups are independently bundled and path-remapped',async t=>{
+ const source=fixture(t),target=fixture(t,false),other=path.join(source.root,'extensions/Other/choice');
+ copyFixture(path.join(source.root,'extensions/Test/choice'),other,{recursive:true});fs.appendFileSync(path.join(other,'practice.css'),'\n/* different */');
+ const raw=readJson(source.file);raw.questions[1].extension={path:'extensions/Other/choice'};writeFixture(source.file,JSON.stringify(raw));
+ const result=await target.library.importPackage(await pack(source));assert.equal(result.importedExtensions,2);
+ const collection=await target.library.collection('bank',result.catalog.banks[0].id);
+ assert.notEqual(collection.extensionFor(collection.questions[0]).referencePath,collection.extensionFor(collection.questions[1]).referencePath);
+ assert.notEqual(collection.questions[0].extension.fingerprint,collection.questions[1].extension.fingerprint);
+});
+test('packages cannot supply host instance or bundle metadata to share another copy’s progress',async t=>{
+ const source=fixture(t),target=fixture(t,false),exported=await source.library.exportGroup('Group');
+ const archive=new LibraryArchive(source.root,source.library.resources),staging=path.join(exported.workspace,'tampered');fs.mkdirSync(staging);
+ try {
+  await archive.unzip(exported.file,staging);
+  for(const relative of ['question-banks/Group/leaf/.instance/bank.json','extensions/Group/.bundle.json']){
+   const file=path.join(staging,relative);writeFixture(file,JSON.stringify({schemaVersion:1,id:randomUUID(),kind:'extension-bundle'}));
+   const zip=path.join(exported.workspace,'tampered-'+path.basename(file)+'.qbank');await archive.zip(staging,zip);
+   await assert.rejects(target.library.importPackage(fs.readFileSync(zip)),{code:'INVALID_LIBRARY_ARCHIVE'});fs.unlinkSync(file);
+  }
+  assert.equal(fs.readdirSync(path.join(target.root,'question-banks')).length,0);assert.equal(fs.readdirSync(path.join(target.root,'extensions')).length,0);
+ } finally { exported.close(); }
 });

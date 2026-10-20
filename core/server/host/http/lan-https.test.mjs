@@ -1,3 +1,4 @@
+import { copyFixture, writeFixture } from '../../../test/fixtures/installed-library.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -16,8 +17,8 @@ const codeRoot = fileURLToPath(new URL('../../../', import.meta.url)), base = pa
 function directory(t) { safeDirectory(base, true); const root = fs.mkdtempSync(path.join(base, 'https-')); t.after(() => { assert.ok(within(base, root) && root !== base); fs.rmSync(root, { recursive: true, force: true }); }); return root; }
 async function fixture(t) {
   const root = directory(t); fs.mkdirSync(path.join(root, 'extensions')); fs.mkdirSync(path.join(root, 'question-banks'));
-  const extension = path.join(root, 'extensions', 'choice'); fs.cpSync(path.join(codeRoot, 'test/fixtures/legacy-extensions/single-choice-1.0.0'), extension, { recursive: true });
-  const raw = readJson(path.join(extension, readJson(path.join(extension, 'manifest.json')).examples)); raw.id = 'bank1'; fs.writeFileSync(path.join(root, 'question-banks', 'bank.json'), jsonBytes(raw));
+  const extension = path.join(root, 'extensions', 'Test', 'choice'); copyFixture(path.join(codeRoot, 'test/fixtures/legacy-extensions/single-choice-1.0.0'), extension, { recursive: true });
+  const raw = readJson(path.join(extension, readJson(path.join(extension, 'manifest.json')).examples)); raw.id = 'bank1'; writeFixture(path.join(root, 'question-banks', 'bank', 'bank.json'), jsonBytes(raw));
   const service = await QuizForgeServer.create({ root, codeRoot, port: 0 }); service.engine.validationEnvironment = async () => 'https-fixture'; await service.start(); t.after(() => service.close());
   const api = async (uri, { method = 'GET', body, headers = {}, port = service.port() } = {}) => {
     const response = await fetch('http://127.0.0.1:' + port + uri, { method, headers: { ...(body === undefined ? {} : { 'Content-Type': 'application/json' }), ...headers }, body: body === undefined ? undefined : JSON.stringify(body) });

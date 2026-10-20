@@ -277,7 +277,7 @@ test('legacy bare UI remains read-only preview input while new tagged skeleton i
   f.write('extensions/custom-dev/development.json',{mode:'ui',entry:'practice.html'});const bare=f.run('--allow-development','--preview-only');assert.equal(bare.code,0);assert.ok(bare.report.warnings.some(row=>row.code==='DEVELOPMENT_EXAMPLES_MISSING'));
 });
 
-for(const folder of ['single-choice-richtext','short-answer-richtext']){
+for(const folder of ['基础题型/单选题','基础题型/简答题']){
   test('basic type '+folder+' previews its existing self-bound samples using the declared schema',t=>{
     const f=fixture(t);
     cpSync(path.join(product,'extensions',folder),path.join(f.root,'extensions',folder),{recursive:true});
@@ -324,4 +324,11 @@ test('static asset declarations retain path, type, size and fingerprint checks f
   }
   f.write('staged/custom/manifest.json',{...f.manifest,assets:['assets/icon.svg']});f.write('staged/custom/assets/icon.svg','x'.repeat(MiB+1));const large=f.run();assert.equal(large.code,1);assert.equal(large.report.errors[0].code,'INVALID_FILE_OR_SIZE');
   f.write('staged/custom/assets/icon.svg','<svg/>');cpSync(path.join(f.root,'staged/custom'),path.join(f.root,'extensions/formal-copy'),{recursive:true});f.write('extensions/formal-copy/assets/icon.svg','<svg><path/></svg>');const conflict=f.run();assert.equal(conflict.code,1);assert.equal(conflict.report.errors[0].code,'EXTENSION_VERSION_CONTENT_CONFLICT');assert.equal(conflict.report.summary.ruleBatches,0);
+});
+test('path-only references validate without an author UUID and reject missing paths',t=>{
+ const f=fixture(t),bank=readFixture(f,'bank/bank.json');
+ bank.extension={path:'extensions/custom'};f.write('bank/bank.json',bank);
+ const result=f.run();assert.equal(result.code,0,JSON.stringify(result.report));assert.equal(result.report.ok,true);
+ bank.extension.id='wrong-id';f.write('bank/bank.json',bank);assert.equal(f.run().report.errors[0].code,'EXTENSION_ID_MISMATCH');delete bank.extension.id;
+ bank.extension.path='extensions/missing';f.write('bank/bank.json',bank);assert.equal(f.run().report.errors[0].code,'EXTENSION_NOT_FOUND');
 });

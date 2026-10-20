@@ -4,15 +4,15 @@ import {readFileSync} from 'node:fs';
 import {JSDOM} from 'jsdom';
 import {bindLibraryTransfer} from '../../web/library/library-transfer.js';
 const html=readFileSync(new URL('../../web/index.html',import.meta.url),'utf8');
-test('v2 conflict dialog displays both versions, defaults to keeping local and commits explicit choices',async t=>{
- const calls=[];const f=fixture(t,{request:async(path,options)=>{calls.push({path,...options});return path==='/api/library/import'?{needsConfirmation:true,importId:'prepared',conflicts:[{id:'bank-id',title:'<script>题库</script>',existingVersion:'2.0',incomingVersion:'1.0'}]}:{importedBanks:1};}});
- f.select();await f.submit();assert.equal(f.dialog.open,true);assert.equal(f.results.length,0);
- const select=f.$('#library-import-choices select');assert.equal(select.value,'keep');assert.match(f.$('#library-import-choices').textContent,/本地 2.0 \/ 导入 1.0/);assert.equal(f.$('#library-import-choices script'),null);
- select.value='replace';await f.submit();assert.equal(calls[1].path,'/api/library/import/commit');assert.deepEqual(JSON.parse(calls[1].body),{importId:'prepared',choices:{'bank-id':'replace'}});assert.equal(f.results.length,1);assert.equal(f.dialog.open,false);
+test('new import sends the selected filename and completes without conflict choices',async t=>{
+ const f=fixture(t);f.select('新的练习.qbank');await f.submit();
+ assert.equal(f.calls.length,1);assert.equal(f.calls[0].headers['X-QuizForge-Filename'],encodeURIComponent('新的练习.qbank'));
+ assert.equal(f.$('#library-import-choices'),null);assert.equal(f.results.length,1);
 });
-test('cancelling v2 conflict choices discards the isolated server plan',async t=>{
- const calls=[];const f=fixture(t,{request:async(path,options)=>{calls.push({path,...options});return {needsConfirmation:true,importId:'prepared',conflicts:[]};}});
- f.select();await f.submit();f.$('#library-import-cancel').click();await Promise.resolve();assert.equal(calls[1].path,'/api/library/import/cancel');assert.equal(f.dialog.open,false);
+test('old package rejection retains the selected file and shows upgrade guidance',async t=>{
+ const f=fixture(t,{request:async()=>{throw new Error('仅支持新版题库包（格式 3），请升级题库包');}});
+ f.select();await f.submit();assert.equal(f.dialog.open,true);assert.match(f.$('#library-import-error').textContent,/升级题库包/);
+ assert.equal(f.$('#library-import-confirm').disabled,false);
 });
 function fixture(t,overrides={}){
  const dom=new JSDOM(html),document=dom.window.document,saved=globalThis.document;globalThis.document=document;t.after(()=>{globalThis.document=saved;dom.window.close();});
@@ -46,4 +46,14 @@ test('busy import ignores duplicate submissions and retains the selected file on
  let reject,pending=new Promise((_,r)=>reject=r),calls=0;const f=fixture(t,{request:async()=>{calls++;return pending;}});
  f.select();await f.submit();await f.submit();assert.equal(calls,1);assert.equal(f.$('#library-import-confirm').disabled,true);
  reject(new Error('内容冲突'));for(let i=0;i<15;i++)await Promise.resolve();assert.equal(f.dialog.open,true);assert.match(f.$('#library-import-error').textContent,/内容冲突/);assert.equal(f.$('#library-import-confirm').disabled,false);
+});
+
+test('individual bank export posts its exact physical path and downloads the bank name',async t=>{
+ let failExport=false;const f=fixture(t,{beforeChange:async()=>{if(failExport)throw new Error('请先保存');}});await f.transfer.exportBank({path:'资料/练习',title:'练习'});
+ assert.deepEqual(JSON.parse(f.calls[0].body),{bank:'资料/练习'});assert.equal(f.downloads[0][1],'练习.qbank');
+ assert.match(f.messages.at(-1),/题库已导出/);
+ failExport=true;await assert.rejects(f.transfer.exportBank({path:'资料/练习',title:'练习'},{throwOnError:true}),/请先保存/);assert.equal(f.calls.length,1);
+ failExport=false;assert.equal(await f.transfer.exportBank({path:'资料/练习',title:'练习'},{throwOnError:true}),true);assert.equal(f.calls.length,2);
+ f.context.kind='extension';await f.transfer.exportBank({path:'资料/练习'});assert.equal(f.calls.length,2);
+ f.context.kind='bank';f.context.catalog.canManage=false;await f.transfer.exportBank({path:'练习'});assert.equal(f.calls.length,2);
 });

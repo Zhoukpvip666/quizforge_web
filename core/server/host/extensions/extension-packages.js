@@ -11,7 +11,7 @@ const FIELDS = ['entry', 'script', 'style', 'rules', 'questionSchema', 'answerSc
 const MEDIA = new Map([['png', 'image/png'], ['jpg', 'image/jpeg'], ['jpeg', 'image/jpeg'], ['webp', 'image/webp'], ['gif', 'image/gif'], ['svg', 'image/svg+xml'], ['woff', 'font/woff'], ['woff2', 'font/woff2'], ['ttf', 'font/ttf'], ['otf', 'font/otf']]);
 export const markedDevelopment = directory => exists(path.join(directory, 'development.json'));
 export const runtimeId = folder => 'dev.' + (/^[A-Za-z0-9][A-Za-z0-9._-]{0,115}$/.test(folder) ? folder : hash(Buffer.from(folder)));
-export function declaration(directory, development = markedDevelopment(directory)) {
+export function declaration(directory, development = false) {
   const file = path.join(directory, 'manifest.json');
   const result = exists(file) ? readJson(file, 256 * 1024) : {};
   requireObject(result, 'Invalid development manifest');
@@ -20,9 +20,9 @@ export function declaration(directory, development = markedDevelopment(directory
   for (const field of FIELDS) if (!Object.hasOwn(result, field) && Object.hasOwn(marker, field)) result[field] = cloneJson(marker[field]);
   return result;
 }
-export function staticAssets(directory, manifest) {
+export function staticAssets(directory, manifest, development = false) {
   const declarations = [manifest.assets];
-  if (markedDevelopment(directory)) declarations.push(readJson(safeFile(directory, 'development.json'), 256 * 1024).assets);
+  if (development) declarations.push(readJson(safeFile(directory, 'development.json'), 256 * 1024).assets);
   const result = new Set();
   for (const values of declarations) {
     if (values === undefined) continue;
@@ -72,7 +72,7 @@ export function snapshotPage(extension) {
 }
 export function editorPage(extension) {
   try {
-    const file = path.join(extension.directory, 'editor.json'), development = markedDevelopment(extension.directory);
+    const file = path.join(extension.directory, 'editor.json'), development = false;
     const marker = development ? readJson(safeFile(extension.directory, 'development.json'), 256 * 1024) : null;
     if (!exists(file) && !Object.hasOwn(marker ?? {}, 'editor')) return null;
     const config = exists(file) ? readJson(file, 256 * 1024) : marker.editor;
@@ -127,7 +127,7 @@ export function readDevelopment(directory) {
 }
 export function readExtension(directory, richtext, sdk, developmentPackage = null) {
   // Markers are legacy configuration only, never a runtime or publication state.
-  const development = developmentPackage != null || markedDevelopment(directory), config = declaration(directory, development);
+  const development = developmentPackage != null, config = declaration(directory, development);
   if (Object.hasOwn(config, 'types') || Object.hasOwn(config, 'packageFormatVersion')) throw bad('Each extension provides one question type; group independent extensions in folders');
   requireManifestApi(config);
   const fields = {};
@@ -144,7 +144,7 @@ export function readExtension(directory, richtext, sdk, developmentPackage = nul
   if (development) for (const field of ['script', 'style']) if (!fields[field]) delete config[field];
   const resolution = richtext.resolve(config);
   for (const dependency of resolution.dependencies) sdk(dependency.id, dependency.version);
-  const media = staticAssets(directory, config);
+  const media = staticAssets(directory, config, development);
   pageAssets(directory, config, media);
   let identity;
   {

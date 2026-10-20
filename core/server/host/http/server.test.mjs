@@ -1,3 +1,4 @@
+import { copyFixture, writeFixture } from '../../../test/fixtures/installed-library.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -13,9 +14,9 @@ import { MIME as archiveMime } from '../library/library-archive.js';
 const codeRoot = fileURLToPath(new URL('../../../', import.meta.url)), base = path.join(path.dirname(codeRoot), '.temp', 'node-migration');
 async function fixture(t, options = {}) {
   safeDirectory(base, true); const root = fs.mkdtempSync(path.join(base, 'http-')); fs.mkdirSync(path.join(root, 'extensions')); fs.mkdirSync(path.join(root, 'question-banks'));
-  const extension = path.join(root, 'extensions', 'choice'); fs.cpSync(path.join(codeRoot, 'test/fixtures/legacy-extensions/single-choice-1.0.0'), extension, { recursive: true });
+  const extension = path.join(root, 'extensions', 'Test', 'choice'); copyFixture(path.join(codeRoot, 'test/fixtures/legacy-extensions/single-choice-1.0.0'), extension, { recursive: true });
   const raw = readJson(path.join(extension, readJson(path.join(extension, 'manifest.json')).examples)); raw.id = 'bank1'; raw.features = { history: options.history ?? true };
-  fs.writeFileSync(path.join(root, 'question-banks', 'bank.json'), jsonBytes(raw));
+  writeFixture(path.join(root, 'question-banks', 'bank', 'bank.json'), jsonBytes(raw));
   const service = await QuizForgeServer.create({ root, codeRoot, port: 0, token: options.token ?? null, tailscale: options.tailscale ?? { read: async () => ({ state: 'missing' }) } }); service.engine.validationEnvironment = async () => 'http-fixture'; options.beforeStart?.(service); await service.start();
   t.after(async () => { await service.close(); assert.ok(within(base, root) && root !== base); fs.rmSync(root, { recursive: true, force: true }); });
   const api = async (uri, { method = 'GET', body, headers = {}, port = service.port() } = {}) => {
@@ -71,15 +72,15 @@ test('conditional question reads reuse one checked binding and return updated an
   assert.equal((await api(q, {headers:{'X-QuizForge-Question-Stamp':'bad'}})).status, 400);
   assert.equal((await api(q, {headers:{'X-QuizForge-Question-Stamp':JSON.stringify({...changed.data.stamp, packageVersion:'old'})}})).data.unchanged, undefined);
   // An outside edit to the opened bank is still seen by the very next read.
-  const file = path.join(root, 'question-banks', 'bank.json'), edited = readJson(file); edited.title = 'Edited outside QuizForge'; fs.writeFileSync(file, jsonBytes(edited));
+  const file = path.join(root, 'question-banks', 'bank', 'bank.json'), edited = readJson(file); edited.title = 'Edited outside QuizForge'; writeFixture(file, jsonBytes(edited));
   scans = 0; const reloaded = await api('/api/collections/bank/bank1');
-  assert.equal(reloaded.data.title, 'Edited outside QuizForge'); assert.ok(scans > 0, 'A changed bank goes through the full loader');
+  assert.equal(reloaded.data.title, 'bank'); assert.ok(scans > 0, 'A changed bank goes through the full loader');
 });
 test('startup and metadata do not validate unopened banks; opening validates only the selected bank', async t => {
   const operations=[];
   const { api, service, root, raw }=await fixture(t,{beforeStart(service){const run=service.engine.run.bind(service.engine);service.engine.run=(extension,input)=>{operations.push(input.op);return run(extension,input);};}});
   const other=structuredClone(raw);other.id='bank2';other.questions[0].data={};
-  fs.writeFileSync(path.join(root,'question-banks','other.json'),jsonBytes(other));
+  writeFixture(path.join(root,'question-banks', 'other', 'bank.json'),jsonBytes(other));
   assert.equal((await api('/api/health')).status,200);
   const initial=(await api('/api/library/index')).data;
   assert.equal(initial.banks.length,2);assert.ok(initial.banks.every(row=>row.validationStatus==='pending'));
@@ -135,6 +136,35 @@ test('native HTTP preserves revision, submitted answers, frozen history and rest
   const history = await api(prefix + '/history'); assert.equal(history.status, 200); assert.equal(history.data.records.length, 1);
   const frozen = await api(prefix + '/history/' + history.data.records[0].id); assert.equal(frozen.status, 200); assert.ok(frozen.data.page);
   const restarted = await api(prefix + '/restart', { method: 'POST', body: { requestId: 'native-restart1', roundId: finished.data.roundId, summaryVersion: finished.data.summaryVersion } }); assert.equal(restarted.status, 200); assert.equal((await api(q)).data.state.status, 'unanswered');
+});
+
+test('HTTP bank and group renames preserve active answers, ink, stamps and frozen history without revalidation', async t => {
+  const { api, raw, service } = await fixture(t), prefix = '/api/collections/bank/bank1', q = prefix + '/questions/' + raw.questions[0].id;
+  const answer = { selectedOptionId: raw.questions[0].data.correctOptionId };
+  assert.equal((await api(q + '/actions', { method: 'POST', body: { action: 'submit', requestId: 'rename-submit', revision: 0, data: { answer } } })).status, 200);
+  const summary = (await api(prefix + '/summary')).data;
+  const finished = (await api(prefix + '/finish', { method: 'POST', body: { requestId: 'rename-finish', roundId: summary.roundId, summaryVersion: summary.summaryVersion } })).data;
+  const historyId = (await api(prefix + '/history')).data.records[0].id;
+  const frozen = (await api(prefix + '/history/' + historyId)).data;
+  assert.equal((await api(prefix + '/restart', { method: 'POST', body: { requestId: 'rename-restart', roundId: finished.roundId, summaryVersion: finished.summaryVersion } })).status, 200);
+  const draft = { schemaVersion: 1, viewport: { x: 0, y: 0, zoom: 1 }, paper: { color: '#ffffff', pattern: 'plain' }, strokes: [{ id: 'ink', color: '#334155', width: 3, points: [{ x: 80, y: 120, pressure: .5 }] }] };
+  const initial = (await api(q)).data;
+  const drafted = await api(q + '/actions', { method: 'POST', body: { action: 'draft', requestId: 'rename-draft', revision: initial.state.revision, data: { answer } } }); assert.equal(drafted.status, 200);
+  assert.equal((await api(q + '/actions', { method: 'POST', body: { action: 'whiteboard', requestId: 'rename-ink', revision: drafted.data.state.revision, data: { draft } } })).status, 200);
+  const before = (await api(q)).data, descriptor = (await api(prefix)).data;
+  const operations = [], run = service.engine.run.bind(service.engine); service.engine.run = (extension, input) => { operations.push(input.op); return run(extension, input); };
+  const renamed = await api('/api/library/manage', { method: 'POST', body: { kind: 'bank', action: 'update', target: 'item', path: 'bank', name: 'Renamed', group: '' } });
+  assert.equal(renamed.status, 200, JSON.stringify(renamed.data));
+  assert.equal(renamed.data.retainedCollections.find(row => row.id === 'bank1').previousRevision, descriptor.revision);
+  assert.equal((await api('/api/library/manage', { method: 'POST', body: { kind: 'bank', action: 'create', target: 'group', name: 'Group' } })).status, 200);
+  assert.equal((await api('/api/library/manage', { method: 'POST', body: { kind: 'bank', action: 'update', target: 'item', path: 'Renamed', name: 'Renamed', group: 'Group' } })).status, 200);
+  assert.equal((await api('/api/library/manage', { method: 'POST', body: { kind: 'bank', action: 'update', target: 'group', path: 'Group', name: 'New Group' } })).status, 200);
+  const after = (await api(q)).data;
+  assert.deepEqual(after.state, before.state); assert.deepEqual(after.draft, draft); assert.deepEqual(after.stamp, before.stamp);
+  assert.equal((await api(prefix)).data.title, 'Renamed');
+  assert.deepEqual((await api(prefix + '/history/' + historyId)).data, frozen);
+  assert.ok(!operations.some(op => ['validateBank', 'getOutlineItems'].includes(op)), JSON.stringify(operations));
+  assert.equal((await api(q + '/actions', { method: 'POST', body: { action: 'draft', requestId: 'rename-next-save', revision: after.state.revision, data: { answer } } })).status, 200);
 });
 test('history-disabled HTTP practice requires and isolates the browser page session', async t => {
   const { api, raw, root } = await fixture(t, { history: false }), uri = '/api/collections/bank/bank1/questions/' + raw.questions[0].id;
@@ -229,26 +259,49 @@ test('detected Tailscale and public IPv6 addresses work without saving a public 
 });
 
 test('HTTP group export and import transport the native qbank stream and installed versions', async t => {
-  const { api, root, raw } = await fixture(t); fs.renameSync(path.join(root, 'question-banks', 'bank.json'), path.join(root, 'question-banks', 'bank1.json'));
+  const { api, root, raw } = await fixture(t);
   assert.equal((await api('/api/library/manage', { method: 'POST', body: { kind: 'bank', action: 'create', target: 'group', name: 'HTTP Group' } })).status, 200);
-  const moved = await api('/api/library/manage', { method: 'POST', body: { kind: 'bank', action: 'update', target: 'item', path: 'bank1.json', name: raw.title, group: 'HTTP Group' } }); assert.equal(moved.status, 200, JSON.stringify(moved.data));
+  const moved = await api('/api/library/manage', { method: 'POST', body: { kind: 'bank', action: 'update', target: 'item', path: 'bank', name: raw.title, group: 'HTTP Group' } }); assert.equal(moved.status, 200, JSON.stringify(moved.data));
   const archive = await api('/api/library/export', { method: 'POST', body: { group: 'HTTP Group' } }); assert.equal(archive.status, 200); assert.equal(archive.headers.get('content-type'), archiveMime); assert.ok(archive.headers.get('content-disposition').includes('.qbank'));
-  const other = await fixture(t); fs.unlinkSync(path.join(other.root, 'question-banks', 'bank.json')); fs.rmSync(path.join(other.root, 'extensions', 'choice'), { recursive: true }); other.service.library.invalidate();
+  const other = await fixture(t); fs.unlinkSync(path.join(other.root, 'question-banks', 'bank', 'bank.json')); fs.rmSync(path.join(other.root, 'extensions', 'Test', 'choice'), { recursive: true }); other.service.library.invalidate();
   const response = await fetch('http://127.0.0.1:' + other.service.port() + '/api/library/import', { method: 'POST', headers: { 'Content-Type': archiveMime }, body: archive.data });
   const imported = await response.json(); assert.equal(response.status, 200, JSON.stringify(imported)); assert.equal(imported.importedBanks, 1); assert.equal(imported.importedExtensions, 1);
-  assert.equal((await other.api('/api/collections/bank/bank1')).status, 200);
+  assert.equal((await other.api('/api/collections/bank/'+imported.catalog.banks[0].id)).status, 200);
 });
-test('HTTP v2 import previews version choices and commits only the confirmed plan',async t=>{
- const source=await fixture(t),target=await fixture(t),bankId='18a9f141-87f4-4772-8d9e-5471998828cc';
- const raw={...source.raw,id:bankId,version:'1.0'};fs.writeFileSync(path.join(source.root,'question-banks/bank.json'),jsonBytes(raw));source.service.library.invalidate();
- await source.api('/api/library/manage',{method:'POST',body:{kind:'bank',action:'create',target:'group',name:'Package v2'}});
- assert.equal((await source.api('/api/library/manage',{method:'POST',body:{kind:'bank',action:'update',target:'item',path:'bank.json',name:raw.title,group:'Package v2'}})).status,200);
- const exported=await source.api('/api/library/export',{method:'POST',body:{group:'Package v2'}});assert.equal(exported.status,200);
- const upload=async()=>{const response=await fetch('http://127.0.0.1:'+target.service.port()+'/api/library/import',{method:'POST',headers:{'Content-Type':archiveMime},body:exported.data});assert.equal(response.status,200);return response.json();};
- assert.equal((await upload()).importedBanks,1);
- const plan=await upload();assert.equal(plan.needsConfirmation,true);assert.equal(plan.conflicts[0].incomingVersion,'1.0');assert.equal(plan.conflicts[0].existingVersion,'1.0');
- const committed=await target.api('/api/library/import/commit',{method:'POST',body:{importId:plan.importId,choices:{[bankId]:'keep'}}});assert.equal(committed.status,200);assert.equal(committed.data.skippedBanks,1);
- const repeated=await target.api('/api/library/import/commit',{method:'POST',body:{importId:plan.importId,choices:{[bankId]:'keep'}}});assert.equal(repeated.status,410);
+
+test('HTTP individual export imports at root and deleting its renamed bank archives only its own extensions', async t => {
+  const { api, root, service } = await fixture(t);
+  for (const body of [{}, {bank:'bank',group:'Group'}, {bank:'bank',extra:true}, []]) assert.equal((await api('/api/library/export', {method:'POST',body})).status, 400);
+  assert.equal((await api('/api/library/export', {method:'POST',body:{bank:'../bank'}})).status, 404);
+  const exported = await api('/api/library/export', {method:'POST',body:{bank:'bank'}});
+  assert.equal(exported.status, 200); assert.equal(exported.headers.get('content-type'), archiveMime);
+  assert.ok(exported.headers.get('content-disposition').includes('bank.qbank'));
+  const response = await fetch('http://127.0.0.1:' + service.port() + '/api/library/import', {method:'POST',headers:{'Content-Type':archiveMime,'X-QuizForge-Filename':encodeURIComponent('单题库.qbank')},body:exported.data});
+  const installed = await response.json(); assert.equal(response.status, 200, JSON.stringify(installed));
+  assert.equal(installed.group, ''); assert.equal(installed.scope, 'bank'); assert.equal(installed.path, '单题库');
+  const row = installed.catalog.banks.find(row=>row.path==='单题库'); assert.ok(row);
+  assert.equal((await api('/api/collections/bank/'+row.id)).status, 200);
+  const renamed = await api('/api/library/manage', {method:'POST',body:{kind:'bank',action:'update',target:'item',path:'单题库',name:'改过名',group:''}}); assert.equal(renamed.status,200);
+  const removed = await api('/api/library/manage', {method:'POST',body:{kind:'bank',action:'delete',target:'item',path:'改过名'}});
+  assert.equal(removed.status,200,JSON.stringify(removed.data)); assert.deepEqual(removed.data.removedExtensionGroups,['单题库']);
+  assert.equal(fs.existsSync(path.join(root,'extensions/单题库')),false);
+  assert.ok(fs.existsSync(path.join(root,removed.data.archivedTo,'content/改过名/bank.json')));
+  assert.ok(fs.existsSync(path.join(root,removed.data.archivedTo,'extensions/单题库/choice/manifest.json')));
+  assert.ok(fs.existsSync(path.join(root,'extensions/Test/choice/manifest.json')));
+  assert.ok(fs.existsSync(path.join(root,'question-banks/bank/bank.json')));
+});
+test('HTTP imports allocate new physical groups by filename without conflict plans',async t=>{
+ const source=await fixture(t),target=await fixture(t);
+ await source.api('/api/library/manage',{method:'POST',body:{kind:'bank',action:'create',target:'group',name:'Package'}});
+ assert.equal((await source.api('/api/library/manage',{method:'POST',body:{kind:'bank',action:'update',target:'item',path:'bank',name:source.raw.title,group:'Package'}})).status,200);
+ const exported=await source.api('/api/library/export',{method:'POST',body:{group:'Package'}});assert.equal(exported.status,200);
+ const upload=async()=>{const response=await fetch('http://127.0.0.1:'+target.service.port()+'/api/library/import',{method:'POST',headers:{'Content-Type':archiveMime,'X-QuizForge-Filename':encodeURIComponent('下载的题库.qbank')},body:exported.data});assert.equal(response.status,200);return response.json();};
+ const first=await upload(),second=await upload();
+ assert.equal(first.group,'下载的题库');assert.equal(second.group,'下载的题库（2）');assert.equal(second.importedBanks,1);assert.equal(second.importedExtensions,1);
+ assert.equal(second.needsConfirmation,undefined);
+ assert.equal((await target.api('/api/library/import/commit',{method:'POST',body:{importId:'obsolete'}})).status,410);
+ assert.equal((await target.api('/api/library/import/cancel',{method:'POST',body:{importId:'obsolete'}})).status,410);
+ assert.equal((await target.api('/api/library/import',{method:'POST',headers:{'Content-Type':archiveMime,'X-QuizForge-Filename':'%ZZ'},body:exported.data})).status,400);
 });
 
 test('HTTP persists frozen draft layout and ink through history and restart, with legacy compatibility',async t=>{

@@ -4,22 +4,21 @@ const nameOrder=new Intl.Collator('zh-CN',{numeric:true,sensitivity:'base'});
 const compareItems=(left,right)=>nameOrder.compare(left.title||left.name||'',right.title||right.name||'')
   ||nameOrder.compare(left.path||left.id||'',right.path||right.id||'');
 
-export function renderLibraryView({document,catalog,listMode,activeKey,collapsedGroups,onNotice,onOpen,onManage,onExport}){
+export function renderLibraryView({document,catalog,listMode,activeKey,collapsedGroups,onNotice,onOpen,onManage}){
   const $=selector=>document.querySelector(selector);
   const el=(tag,className,text)=>{const node=document.createElement(tag);if(className)node.className=className;if(text!=null)node.textContent=text;return node;};
   $('.library-switch').hidden=!catalog.developmentEnabled;if(!catalog.developmentEnabled)listMode='bank';
   $('#welcome p').textContent=catalog.developmentEnabled?'选择左侧题库，或到拓展列表体验样例。':'选择左侧题库，开始练习。';
   $('#show-banks').setAttribute('aria-selected',String(listMode==='bank'));$('#show-extensions').setAttribute('aria-selected',String(listMode==='extension'));$('#library-label').textContent=listMode==='bank'?'我的题库':'题型拓展';
   const root=$('#library-list');root.replaceChildren();const rows=[...(listMode==='bank'?catalog.banks:catalog.extensions)].sort(compareItems);
-  $('#library-new-group').hidden=!catalog.canManage;
+  $('#library-new-group').hidden=!catalog.canManage||listMode!=='bank';
   $('#library-import').hidden=!catalog.canManage||listMode!=='bank';
   const actions=(target,row)=>{const tools=el('span','library-row-actions');if(!catalog.canManage)return tools;
-    const entries=[['update','编辑','m15 4 5 5-11 11H4v-5L15 4Zm-3 3 5 5'],['delete','删除','M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v7M14 10v7']];
-    if(target==='group'&&listMode==='bank')entries.unshift(['export','导出','M12 16V4m-4 4 4-4 4 4M4 16v5h16v-5']);
+    const entries=[['update','编辑','m15 4 5 5-11 11H4v-5L15 4Zm-3 3 5 5']];
     for(const [action,label,path]of entries){
       const button=el('button',`library-manage-action${action==='delete'?' remove':''}`);button.type='button';button.title=button.ariaLabel=`${label}${target==='group'?'分组':''} ${row.title||row.name}`;button.dataset.libraryAction=action;
       const svg=document.createElementNS('http://www.w3.org/2000/svg','svg'),shape=document.createElementNS('http://www.w3.org/2000/svg','path');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');shape.setAttribute('d',path);svg.append(shape);button.append(svg);
-      button.addEventListener('click',()=>action==='export'?onExport(row):onManage(target,row,action));tools.append(button);
+      button.addEventListener('click',()=>onManage(target,row,action));tools.append(button);
     }return tools;
   };
   const appendItem=(container,row)=>{const kind=row.kind?.startsWith('development')?row.kind:listMode,key=`${kind}:${row.id}`,button=el('button',`library-item${key===activeKey?' active':''}`);button.dataset.itemId=row.id;

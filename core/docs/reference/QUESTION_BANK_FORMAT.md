@@ -13,7 +13,7 @@
   "questions": [{
     "id": "q1",
     "title": "整数除法",
-    "extension": {"id": "f7aa4878-0e49-4f2f-a6d5-c6a7636b24ca", "path": "extensions/single-choice"},
+    "extension": {"path": "extensions/我的题库组/single-choice"},
     "outline": {"level": "question", "label": "1"},
     "data": {
       "stem": "Java 中 7 / 2 的结果是什么？",
@@ -29,15 +29,15 @@
 | 字段              | 约束                                                                                                                       |
 | ----------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | `formatVersion` | 整数 1；旧文件省略时按 1 读取                                                                                              |
-| `id`            | 新题库使用稳定 UUID，同分组唯一；题目 ID 仍匹配`^[A-Za-z0-9][A-Za-z0-9._-]{0,119}$`，同库唯一；旧字符串题库 ID 兼容读取  |
-| `version`       | 作者维护的题库版本，导入按数字段比较；旧文件可缺省                                                                         |
-| `title`         | 非空，最多 300 字符；每题仍需标题元数据                                                                                    |
+| `id`            | 来源元数据，不要求 UUID/全局唯一，不参与导入冲突；题目 ID 匹配`^[A-Za-z0-9][A-Za-z0-9._-]{0,119}$`，同库唯一；旧字符串题库 ID 兼容读取  |
+| `version`       | 可选作者版本，仅展示，不用于导入覆盖或去重                                                                         |
+| `title`         | 题库名称取目录/文件名，title 保留元数据；每题 title 非空，最多 300 字符                                                                                    |
 | `description`   | 可选说明                                                                                                                   |
 | `questions`     | 按题序排列，1–10000 项；每项独立保存和提交，组合题小问留在父题 data 内                                                    |
-| `extension`     | 新绑定`{id,path}`，path 相对数据根目录；旧 `{id,version}`、`{development:"叶名"}` 兼容读取，逐题声明优先于根默认绑定 |
+| `extension`     | 绑定`{path}`（id 可选并核对），path 为 extensions/分组/拓展，相对数据根目录；旧无路径绑定拒绝并提示升级，逐题声明优先于根默认绑定 |
 | `data`          | 对应拓展的 question schema 与规则定义，宿主不规定内部字段                                                                  |
 
-单份 JSON 最多 8 MiB。无根默认绑定时，每题必须声明拓展；可混用不同实际目录的拓展，移动题库不改变绑定。分组 UUID、包格式、导入选择与迁移要求见[导入导出约定](LIBRARY_PACKAGES.md)。拓展样例只引用自身，见[拓展开发](EXTENSIONS.md)。
+单份 JSON 最多 8 MiB。无根默认绑定时，每题必须声明拓展；可混用不同实际目录的拓展，移动题库不改变绑定。物理目录、包格式和独立副本导入要求见[导入导出约定](LIBRARY_PACKAGES.md)。拓展样例只引用自身，见[拓展开发](EXTENSIONS.md)。
 
 ## 整库功能开关
 
@@ -87,18 +87,17 @@ node skills/quizforge-bank-builder/scripts/validate-bank.mjs --project . --bank 
 
 校验覆盖结构、绑定、Schema、规则、资源与显式大纲；开发及预览参数见[拓展开发](EXTENSIONS.md#校验与发布)。还需在真实页面验证小题定位和作答保存。作答状态不写入 bank.json，由拓展接口上报并由宿主另存。
 
-## 分组交换格式 .qbank
+## 题库交换格式 .qbank
 
-仅导出整个题库分组。`.qbank` 是带格式标识的 ZIP，包含：
+支持整个分组或单题库导出。`.qbank` 是带格式标识的 ZIP，包含：
 
 ```text
 quizforge-package.json
-question-banks/<分组名>/.group.json
 question-banks/<分组名>/<题库>/bank.json
 question-banks/<分组名>/<题库>/assets/
-extensions/<实际拓展目录>/...
+extensions/<分组名>/<拓展>/...
 ```
 
-格式 2 标识包含 `{format:"quizforge-bank-group",formatVersion:2,group:{id,name},extensions:[{path,id,version,hash}]}`。拓展平铺，仅含关联内容，不含用户作答、历史、设置或密钥。没有开发/正式导出限制；旧非 UUID 数据继续格式 1。版本选择和历史保留规则见[导入导出约定](LIBRARY_PACKAGES.md)。
+格式 3 整组清单为 `{"format":"quizforge-bank-group","formatVersion":3,"group":"组名"}`。单题库清单增加 `"scope":"bank"`，恰好包含一本题库，只收集它实际需要的拓展和资源；导入到题库根目录，配套拓展仍有独立物理组。包内题库与拓展均有一层同名暂存分组，各实体为独立文件夹；不含作答、历史、设置或内部保存身份。旧包格式 1/2 不支持导入，当前安装目录也须完成物理分组和路径绑定升级；冻结历史读取不变。完整约定见[导入导出](LIBRARY_PACKAGES.md)。
 
-导入检查格式标识、目录、路径、资源和完整题库规则，处理身份及同名冲突后再安装；不能只按 ZIP 后缀直接解压。上限为上传 64 MiB、解压 128 MiB、单文件 8 MiB、10000 个条目。实现见 `core/server/host/library/library-archive.js`。
+导入检查格式标识、目录、路径、资源和完整题库规则，自动分配新目录名称并同步拓展路径后成套安装；不能只按 ZIP 后缀直接解压。上限为上传 64 MiB、解压 128 MiB、单文件 8 MiB、10000 个条目。实现见 `core/server/host/library/library-archive.js`。
