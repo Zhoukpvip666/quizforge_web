@@ -23,6 +23,14 @@ internal static class HubImportHarness
     {
         try
         {
+            if (args[0] == "framework")
+            {
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.SystemDefault;
+                bool legacyTls;
+                AppContext.TryGetSwitch("Switch.System.Net.DontEnableSystemDefaultTlsVersions", out legacyTls);
+                Write(new { targetFramework = AppDomain.CurrentDomain.SetupInformation.TargetFrameworkName, legacyTls });
+                return 0;
+            }
             if (args[0] == "parse")
             {
                 var parsed = HubImportRequest.Parse(args[1]); Write(new { parsed.PackId, parsed.Revision, parsed.Key }); return 0;
