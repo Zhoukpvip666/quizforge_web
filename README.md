@@ -33,6 +33,8 @@
 
 Hub“下载到本地”的 Windows 客户端对接也已实现：安装版可通过网站链接启动、下载校验并导入指定题库，已有作答页不刷新。此入口仍需 Hub 独立部署启用及真实浏览器联调，当前发布版不具备此能力；下载 `.qbank` 文件后导入仍保留。
 
+开发者从源码生成安装包：先准备 [Node.js 24 x64（含 npm）](https://nodejs.org/en/download) 和 [Inno Setup 7.1](https://jrsoftware.org/isdl.php)，再双击根目录 `Build-QuizForge-Installer.cmd`。它会检查环境、按需安装项目依赖、编译并输出到 `dist/`；不自动安装系统工具或发布。运行 `Build-QuizForge-Installer.cmd -CheckOnly` 可只检查环境。详见[构建说明](core/desktop/README.md#首次准备打包环境)。普通用户使用完整安装包无需自行安装 Node。
+
 ### 从源码运行
 
 需要 **Node.js 24**。在项目根目录双击 `Start-QuizForge-Web.cmd`，或运行：

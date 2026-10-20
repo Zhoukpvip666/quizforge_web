@@ -4,7 +4,41 @@
 
 需要 Windows 10/11 x64、系统 .NET Framework 4.8。构建使用 Windows Framework 自带 `csc.exe`，无需安装 .NET SDK。源码运行可查找系统 Node.js 24；预览包优先使用 `runtime/node.exe`，不需要全局 Node。
 
-在产品根目录构建：
+## 首次准备打包环境
+
+这是**开发者构建要求**。普通用户安装已打包的 QuizForge 时不需要自行安装 Node.js 或 Inno Setup，安装包会带上运行所需的 Node。
+
+1. 从 [Node.js 官方下载页](https://nodejs.org/en/download) 选择 **v24.x、Windows、x64、Installer (.msi)**，安装时保留 npm 和添加 PATH；安装后重新打开终端。不要选择其他主版本。也可手动解压官方 Windows x64 ZIP，用 `-NodePath` 指定其中的 `node.exe`，同目录需有 `npm.cmd`。
+2. 从 [Inno Setup 官方下载页](https://jrsoftware.org/isdl.php) 安装 **Inno Setup 7.1 或更高版本**。入口会查找 PATH、常用安装目录和 `ISCC_PATH`；自定义位置可传 `-Compiler "C:/tools/Inno Setup 7/ISCC.exe"`。
+3. Windows 需要 **.NET Framework 4.8** 及其自带的 C# 编译器，缺失时通过 Windows 更新安装。无需另装 .NET SDK、Java 或 Python。
+
+仓库没有自动安装 Node／Inno 的下载器；打包入口也不会自动修改系统 PATH、安装系统软件或设置文件关联。缺失时打印官方下载网址和具体缺项。只检查环境可在项目根目录运行：
+
+```powershell
+.\Build-QuizForge-Installer.cmd -CheckOnly
+```
+
+## 双击生成安装包
+
+双击根目录 **`Build-QuizForge-Installer.cmd`**，按提示填写安装包版本号；留空采用带时间的 `0.1.0-local.<日期>.<时间>` 本地测试标签，不修改项目正式版本。
+
+入口会依次检查工具、比较锁文件并在依赖缺失／不匹配时运行 `npm --prefix core ci`、编译临时启动器、生成安装包和 `.sha256`。依赖匹配则跳过安装；需要修复依赖且源码服务仍运行时要求先保存退出。默认不覆盖根目录 `QuizForge.exe`，不会自动启动或关闭应用，也不会安装生成的包、上传 GitHub 或创建 Release。
+
+```powershell
+# 指定版本，供脚本或终端使用；不等待关闭窗口
+.\Build-QuizForge-Installer.cmd -Version "0.1.0-local.1" -SkipPause
+
+# 自定义已准备好的工具路径
+.\Build-QuizForge-Installer.cmd -NodePath "C:/tools/node24/node.exe" -Compiler "C:/tools/Inno Setup 7/ISCC.exe"
+```
+
+默认输出 `dist/QuizForge-<版本>-win-x64-setup.exe`，同版本文件存在时拒绝覆盖；`-OutputPath` 可指定其他目录。后台步骤与编译结果保留在 `.temp/installer-entry-*/` 等构建目录，个人数据不打包。`-CheckOnly` 不安装依赖、不编译、不生成文件；`-SkipPause` 只关闭结束时的等待，非交互构建还需提供 `-Version`。入口使用 Windows PowerShell 5.1，脚本带 UTF-8 BOM，CMD 保持 ASCII，以支持中文及空格路径。
+
+首次安装项目依赖需要联网；打包默认还会从 Node 官方仓库获取**当前 Node 版本的 LICENSE**，不会下载或升级 Node 运行时，使用的是已选择的本机 Node。离线时先准备依赖，再用 `-NodeLicense "C:/tools/node24/LICENSE"` 提供对应许可证。打包脚本仍按白名单只收集基础题库、基础拓展和程序依赖。
+
+## 分步与高级构建
+
+也可以在产品根目录分步构建（只要安装包时，不必先生成 ZIP）：
 
 ```powershell
 & ./core/scripts/build/build-windows-launcher.ps1
@@ -49,3 +83,5 @@ Hub 与本机文件共用串行队列、20 个待处理任务上限；同 pack/r
 `node --test core/test/desktop/hub-import.test.mjs` 覆盖 URI／参数／管道、固定版本下载错误、长度与摘要、时限、暂存清理、冷／热启动、混合队列、旧格式拒绝和退出等待。独立 C# 测试入口通过内部构造参数使用本机 HTTP 服务；该入口不编进产品，正式 EXE 没有命令行或环境变量服务器覆盖。测试不访问线上 Hub 或真实协议关联。
 
 安装、升级及卸载专项需显式运行：`node core/scripts/test/verify-windows-installer.mjs --compiler <ISCC.exe> --payload <安装版暂存目录>`。它编译独立 AppId/名称、专用测试扩展名和 URI scheme 的安装器，在 `.temp/` 安装程序及数据，验证快捷方式、文件关联、URI 引号及占用保护、真实原生文件导入和 HTTP 作答、运行时升级拦截、保留数据及卸载后清理自己的注册项和快捷方式；不改系统真实 `.qbank`／`quizforge` 关联，不自动安装正式 QuizForge，也不访问其数据目录。构建参数 `--test-id` 同样隔离上述三类标识。
+
+一键入口回归：`node --test core/test/desktop/installer-entry.test.mjs`，用隔离目录、替身编译器／打包器和真实 Windows PowerShell／CMD 检查中文空格路径、工具缺失、依赖分支、服务运行保护、失败停止及重复版本。测试生成的内容是替身产物，不能当成真实安装包构建或安装验收。

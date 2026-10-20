@@ -10,7 +10,7 @@ for (let i = 2; i < process.argv.length; i++) {
   const key = { '--version': 'version', '--node': 'node', '--output': 'output', '--node-license': 'license', '--source-commit': 'sourceCommit', '--launcher': 'launcher', '--compiler': 'compiler', '--test-id': 'testId' }[process.argv[i]];
   if (!key || ++i >= process.argv.length) throw new Error('Unknown installer option'); options[key] = process.argv[i];
 }
-if (!options.compiler || !fs.existsSync(options.compiler)) throw new Error('Specify Inno Setup 6.3+ ISCC.exe with --compiler or ISCC_PATH');
+if (!options.compiler || !fs.existsSync(options.compiler)) throw new Error('Specify Inno Setup 7.1+ ISCC.exe with --compiler or ISCC_PATH');
 if (options.testId && !/^[a-z0-9-]{8,60}$/.test(options.testId)) throw new Error('Invalid isolated installer test id');
 if (!/^[\w.-]{1,80}$/.test(options.version)) throw new Error('Invalid installer version');
 const output = path.resolve(options.output); fs.mkdirSync(output, { recursive: true });
