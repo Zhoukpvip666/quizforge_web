@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {JSDOM} from 'jsdom';
-import {THEMES,DEFAULT_DIM,DEFAULT_CLEAR,readAppearance,writeAppearance,applyAppearance,prepareImage,bindAppearanceSettings} from '../../web/shell/appearance.js';
+import {THEMES,DEFAULT_CLEAR,readAppearance,writeAppearance,applyAppearance,prepareImage,bindAppearanceSettings} from '../../web/shell/appearance.js';
 
 const html=readFileSync(new URL('../../web/index.html',import.meta.url),'utf8');
 const css=readFileSync(new URL('../../web/shell/themes.css',import.meta.url),'utf8');
@@ -17,14 +17,15 @@ function fixture(t,{saved,images=null}={}){
   return {dom,document,storage,view,get,urls,root:document.documentElement,saved:()=>JSON.parse(storage.values.get('quizforge-appearance')||'null')};
 }
 
-test('saved appearance is validated and falls back to the default look',()=>{
-  assert.deepEqual(readAppearance(memoryStorage()),{theme:'default',dim:DEFAULT_DIM,clear:{...DEFAULT_CLEAR},custom:false});
+test('saved appearance is validated and falls back to the built-in image theme',()=>{
+  assert.deepEqual(readAppearance(memoryStorage()),{theme:'image',dim:30,clear:{...DEFAULT_CLEAR,image:65},custom:false});
   for(const raw of ['not json','{"theme":"neon","dim":33}','{"theme":"paper","dim":95}','{"theme":"image","dim":-5,"custom":"yes"}']){
     const value=readAppearance(memoryStorage({'quizforge-appearance':raw}));
     assert.ok(THEMES.some(item=>item.id===value.theme));assert.ok(value.dim>=0&&value.dim<=80&&value.dim%5===0);assert.equal(typeof value.custom,'boolean');
   }
   assert.deepEqual(readAppearance(memoryStorage({'quizforge-appearance':'{"theme":"green","dim":45,"custom":true}'})),{theme:'green',dim:45,clear:{...DEFAULT_CLEAR},custom:true});
-  assert.equal(readAppearance({getItem(){throw new Error('blocked');}}).theme,'default','Blocked storage keeps the default look');
+  assert.equal(readAppearance(memoryStorage({'quizforge-appearance':'{"theme":"default"}'})).theme,'default','An explicitly saved plain theme remains selected');
+  assert.equal(readAppearance({getItem(){throw new Error('blocked');}}).theme,'image','Blocked storage uses the built-in image theme');
   assert.doesNotThrow(()=>writeAppearance({setItem(){throw new Error('quota');}},{theme:'paper',dim:30,custom:false}));
 });
 
@@ -52,7 +53,10 @@ test('every theme in the list has styles and a swatch, and the default picture i
 test('the appearance tab shows its panel, hides the other panels and saves a chosen theme',t=>{
   const f=fixture(t);
   const tab=f.get('settings-appearance-tab'),panel=f.get('appearance-settings-panel');
-  assert.equal(f.root.hasAttribute('data-qf-theme'),false);assert.equal(panel.hidden,true);
+  assert.equal(f.root.dataset.qfTheme,'image');assert.equal(panel.hidden,true);
+  assert.equal(f.root.style.getPropertyValue('--qf-dim'),'0.3');assert.equal(f.root.style.getPropertyValue('--qf-clear'),'0.65');
+  assert.equal(f.get('appearance-dim-value').textContent,'30%');assert.equal(f.get('appearance-clear-value').textContent,'65%');
+  assert.equal(f.document.querySelector('.appearance-theme[data-theme="image"]').getAttribute('aria-checked'),'true');
   const buttons=[...f.document.querySelectorAll('.appearance-theme')];
   assert.deepEqual(buttons.map(button=>button.textContent),THEMES.map(item=>item.label));
   tab.click();

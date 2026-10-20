@@ -18,7 +18,7 @@ const validStep=(value,max)=>Number.isInteger(value)&&value>=0&&value<=max&&valu
 export function readAppearance(storage){
   let saved={};
   try{saved=JSON.parse(storage?.getItem(STORAGE_KEY)||'{}')||{};}catch{saved={};}
-  const theme=THEMES.some(item=>item.id===saved.theme)?saved.theme:'default';
+  const theme=THEMES.some(item=>item.id===saved.theme)?saved.theme:'image';
   const dim=validStep(saved.dim,MAX_DIM)?saved.dim:DEFAULT_DIM;
   const clear={...DEFAULT_CLEAR};
   if(saved.clear&&typeof saved.clear==='object')for(const id of Object.keys(DEFAULT_CLEAR))if(validStep(saved.clear[id],MAX_CLEAR))clear[id]=saved.clear[id];
