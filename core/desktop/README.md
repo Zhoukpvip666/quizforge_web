@@ -2,7 +2,7 @@
 
 `windows/` 是轻量 Windows Forms 托盘启动器源码。业务、数据存储、规则执行及网页仍由 Node 后端负责；用户入口是产品根目录的 `QuizForge.exe`，不新增网页窗口外壳。
 
-需要 Windows 10/11 x64、系统 .NET Framework 4.8。构建使用 Windows Framework 自带 `csc.exe`，无需安装 .NET SDK。源码运行可查找系统 Node.js 24；预览包优先使用 `runtime/node.exe`，不需要全局 Node。
+需要 Windows 10/11 x64、系统 .NET Framework 4.8。构建使用 Windows Framework 自带 `csc.exe`，无需安装 .NET SDK。`AssemblyInfo.cs` 明确声明 `.NETFramework,Version=v4.8`，让 HTTPS 使用该目标框架的系统 TLS 默认行为；仅安装新运行时而遗漏目标声明，仍可能按旧兼容开关运行，使 Hub HTTPS 下载在建立连接前失败。保留 SystemDefault 和系统证书验证，不固定协议版本或修改系统注册表。源码运行可查找系统 Node.js 24；预览包优先使用 `runtime/node.exe`，不需要全局 Node。
 
 ## 首次准备打包环境
 

@@ -88,7 +88,11 @@ async function bankPackage(root, file) {
 test('opening a local qbank cold-starts one tray, coalesces pending opens and imports later opens independently', {skip:!supported,timeout:90000}, async t=>{
   const f=fixture(t), file=path.join(work,"下载 中文 & ' 空格.qbank");await bankPackage(f.root,file);
   const bytes=fs.readFileSync(file), original=fs.readFileSync(path.join(f.root,'question-banks/Bank/bank.json'));
-  const owner=f.start(0,[file]), duplicate=await f.command('--no-browser','--import',file);
+  const owner=f.start(0,[file]);
+  // A control-only status request waits for the first process to own the pipe;
+  // the duplicate import must not race it and become the long-running owner.
+  await waitFor(f.command,status=>status.launcherPid===owner.child.pid&&status.pendingImports===1);
+  const duplicate=await f.command('--no-browser','--import',file);
   const first=await waitFor(f.command,status=>status.lastImport?.state==='completed',60000);
   assert.equal(first.lastImport.id,duplicate.acceptedImportId);assert.equal(first.launcherPid,owner.child.pid);assert.equal(first.pendingImports,0);assert.equal(first.browserOpenRequests,1);
   assert.equal(new URL(first.lastOpenedUrl).searchParams.get('imported-bank'),first.lastImport.bankId);

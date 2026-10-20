@@ -22,6 +22,7 @@ const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 let work, executable;
 before(async () => {
   if (!supported) return;
+  fs.mkdirSync(path.join(product, '.temp'), { recursive: true });
   work = fs.mkdtempSync(path.join(product, '.temp', 'hub-import-tests-')); executable = path.join(work, 'HubImportHarness.exe');
   const source = path.join(product, 'core/desktop/windows');
   await run(path.join(process.env.WINDIR, 'Microsoft.NET/Framework64/v4.0.30319/csc.exe'), [
@@ -33,6 +34,12 @@ before(async () => {
 });
 after(() => { if (work) { assert.equal(path.dirname(work), path.join(product, '.temp')); fs.rmSync(work, { recursive: true, force: true }); } });
 const invoke = async (args, env = {}) => JSON.parse((await run(executable, args, { windowsHide: true, timeout: 20000, env: { ...process.env, ...env } })).stdout);
+
+test('compiled launcher targets .NET 4.8 and enables operating-system TLS defaults', { skip: !supported }, async () => {
+  const runtime = await invoke(['framework']);
+  assert.equal(runtime.targetFramework, '.NETFramework,Version=v4.8');
+  assert.equal(runtime.legacyTls, false, 'the legacy compatibility switch rejects SystemDefault TLS on HTTPS');
+});
 
 test('Hub URI accepts only the v1 literal grammar and exact standalone startup mode', { skip: !supported }, async () => {
   for (const uri of [link(), `quizforge://hub/import?revision=9007199254740991&pack=${pack}&v=1`]) {
