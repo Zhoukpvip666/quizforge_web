@@ -27,7 +27,11 @@ const v1Appearance=Object.freeze({
   api:Object.freeze({...v1AnswerState.api,minor:4,capabilities:Object.freeze([...v1AnswerState.api.capabilities,'appearance'])}),
   bootstrap:bootstrapV1,
 });
-const bridges=new Map([[1,[v1,v1Outline,v1ScoreOutline,v1AnswerState,v1Appearance]]]);
+const v1AnswerAreas=Object.freeze({
+  api:Object.freeze({...v1Appearance.api,minor:5,capabilities:Object.freeze([...v1Appearance.api.capabilities,'answer-areas'])}),
+  bootstrap:bootstrapV1,
+});
+const bridges=new Map([[1,[v1,v1Outline,v1ScoreOutline,v1AnswerState,v1Appearance,v1AnswerAreas]]]);
 
 export function resolveExtensionApi(version) {
   if(version===undefined)version={major:1,minor:0};

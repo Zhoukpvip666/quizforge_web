@@ -1,0 +1,42 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {JSDOM} from 'jsdom';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+import {resolveExtensionApi} from '../../web/bridge/api-bridges.js';
+import {installFrameCapture} from '../../web/bridge/frame-capture.js';
+import {readHostAppearance} from '../../web/shell/appearance.js';
+import {answerAreaComponent} from '../../server/host/extensions/answer-area-component.js';
+
+test('host scopes tool commands, validates focus and maps frame pan coordinates without allowing pen injection',async t=>{
+ const dom=new JSDOM('<div class="question-pane is-draft"><div class="question-viewport"><canvas class="qf-whiteboard-ink"></canvas><div id="host"></div></div></div>');t.after(()=>dom.window.close());const {document}=dom.window;
+ const sandbox={document,window:dom.window,resolveExtensionApi,installFrameCapture,readHostAppearance,makeRequestId:()=> 'scoped-host-channel',setTimeout,clearTimeout};
+ const source=readFileSync(new URL('../../web/bridge/frame.js',import.meta.url),'utf8').replace(/^import[^\r\n]*\r?\n/gm,'').replace('export function mountExtension','function mountExtension');vm.runInNewContext(`${source}\nglobalThis.mount=mountExtension;`,sandbox);
+ dom.window.PointerEvent=class extends dom.window.MouseEvent{constructor(type,init){super(type,init);Object.defineProperties(this,{pointerId:{value:init.pointerId},pointerType:{value:init.pointerType}});}};
+ const viewport=document.querySelector('.question-viewport'),canvas=document.querySelector('canvas'),events=[],sent=[];viewport.qfAnswerAreaTools={tool:'pen',color:'#386db6',width:6,penOnly:true};canvas.addEventListener('pointerdown',event=>events.push(event));
+ const mounted=sandbox.mount(document.getElementById('host'),{apiVersion:{major:1,minor:5},answerAreasDeclared:true,answerAreaComponent:answerAreaComponent(),html:'<div></div>',script:'',style:'',libraries:[]},{mode:'practice',capabilities:{canSave:true,canWhiteboard:true}},{onRequest(){},onError(){}});t.after(()=>mounted.destroy());
+ const frame=mounted.frame;frame.contentWindow.postMessage=value=>sent.push(value);const session=frame.srcdoc.match(/"session":"([^"]+)"/)[1];
+ const message=(kind,data={},source=frame.contentWindow)=>dom.window.dispatchEvent(new dom.window.MessageEvent('message',{source,data:{channel:'quizforge-extension',session,kind,...data}}));
+ message('registered');await mounted.ready;assert.deepEqual(sent.at(-1).tools,viewport.qfAnswerAreaTools);
+ message('answer-area-focus',{focus:{id:'answer',writable:true,canUndo:true,canRedo:false}});assert.equal(frame.qfAnswerAreaFocus.canUndo,true);
+ viewport.qfAnswerAreaTools={tool:'eraser',color:'#386db6',width:6,penOnly:true};viewport.dispatchEvent(new dom.window.CustomEvent('qf-draft-tools-change'));assert.equal(sent.at(-1).tools.tool,'eraser');
+ frame.dispatchEvent(new dom.window.CustomEvent('qf-answer-area-command',{detail:{action:'undo',id:'answer'}}));assert.equal(sent.at(-1).kind,'answer-area-command');
+ frame.getBoundingClientRect=()=>({left:100,top:200,width:200,height:400});Object.defineProperty(frame,'clientWidth',{value:100});Object.defineProperty(frame,'clientHeight',{value:200});
+ const pointer={phase:'pointerdown',pointerType:'touch',pointerId:7,x:20,y:30};message('answer-area-pan',{pointer});assert.equal(events.length,1);assert.equal(events[0].clientX,140);assert.equal(events[0].clientY,260);assert.equal(events[0].qfAnswerPan,true);
+ message('answer-area-pan',{pointer:{...pointer,pointerType:'pen'}});message('answer-area-pan',{pointer:{...pointer,x:Infinity}});message('answer-area-pan',{pointer},null);assert.equal(events.length,1);
+ const area={id:'answer',document:{type:'qf-answer-area',formatVersion:1,id:'answer',width:760,height:480,strokes:[]},rect:[10,20,760,480],writable:true,displayInk:true};let layouts=0;viewport.addEventListener('qf-shared-answer-layout',()=>layouts++);
+ message('answer-area-layout',{areas:[area]},null);assert.equal(frame.qfSharedAnswerAreas,undefined);
+ message('answer-area-layout',{areas:[area,area]});assert.equal(frame.qfSharedAnswerAreas,undefined);
+ message('answer-area-layout',{areas:[{...area,rect:[0,0,Infinity,480]}]});assert.equal(frame.qfSharedAnswerAreas,undefined);
+ message('answer-area-layout',{areas:[area]});assert.equal(layouts,1);assert.equal(frame.qfSharedAnswerAreas[0].id,'answer');
+ for(const imageControls of [[[0,0,Infinity,10]],[[0,0,-1,10]],Array(9).fill([0,0,1,1])])message('answer-area-layout',{areas:[{...area,imageControls}]});assert.equal(layouts,1,'invalid image input holes are ignored');
+ message('answer-area-layout',{areas:[{...area,imagesEditable:true,selectedImageId:'photo',imageControls:[[0,0,20,20]]}]});assert.equal(layouts,2);
+ frame.dispatchEvent(new dom.window.CustomEvent('qf-answer-area-command',{detail:{action:'select-image',id:'answer',imageId:'photo'}}));assert.equal(sent.at(-1).imageId,'photo');assert.equal(sent.at(-1).action,'select-image');
+ const commands=sent.length;frame.dispatchEvent(new dom.window.CustomEvent('qf-answer-area-command',{detail:{action:'select-image',id:'answer',imageId:'invalid id'}}));assert.equal(sent.length,commands);
+ document.body.dispatchEvent(new dom.window.MouseEvent('pointerdown',{bubbles:true}));assert.equal(sent.at(-1).action,'deactivate-image');assert.equal(sent.at(-1).id,'answer');
+
+ viewport.addEventListener('qf-answer-ink-sync',()=>frame.dispatchEvent(new dom.window.CustomEvent('qf-answer-ink',{detail:{id:'answer',strokes:[]}})));
+ message('request',{method:'answer-area-sync',id:'sync-one'});assert.equal(sent.at(-2).kind,'answer-area-ink');assert.equal(sent.at(-1).kind,'reply');assert.equal(sent.at(-1).id,'sync-one','ink arrives before the flush barrier reply');
+ mounted.update({mode:'history',capabilities:{canSave:false,canWhiteboard:true}});message('answer-area-layout',{areas:[area]});assert.equal(frame.qfSharedAnswerAreas[0].writable,false);
+ const count=sent.length;frame.dispatchEvent(new dom.window.CustomEvent('qf-answer-ink',{detail:{id:'answer',strokes:[]}}));assert.equal(sent.length,count,'history cannot emit answer edits');
+});

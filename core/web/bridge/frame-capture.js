@@ -2,7 +2,7 @@
 // region capture, and the areas of controls a learner can use. Rendering and
 // all pointer decisions stay in the host. This function is serialized into the
 // frame, so it must stay self-contained.
-export function installFrameCapture({ session }) {
+export function installFrameCapture({ session, answerAreas=false }) {
   window.addEventListener('message', event => {
     const value=event.data;
     if(event.source!==parent||value?.channel!=='quizforge-host'||value.session!==session||value.kind!=='capture-region'||typeof value.id!=='string')return;
@@ -51,10 +51,15 @@ export function installFrameCapture({ session }) {
     }
     return merged;
   };
-  let timer=0,last='';
+  let timer=0,last='',lastAreas='';
   const report=()=>{
     timer=0;
     if(!document.body)return;
+    if(answerAreas){
+      const rects=[...document.querySelectorAll('[data-qf-answer-area]:not([data-qf-answer-shared])')].slice(0,16).flatMap(element=>[...element.getClientRects()].filter(rect=>rect.width>0&&rect.height>0).map(rect=>[Math.max(0,rect.left),Math.max(0,rect.top),rect.width,rect.height]));
+      const serialized=JSON.stringify(rects);
+      if(serialized!==lastAreas){lastAreas=serialized;parent.postMessage({channel:'quizforge-extension',session,kind:'answer-area-regions',rects},'*');}
+    }
     const elements=new Set(document.body.querySelectorAll(interactive)),all=document.body.getElementsByTagName('*');
     // Custom option cards often have only a click handler and a pointer cursor.
     for(let index=0;index<all.length&&index<4000;index++)if(!elements.has(all[index])&&getComputedStyle(all[index]).cursor==='pointer')elements.add(all[index]);

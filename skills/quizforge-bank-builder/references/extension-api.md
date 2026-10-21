@@ -139,6 +139,7 @@ if (!reply?.ok) throw new Error(reply?.error?.message || "保存失败");
 | `QF.requestAction({action:"goToQuestion",params:{questionId}})` | 跳到本集合中存在的题目。 |
 | `QF.ui.resize()` | 请求宿主按 body 高度调整 iframe；不接收布局参数。 |
 | `QF.ui.appearance` / `QF.ui.onAppearanceChange(callback)` | API 1.4：只读的宿主主题与面板透明度，以及变化订阅；见 [宿主外观](#宿主外观api-14)。 |
+| `QF.answerAreas.mount(container,options)` | API 1.5：需主动声明 answer-areas；公共手写答题区，见 [完整组件接口](../../../core/docs/reference/ANSWER_AREAS.md)。 |
 
 API 1.3 的 answer-state 要求 Manifest 声明 requiresApi.minMinor:3。输入时每次上报一个目标：targetId 为当前大纲小题 ID，省略表示当前大题；仅允许 unanswered/draft，其他小题不变，初始缺省为 unanswered，清空已有答案必须上报 unanswered。宿主不猜私有答案结构。上报与保存须关联**同一份答案快照**，处理 envelope 错误，并在 onFlush 等待最终保存：
 
@@ -313,11 +314,23 @@ html[data-qf-theme="sepia"] .my-card{background:#fbf6e9}
 
 - 宿主已处理的场景：默认主题、草稿模式（白板纸张）和手机宽度（≤600px，题目区域白底）下 `transparency` 恒为 0；切换主题、拖动滑块、进出草稿、窗口跨过手机宽度时都会推送新值。拓展只需按 `transparency` 决定透明度，不要自行判断草稿或屏幕宽度。
 - 建议：只让题卡底色和大面积浅色块透明，输入框、选项、按钮保持足够不透明以保证可读；`transparency` 很高时可配合 `backdrop-filter: blur()`，但 iframe 内的模糊只作用于 iframe 自身内容，**看不到宿主背景**，真正的背景模糊做不到。文字对比度不能低于不透明时的效果。
-- 声明：当前宿主对所有新页面都提供 API 1.4，拓展可用 `typeof QF.ui.onAppearanceChange === 'function'` 检测后再用。若拓展必须依赖它，在 Manifest 写 `requiresApi:{major:1,minMinor:4,capabilities:["appearance"]}`，旧宿主会拒绝安装而不是显示错误外观。API 1.3 及更早冻结的历史页面不会注入这些接口。
+- 声明：当前宿主对所有新页面都提供 API 1.5，拓展可用 `typeof QF.ui.onAppearanceChange === 'function'` 检测后再用。若拓展必须依赖它，在 Manifest 写 `requiresApi:{major:1,minMinor:4,capabilities:["appearance"]}`，旧宿主会拒绝安装而不是显示错误外观。API 1.3 及更早冻结的历史页面不会注入这些接口。
+
+## 公共手写答题区（API 1.5，可选）
+
+需要正式手写答案时，Manifest 声明 `requiresApi:{major:1,minMinor:5,capabilities:["practice","answer-areas","answer-state","resources","lifecycle"]}`。只有主动声明后才获得 `QF.answerAreas`；旧拓展、旧答案和历史不自动转换。AI／人工评分能力仍分别声明 `ai-grading`／`manual-review`。
+
+通过 `QF.answerAreas.mount(container,{id,targetId?,width?,height?,onChange})` 创建区域。ID 稳定且在本父题唯一，targetId 必须是当前题的大纲小题 ID。`onChange(document)` 必须返回实际保存的 Promise：先主动上报本题／该小题已作答状态，再将完整笔迹放进自己的答案对象，用 `QF.save` 保存并传播失败。多个区域应保存同一题的完整答案。页面恢复用 `setDocument`，离开前 `flush` 等待落笔和保存，销毁用 `destroy`，不要每次 onLoad 都重建区域。
+
+当前组件为 1.4.1，保留 1.0.0／1.1.0／1.2.0／1.3.0／1.3.1／1.3.2／1.4.0 冻结历史。新接入传 sharedInk:true，Schema 允许 inkSource:"draft" 与 anchor:{x,y,width,height}，原样保存组件文档；区域只圈定截图范围，使用明确紫色边框，普通 textarea 与笔迹在同一框内叠加，不分两个输入页面。画笔、笔色、粗细、擦除和仅笔书写跟随草稿工具栏，框内外使用宿主同一个 canvas、平滑压力笔刷与撤销栈，支持跨边界整笔、框选移动／复制／删除。清空清除本题全部手写，保留文字；组件自身 clear/undo/redo 不用于操作统一笔迹。框内不加 placeholder，只有框外一句“下方答题区的打字以及手写输入，都将作为答案进行评分”。启用文字输入时传 `allowText:true`，Schema 允许可选 `text:string`（最多 20000 字符），判空同时判断 text.trim() 和 strokes.length。练习模式直接打字；草稿中的操作工具可打字，画笔可直接写在同一框上。prepareAiGrading 对含手写的区域只返回 snapshot 的 image 块，该图已包含文字与笔迹；纯文字区域返回 text 块，不重复提交同一区域的文字。高度保存到题目 data，编辑页通过原有 QF.editor 合约修改，保留区域 ID；示例提供数值输入和预览。恢复旧答案不裁剪已有笔迹，完成历史尺寸不改变。统一笔迹的交叉笔画可以包含框外坐标，宿主最终裁剪并以 2 倍逻辑分辨率合成 PNG。纯笔迹旧文档不自动添加 text 字段；未传 sharedInk:true 的旧接入维持 1.2 行为。
+
+笔迹文档是 `type:"qf-answer-area",formatVersion:1` 的普通答案对象，不是富文本节点。答案 Schema 必须允许宿主生成的可选 `snapshot:{type:"image",attrs:{assetId}}`。草稿模式书写、练习模式保留显示，普通白板笔记不进入正式答案。逻辑尺寸独立于屏幕尺寸。单题提交、完成练习和考试交卷时，宿主从本次已保存笔迹生成完整 PNG，拓展在 `prepareAiGrading` 中使用现有 `{type:"image",assetId}`；未判分应返回 pending／null，失败保留答案并允许重试／人工评分。无需自行截图或创建新的评分通道。
+
+详见 [完整接口与边界](../../../core/docs/reference/ANSWER_AREAS.md)。已安装的真实展示参考 `extensions/基础题型/答题区/` 与“基础题型展示”第 11 题；独立接入参考 `core/examples/handwritten-short-answer/`，在产品根目录运行 `node core/scripts/build/build-handwritten-example.mjs` 生成测试包。此例不替换基础简答题，不为旧题库批量增加答题区。真实手机／触控笔和真实图片模型仍需对应环境验收。
 
 ## 版本与历史兼容
 
-当前支持 API 1.0／1.1／1.2／1.3／1.4，缺 requiresApi 按 1.0 读。显式声明只允许 major、minMinor、capabilities：前两项是整数，当前 major=1、minMinor 为 0–4；capabilities 可省略，不重复、不含空字符串。能力为 practice、editor、editor-drafts、score、manual-review、ai-grading、resources、richtext、navigation、lifecycle，子题定位另用 outline-items（minMinor>=1），评分后的子题状态用已有 score（minMinor>=2），输入当下的主动上报用 answer-state（minMinor>=3），宿主外观用 appearance（minMinor>=4）。见 [子题接口](#子题导航与状态) 和 [作答协议](#作答协议)。未知版本／能力在执行规则前拒绝，不能只提高声明假装实现 API v2。
+当前支持 API 1.0／1.1／1.2／1.3／1.4／1.5，缺 requiresApi 按 1.0 读。显式声明只允许 major、minMinor、capabilities：前两项是整数，当前 major=1、minMinor 为 0–5；capabilities 可省略，不重复、不含空字符串。能力为 practice、editor、editor-drafts、score、manual-review、ai-grading、resources、richtext、navigation、lifecycle，子题定位另用 outline-items（minMinor>=1），评分后的子题状态用已有 score（minMinor>=2），输入当下的主动上报用 answer-state（minMinor>=3），宿主外观用 appearance（minMinor>=4），可选手写答题区用 answer-areas（minMinor>=5）。见 [子题接口](#子题导航与状态) 和 [作答协议](#作答协议)。未知版本／能力在执行规则前拒绝，不能只提高声明假装实现 API v2。
 
 requiresRichText 独立声明公共服务 API、文档格式、配置与实际能力；与应用、拓展和 Tiptap 版本分别独立。富文本声明细则见 [清单](#清单与公共服务声明)。
 
@@ -380,3 +393,6 @@ grade/review 把逐小题细节保存在正式 result 的自有 feedback 结构�
 完成练习由宿主先 flush，再提交已保存、已作答、未提交的题目，使用既有 grade(data,answer)。不依赖点击拓展页面按钮；空答、小题部分作答与总分由拓展处理。新声明answer-state的拓展负责准确上报draft/unanswered，旧拓展的保存草稿交由规则判断。AI/人工待评分仍是pending，不当作零分；处理完后完成同一轮。
 
 题库／拓展不再区分开发与正式状态；旧绑定兼容，新普通题库引用用 `{path}`，path 相对数据根目录。物理分组与格式 3 独立副本导入约定见[宿主导入导出文档](../../../core/docs/reference/LIBRARY_PACKAGES.md)。新草稿固定760逻辑像素，手机使用本地缩放/平移；保留旧layout，不需要新增拓展页面接口。
+
+
+答题区组件 1.4.0 增加同框照片、上传、粘贴及自动增高。接入示例见 [ANSWER_AREAS](../../../core/docs/reference/ANSWER_AREAS.md#同框图片与自动增高组件-140)：允许可选 `images` 数组并显式传 `allowImages:true`，保存整个文档，图片也计入已作答；有 `images` 或 `strokes` 时使用宿主 `snapshot` 作为唯一图片评分材料，纯文字仍用 text。组件 1.4.1 改为双击／双触选图、拖动移动、四角等比缩放，点击外部完成；图片下方 × 需确认删除，无常驻图片编辑栏。宿主浮动控件不进入评分图片，也不修改答案格式或要求已适配图片的拓展再次升级。编辑页 height 表示默认高度，恢复答案时保留增长后的高度，不按手机屏宽重排答案。不要自行把框外草稿判为答案、用视口截图代替完整合成图或绕过 flush。旧题型不启用该组件时无需改动。

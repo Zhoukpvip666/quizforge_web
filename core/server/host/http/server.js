@@ -33,6 +33,9 @@ const loopback = host => hostKey(host) === hostKey('::1') || hostKey(host)?.star
 const equal = (left, right) => typeof left === 'string' && typeof right === 'string' && Buffer.byteLength(left) === Buffer.byteLength(right) && timingSafeEqual(Buffer.from(left), Buffer.from(right));
 const forwarded = request => Object.keys(request.headers).some(name => name === 'forwarded' || name.startsWith('x-forwarded-'));
 const mime = file => ({ '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon', '.woff2': 'font/woff2', '.webmanifest': 'application/manifest+json; charset=utf-8' })[path.extname(file).toLowerCase()];
+// These pure models are also browser dependencies. Expose exact files only;
+// the rest of shared/ and all server sources remain outside the web root.
+const publicSharedModules = new Set(['shared/answer-area/1.3.0/model.js', 'shared/answer-area/1.4.0/model.js', 'shared/ink/1.0.0/renderer.js']);
 const csp = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; frame-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; object-src 'none'";
 export function queryValue(context, name) {
   const values = context.url.searchParams.getAll(name); if (values.length > 1) throw bad('Invalid query');
@@ -150,9 +153,9 @@ export class QuizForgeServer {
     return this.closing;
   }
   createPracticeSession() {
-    const states = StateStore.memory(this.root, this.engine), resources = new ResourceStore(this.root, { memory: true, fallback: this.resources });
+    const resources = new ResourceStore(this.root, { memory: true, fallback: this.resources }), states = StateStore.memory(this.root, this.engine, resources);
     const ai = AiGradingService.memory(this.root, states, this.library, new OpenAiCompatibleProvider(this.aiSettings, resources)), routes = new CollectionRoutes(this.library, states, ai, this.writes, this.automaticAi);
-    return { states, resources, developmentResources: resources, ai, developmentAi: ai, routes, developmentRoutes: routes, bytes: () => states.memoryBytes() + resources.memoryBytes() + ai.memoryBytes(), close: () => { ai.close(); states.clearMemory(); } };
+    return { states, resources, developmentResources: resources, ai, developmentAi: ai, routes, developmentRoutes: routes, bytes: () => states.memoryBytes() + resources.memoryBytes() + ai.memoryBytes(), close: () => { ai.close(); states.clearMemory(); resources.clearMemory(); } };
   }
   lease(context, create, writing) { return this.practiceSessions.acquire(context.request.headers['x-quizforge-practice-session'], create, writing); }
   canManage(context) { return !context.remote && !forwarded(context.request) && loopback(this.server.address().address) && loopback(context.request.socket.remoteAddress) && ['localhost', '127.0.0.1', hostKey('::1')].includes(hostKey(context.authority.hostname)); }
@@ -398,7 +401,7 @@ export class QuizForgeServer {
         if (request.method !== 'GET') throw new ApiError(405, 'METHOD_NOT_ALLOWED', 'Only GET is supported for pages');
         let file = pathname === '/' ? 'index.html' : pathname.slice(1); if (file.startsWith('web/')) file = file.slice(4); const type = mime(file);
         if (!type) throw new ApiError(404, 'NOT_FOUND', 'Page not found'); let asset;
-        try { asset = safeFile(path.join(this.codeRoot, 'web'), file); } catch { throw new ApiError(404, 'NOT_FOUND', 'Page not found'); }
+        try { asset = safeFile(publicSharedModules.has(file) ? this.codeRoot : path.join(this.codeRoot, 'web'), file); } catch { throw new ApiError(404, 'NOT_FOUND', 'Page not found'); }
         if (fs.statSync(asset).size > 4 * 1024 * 1024) throw new ApiError(413, 'ASSET_SIZE_LIMIT', 'Page asset exceeds the size limit');
         response.setHeader('Content-Security-Policy', csp); this.send(response, 200, type, readBytes(asset, 4 * 1024 * 1024));
       }

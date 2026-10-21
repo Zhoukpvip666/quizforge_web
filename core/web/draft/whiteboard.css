@@ -8,7 +8,7 @@
   color: #26334a;
   font: 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
 }
-.qf-whiteboard-ink, .qf-whiteboard-paper { position: absolute; inset: 0; width: 100%; height: 100%; }
+.qf-whiteboard-ink, .qf-whiteboard-input, .qf-whiteboard-paper { position: absolute; inset: 0; width: 100%; height: 100%; }
 .qf-whiteboard-paper { z-index: 0; background-color: #fff; pointer-events: none; }
 .qf-whiteboard-paper[hidden] { display: none !important; }
 .qf-whiteboard-paper[data-pattern="grid"] {
@@ -16,10 +16,11 @@
 }
 .qf-whiteboard-paper[data-pattern="dots"] { background-image: radial-gradient(#47556922 1.5px, transparent 1.5px); }
 .qf-whiteboard-ink { z-index: 1; outline: none; pointer-events: none; }
-.qf-whiteboard--draft .qf-whiteboard-ink { pointer-events: auto; touch-action: none; cursor: crosshair; }
-/* Question controls are clipped out of the ink layer, so they keep their own cursor. */
-.qf-whiteboard--draft[data-tool="hand"] .qf-whiteboard-ink { cursor: grab; }
-.qf-whiteboard--draft[data-tool="hand"] .qf-whiteboard-ink:active { cursor: grabbing; }
+.qf-whiteboard-input{z-index:2;pointer-events:none}
+.qf-whiteboard--draft .qf-whiteboard-input { pointer-events: auto; touch-action: none; cursor: crosshair; }
+/* Question controls are clipped out of the transparent input layer, so they keep their own cursor. */
+.qf-whiteboard--draft[data-tool="hand"] .qf-whiteboard-input { cursor: grab; }
+.qf-whiteboard--draft[data-tool="hand"] .qf-whiteboard-input:active { cursor: grabbing; }
 
 /* This sibling layer floats over the pane instead of taking a layout row. */
 .qf-whiteboard-tool-row { position: absolute; inset: 0; z-index: 4; pointer-events: none; }

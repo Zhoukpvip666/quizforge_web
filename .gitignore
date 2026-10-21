@@ -9,7 +9,7 @@ node_modules/
 /runtime/
 /dist/
 
-# 公开源码只附带基础题库及四种基础拓展；其他内容保留本地。
+# 公开源码只附带基础题库及基础拓展；其他内容保留本地。
 /question-banks/*
 !/question-banks/基础题型/
 /question-banks/基础题型/MIGRATION.md
@@ -22,6 +22,7 @@ node_modules/
 !/extensions/基础题型/多选题/
 !/extensions/基础题型/判断题/
 !/extensions/基础题型/简答题/
+!/extensions/基础题型/答题区/
 *.log
 .env
 .env.*

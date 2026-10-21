@@ -145,6 +145,14 @@ export class WhiteboardModel {
   get viewport() { return { ...this.draft.viewport }; }
   get paper() { return { ...this.draft.paper }; }
   get layout() { return this.draft.layout ? { ...this.draft.layout } : null; }
+  adoptStrokes(strokes) { this.draft=normalizeDraft({...this.draft,strokes}); }
+
+  mapStrokes(ids, transform) {
+    const map=strokes=>strokes.map(stroke=>ids.has(stroke.id)?normalizeStroke(transform(stroke)):stroke);
+    const strokes=map(this.draft.strokes);normalizeDraft({...this.draft,strokes});
+    this.draft.strokes=strokes;
+    for(const stack of [this.undoStack,this.redoStack])for(const entry of stack){entry.before=map(entry.before);entry.after=map(entry.after);}
+  }
 
   initializeLayout(width) {
     if (this.draft.layout || this.draft.strokes.length) return false;

@@ -376,7 +376,7 @@ test('hand tool leaves reported question controls to the frame and pans everywhe
   assert.equal(toolbarContainer.querySelector('[data-tool="pen"]').attributes['aria-pressed'], 'false');
   assert.equal(canvas.tabIndex, 0);
   container.dispatch('qf-interactive-regions'); paint();
-  assert.equal(canvas.style['clip-path'], 'path(evenodd, "M0 0H800V600H0ZM100 100h50v40h-50Z")');
+  assert.equal(root.querySelector('.qf-whiteboard-input').style['clip-path'], 'path(evenodd, "M0 0H800V600H0ZM100 100h50v40h-50Z")');
   for (const pointerType of ['pen', 'mouse', 'touch']) {
     const down = pointer('pointerdown', 120, 120, pointerType);
     pointer('pointermove', 200, 220, pointerType); pointer('pointerup', 200, 220, pointerType);
@@ -390,12 +390,22 @@ test('hand tool leaves reported question controls to the frame and pans everywhe
   assert.deepEqual(board.getDraft(), draft);
   assert.equal(changes.length, 0);
   click('[data-tool="pen"]'); paint();
-  assert.equal(canvas.style['clip-path'], undefined, 'Writing tools cover the whole card.');
+  assert.equal(root.querySelector('.qf-whiteboard-input').style['clip-path'], undefined, 'Writing tools cover the whole card.');
   pointer('pointerdown', 120, 120); pointer('pointerup', 150, 150);
   assert.equal(board.getDraft().strokes.length, 2);
   assert.deepEqual(board.getDraft().strokes[0], draft.strokes[0]);
   assert.equal(changes.length, 1);
   board.destroy();
+});
+
+test('pen and eraser leave only declared answer-area rectangles to the component while ordinary draft ink stays separate',()=>{
+  const f=fixture(),frame=f.container.ownerDocument.createElement('iframe');frame.qfAnswerAreaRegions=[[100,100,200,150]];frame.qfInteractiveRegions=[[100,100,200,150],[400,100,40,30]];f.container.append(frame);f.board.setMode('draft');
+  for(const tool of ['pen','eraser']){
+    f.click(`[data-tool="${tool}"]`);f.paint();assert.match(f.root.querySelector('.qf-whiteboard-input').style['clip-path'],/M100 100h200v150h-200Z/);
+    const down=f.pointer('pointerdown',150,150);f.pointer('pointerup',180,180);assert.equal(down.defaultPrevented,undefined);assert.equal(f.board.getDraft().strokes.length,0);
+  }
+  f.click('[data-tool="pen"]');f.pointer('pointerdown',420,110);f.pointer('pointerup',425,120);assert.equal(f.board.getDraft().strokes.length,1,'Ordinary buttons do not become writing holes');
+  f.click('[data-tool="capture"]');f.paint();assert.equal(f.root.querySelector('.qf-whiteboard-input').style['clip-path'],undefined,'Capture still includes the complete selected area');f.board.destroy();
 });
 
 test('V and H choose the hand tool from the draft canvas without consuming input field, modified or practice shortcuts', () => {

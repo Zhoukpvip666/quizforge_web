@@ -134,7 +134,7 @@ test('outline shows consecutive type groups and numbered states with only the su
   f.host.renderOutline();const outline=f.dom.window.document.querySelector('.outline');
   assert.deepEqual([...outline.querySelectorAll('.outline-group-title')].map(node=>node.textContent),['单选题','简答题','单选题']);
   assert.deepEqual([...outline.querySelectorAll('.outline-item')].map(node=>node.textContent),['1','2','3']);
-  assert.equal(outline.querySelector('[data-question-id="a"]').classList.contains('correct'),true);assert.equal(outline.querySelector('[data-question-id="b"]').classList.contains('incorrect'),true);assert.equal(outline.querySelector('[data-question-id="c"]').classList.contains('draft'),true);
+  assert.equal(outline.querySelector('[data-question-id="a"]').classList.contains('correct'),true);assert.equal(outline.querySelector('[data-question-id="b"]').classList.contains('pending'),true);assert.equal(outline.querySelector('[data-question-id="c"]').classList.contains('draft'),true);
   assert.equal(outline.querySelector('#outline-count'),null);assert.equal(outline.querySelector('#outline-summary'),null);assert.doesNotMatch(outline.textContent,/已提交|得分|共.*题/);assert.equal(outline.querySelector('.outline-score-summary').textContent,'分值汇总');
 });
 
@@ -178,7 +178,7 @@ test('ordinary question correctness uses full numeric score and summary snapshot
   pane.collection.questions=[{id:'a',title:'满分'},{id:'b',title:'部分分'},{id:'c',title:'零分'},{id:'d',title:'未提交'},{id:'e',title:'未判分'}];
   pane.collection.states={a:{status:'submitted',result:{score:2,maxScore:2,correct:false}},b:{status:'submitted',result:{score:.5,maxScore:2,correct:true}},c:{status:'submitted',result:{score:0,maxScore:2,correct:true}},d:{status:'draft',result:{score:2,maxScore:2,correct:true}},e:{status:'submitted',result:{score:null,maxScore:2,correct:null,gradingStatus:'pending'}}};
   f.host.renderOutline();const button=id=>f.dom.window.document.querySelector(`[data-question-id="${id}"]`);
-  for(const [id,status]of [['a','correct'],['b','incorrect'],['c','incorrect'],['d','draft'],['e','incorrect']])assert.equal(button(id).classList.contains(status),true);
+  for(const [id,status]of [['a','correct'],['b','incorrect'],['c','incorrect'],['d','draft'],['e','pending']])assert.equal(button(id).classList.contains(status),true);
   pane.summaryShown=true;pane.scoreSummary={questions:[{id:'a',submitted:true,score:1,maxScore:2},{id:'b',submitted:true,score:2,maxScore:2},{id:'c',submitted:false,score:0,maxScore:2}]};f.host.renderOutline();
   assert.equal(button('a').classList.contains('incorrect'),true);assert.equal(button('b').classList.contains('correct'),true);assert.equal(button('c').classList.contains('unanswered'),true);
 });

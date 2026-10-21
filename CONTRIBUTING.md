@@ -72,7 +72,7 @@ npm --prefix core run test:rules
 
 维护者检查代码、兼容性和验证证据后合并，优先使用 Squash 合并，让主分支中的一个提交对应一个完整改动。主分支保持可运行；预览包制作、发布验收、版本标签和发布由维护者统一处理。
 
-公开仓库只附带基础题型展示库及四种基础拓展。根目录人工 `test/` 和开发日志为本地维护资料；`core/test/`、后端测试及兼容夹具属于公开源码。生成的 EXE、内置 Node、依赖和 ZIP 不提交，用户预览包作为 GitHub Releases 附件发布。Windows 托盘及预览包构建见 [桌面启动器](core/desktop/README.md)。
+公开仓库只附带基础题型展示库及五种基础拓展。根目录人工 `test/` 和开发日志为本地维护资料；`core/test/`、后端测试及兼容夹具属于公开源码。生成的 EXE、内置 Node、依赖和 ZIP 不提交，用户预览包作为 GitHub Releases 附件发布。Windows 托盘及预览包构建见 [桌面启动器](core/desktop/README.md)。
 
 本地构建 Windows 安装包可双击根目录 `Build-QuizForge-Installer.cmd`：准备 Node.js 24、Inno Setup 7.1 和系统 .NET Framework 4.8 后，入口会检查依赖、编译隔离启动器并生成安装包；不会自动发布。`Build-QuizForge-Installer.cmd -CheckOnly` 只检查环境。首次工具下载、版本输入、自定义路径和离线许可证见上述构建文档。
 

@@ -78,6 +78,8 @@ function failure(result) {
 }
 function copyServer(root) {
   fs.cpSync(path.join(code, 'server'), path.join(root, 'core/server'), { recursive: true, filter: file => !/\.test\./.test(path.basename(file)) });
+  fs.cpSync(path.join(code, 'shared/answer-area'), path.join(root, 'core/shared/answer-area'), { recursive: true });
+  fs.cpSync(path.join(code, 'shared/ink'), path.join(root, 'core/shared/ink'), { recursive: true });
 }
 
 test('desktop backend names a package missing from a source checkout instead of crashing on import', t => {
@@ -97,4 +99,12 @@ test('desktop backend in a preview package reports a removed runtime package wit
   fs.copyFileSync(path.join(code, 'package-lock.json'), path.join(root, 'core/package-lock.json')); write(root, 'RELEASE.json', {});
   fs.rmSync(path.join(root, 'core/node_modules/qrcode-generator'), { recursive: true });
   assert.equal(failure(runMain(root)), '缺少运行依赖：qrcode-generator。请重新解压完整预览包。');
+});
+
+test('packaged runtime includes the native text rasterizer and its platform dependency',t=>{
+  const root=fixture(t),modules=copyRuntimeDependencies(product,root);
+  assert.ok(modules.some(module=>module.name==='@napi-rs/canvas'));
+  assert.ok(modules.some(module=>module.name.startsWith('@napi-rs/canvas-')));
+  const script="const {createCanvas}=require('./core/node_modules/@napi-rs/canvas');const c=createCanvas(160,120);const x=c.getContext('2d');x.font='18px Arial';x.fillText('Answer',10,30);console.log(c.toBuffer('image/png').length>100);";
+  const run=spawnSync(process.execPath,['-e',script],{cwd:root,encoding:'utf8',windowsHide:true});assert.equal(run.status,0,run.stderr);assert.equal(run.stdout.trim(),'true');
 });

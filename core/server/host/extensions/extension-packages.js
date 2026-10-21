@@ -4,7 +4,8 @@ import { createHash } from 'node:crypto';
 import { ApiError, bad, id, text, requireObject } from '../platform/errors.js';
 import { exists, readBytes, readJson, safeFile, within, walkFiles } from '../platform/files.js';
 import { cloneJson, fingerprint, hash } from '../platform/json.js';
-import { answerStateDeclared, declareApi, outlineItemsDeclared, requireManifestApi } from './extension-api.js';
+import { answerStateDeclared, answerAreasDeclared, declareApi, outlineItemsDeclared, requireManifestApi } from './extension-api.js';
+import { answerAreaComponent } from './answer-area-component.js';
 import { optional } from '../library/collections.js';
 
 const FIELDS = ['entry', 'script', 'style', 'rules', 'questionSchema', 'answerSchema', 'examples'];
@@ -68,6 +69,7 @@ export function snapshotPage(extension) {
     if (marker.mode === 'ui') result.legacyPage = true;
   } else result = pageAssets(extension.directory, config, media.length ? media : undefined);
   if (extension.answerStateDeclared) result.answerStateDeclared = true;
+  if (extension.answerAreasDeclared) {result.answerAreasDeclared=true;result.answerAreaComponent=answerAreaComponent();}
   return withDependencies(result, extension);
 }
 export function editorPage(extension) {
@@ -154,12 +156,13 @@ export function readExtension(directory, richtext, sdk, developmentPackage = nul
     }
     identity = digest.digest('hex');
   }
-  return { id: Object.hasOwn(config, 'id') ? id(config, 'id') : development ? runtimeId(developmentPackage.folder) : id(config, 'id'), version: Object.hasOwn(config, 'version') ? id(config, 'version') : development ? '0.0.0' : id(config, 'version'), name: Object.hasOwn(config, 'name') || !development ? text(config, 'name', 300) : developmentPackage.name, description: development ? developmentPackage.description : optional(config, 'description', 4000), directory, ...fields, fingerprint: identity, dependencies: resolution.dependencies, contentApi: resolution.contentApi, providerRevision: resolution.revision, outlineItemsDeclared: outlineItemsDeclared(config), answerStateDeclared: answerStateDeclared(config), development: null };
+  return { id: Object.hasOwn(config, 'id') ? id(config, 'id') : development ? runtimeId(developmentPackage.folder) : id(config, 'id'), version: Object.hasOwn(config, 'version') ? id(config, 'version') : development ? '0.0.0' : id(config, 'version'), name: Object.hasOwn(config, 'name') || !development ? text(config, 'name', 300) : developmentPackage.name, description: development ? developmentPackage.description : optional(config, 'description', 4000), directory, ...fields, fingerprint: identity, dependencies: resolution.dependencies, contentApi: resolution.contentApi, providerRevision: resolution.revision, outlineItemsDeclared: outlineItemsDeclared(config), answerStateDeclared: answerStateDeclared(config), answerAreasDeclared: answerAreasDeclared(config), development: null };
 }
 export function runtimeExtension(original, packageValue) {
   const contract = { outlineItems: original.outlineItemsDeclared };
   if (original.contentApi) contract.contentApi = original.contentApi;
   if (original.answerStateDeclared) contract.answerState = true;
+  if (original.answerAreasDeclared) contract.answerAreas = 1;
   for (const field of ['rules', 'questionSchema', 'answerSchema']) contract[field] = original[field] ? hash(readBytes(original[field])) : '';
   return { ...original, id: runtimeId(packageValue.folder), version: '0.0.0', fingerprint: fingerprint(contract, 'quizforge-development-rules-v2'), providerRevision: original.providerRevision + ':' + packageValue.revision, development: { folder: packageValue.folder } };
 }

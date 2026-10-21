@@ -1,6 +1,10 @@
 import { WhiteboardModel, DRAFT_LIMITS, normalizeViewport, screenToWorld, zoomAt, translateCamera, strokeTouchesPath } from './whiteboard-model.js';
 import { rectangle, strokeBounds, containsPoint, enclosedStrokes, translateStrokes } from './whiteboard-selection.js';
 import { copyCaptureImage } from './whiteboard-capture.js';
+import { publishAnswerTools, activeAnswerFrame, sendAnswerCommand, clearAnswerFocus } from '../shared/answer-area-channel.js';
+import {paintInkStroke} from '../../shared/ink/1.0.0/renderer.js';
+import {createAnswerInk} from './answer-ink.js';
+import {canvasSpace} from './canvas-space.js';
 import { DEFAULT_TOOLBAR_DOCK, normalizeDock, dockedPosition, popupPosition, anchorLayout, isCornerAnchor, stepAnchor, isToolbarDrag, releaseVelocity, releaseDock, springStep, springSettled, TOOLBAR_SHRINK_MS, TOOLBAR_SPRING, TOOLBAR_SHAPE_SPRING } from './whiteboard-dock.js';
 
 const INK_COLORS = [['#334155','深灰'],['#000000','黑色'],['#386db6','蓝色'],['#d04444','红色'],['#25865a','绿色'],['#8055bd','紫色']];
@@ -50,6 +54,7 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
   root.innerHTML = `
     <div class="qf-whiteboard-paper" aria-hidden="true"></div>
     <canvas class="qf-whiteboard-ink" aria-label="题目草稿白板" tabindex="-1"></canvas>
+    <div class="qf-whiteboard-input" aria-hidden="true"></div>
     <div class="qf-whiteboard-toolbar" role="toolbar" aria-label="白板工具：按住任意位置可拖动，拖到角落收起；Alt 加方向键换位置" aria-orientation="vertical" data-side="right" data-collapsed="false">
       <button type="button" class="qf-whiteboard-expand" data-action="expand-toolbar" aria-label="展开白板工具" aria-expanded="false" title="点按展开白板工具；拖动可换位置" hidden></button>
       <div class="qf-whiteboard-group">
@@ -80,13 +85,13 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
     <div class="qf-whiteboard-selection-actions" role="group" aria-label="选中笔迹" hidden><span data-control="selection-count"></span><button type="button" data-action="copy-selection" aria-label="复制选中笔迹" title="复制一份">${icon('copy')}</button><button type="button" data-action="delete-selection" aria-label="删除选中笔迹" title="删除">${icon('clear')}</button><button type="button" data-action="cancel-selection" aria-label="取消选择" title="取消选择">${icon('close')}</button></div>
     <dialog class="qf-whiteboard-capture-preview" aria-label="区域截图预览"><div class="qf-whiteboard-capture-head"><strong>区域截图</strong><button type="button" data-action="close-capture" aria-label="关闭截图预览">${icon('close')}</button></div><img alt="选定区域的题目与草稿截图"><div class="qf-whiteboard-capture-footer"><span class="qf-whiteboard-capture-status" role="status">只截取选定区域，不包含工具栏</span><div class="qf-whiteboard-capture-actions"><button type="button" data-action="copy-capture">复制图片</button><a download>下载 PNG</a></div></div></dialog>
     <div class="qf-whiteboard-confirm" role="dialog" aria-modal="true" aria-label="清空白板" hidden>
-      <div><p>清空本题的所有笔迹？清空后可以撤销。</p><button type="button" data-action="confirm-clear">清空笔迹</button><button type="button" data-action="cancel-clear">取消</button></div>
+      <div><p data-control="clear-message">清空本题的所有笔迹？清空后可以撤销。</p><button type="button" data-action="confirm-clear">清空笔迹</button><button type="button" data-action="cancel-clear">取消</button></div>
     </div>
     <div class="qf-whiteboard-status" role="status" aria-live="polite"></div>`;
   container.append(root);
   const toolbarParent = toolbarContainer || root;
   const select = selector => root.querySelector(selector) || toolbarContainer?.querySelector(selector);
-  const canvas = select('canvas'), paperElement = select('.qf-whiteboard-paper');
+  const canvas = select('canvas'), hitLayer=select('.qf-whiteboard-input'), paperElement = select('.qf-whiteboard-paper');
   canvas.hidden = true;
   const context = canvas.getContext('2d');
   if (!context) { root.remove(); throw new Error('This browser does not support canvas'); }
@@ -124,7 +129,10 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
   let selectedIds = [], clipboard = [], capturing = false, captureGeneration = 0;
   let toolbarDrag = null, suppressClickUntil = 0, settle = null, dock = readDock(), cornerOpen = false, expandIcon = '', interactiveClip = '';
   let captureUrl=null,captureBlob=null;
+  let answerClearTarget=null;
   const pointers = new Map();
+  let pendingImageTap=null;
+  const answerInk=createAnswerInk({container,canvas,whiteboard:model,getMode:()=>mode,getCamera:()=>draftCamera(),getScroll:scrollOffset,getSize:()=>({width:viewWidth,height:viewHeight}),onAdopt:()=>onChange(model.getDraft())});
 
   function readDock() {
     try { return normalizeDock(JSON.parse(win.localStorage.getItem(TOOLBAR_STORAGE_KEY))); }
@@ -159,15 +167,19 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
     if (readOnly) readOnlyCamera = next; else localCamera = next;
     return next.x !== previous.x || next.y !== previous.y || next.zoom !== previous.zoom;
   }
-  function emitChange() { updateControls(); if (readOnly) onViewChange(draftCamera()); else onChange(model.getDraft()); }
+  function emitChange() { answerInk.sync();updateControls(); if (readOnly) onViewChange(draftCamera()); else onChange(model.getDraft()); }
   function emitViewChange() { updateControls(); onViewChange(draftCamera()); }
   function updateControls() {
     for (const button of toolButtons) button.hidden = readOnly && !READ_ONLY_TOOLS.includes(button.dataset.tool);
     undoButton.parentElement.hidden = readOnly;
     settingsButton.hidden = readOnly;
-    undoButton.disabled = readOnly || !model.canUndo;
-    redoButton.disabled = readOnly || !model.canRedo;
-    select('[data-action="clear"]').disabled = model.strokes.length === 0;
+    const answerFocus = activeAnswerFrame(container)?.qfAnswerAreaFocus;
+    undoButton.disabled = readOnly || !(answerFocus ? answerFocus.canUndo : model.canUndo);
+    redoButton.disabled = readOnly || !(answerFocus ? answerFocus.canRedo : model.canRedo);
+    undoButton.title = answerFocus ? '撤销正式答题区的最后操作' : '撤销草稿 (Ctrl / ⌘ Z)';
+    redoButton.title = answerFocus ? '重做正式答题区的最后操作' : '重做草稿 (Ctrl / ⌘ Shift Z)';
+    publishAnswerTools(container,{tool,color:inkColor.value,width:Number(widthInput.value),penOnly:penOnly.checked});
+    select('[data-action="clear"]').disabled = !answerFocus && model.strokes.length === 0;
     paperColor.value = model.paper.color;
     pattern.value = model.paper.pattern;
     for (const button of query('[data-ink]')) button.setAttribute('aria-pressed',String(button.dataset.ink === inkColor.value));
@@ -206,57 +218,45 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
   // Question frames report the controls a learner can use, in frame pixels.
   // The hand tool leaves those areas to the frame and pans everywhere else.
   function interactiveRects() {
-    if (mode !== 'draft' || tool !== 'hand') return [];
-    const origin = canvas.getBoundingClientRect(), rects = [];
+    if (mode !== 'draft') return [];
+    const space=canvasSpace(canvas,{width:viewWidth,height:viewHeight}),rects=[];
     for (const element of container.querySelectorAll('iframe')) {
-      const regions = element.qfInteractiveRegions;
+      const locked=(element.qfSharedAnswerAreas||[]).filter(area=>!area.writable).map(area=>area.rect);
+      const controls=(element.qfSharedAnswerAreas||[]).flatMap(area=>area.imageControls||[]);
+      const regions = [...(tool==='hand'?element.qfInteractiveRegions||[]:['pen','eraser'].includes(tool)?element.qfAnswerAreaRegions||[]:[]),...controls,...locked];
       if (!regions?.length) continue;
       const bounds = element.getBoundingClientRect();
       if (!bounds.width || !bounds.height) continue;
-      const scaleX = bounds.width / (element.offsetWidth || bounds.width), scaleY = bounds.height / (element.offsetHeight || bounds.height);
+      const scaleX = bounds.width / (element.offsetWidth || element.clientWidth || bounds.width), scaleY = bounds.height / (element.offsetHeight || element.clientHeight || bounds.height);
       for (const [x, y, width, height] of regions) {
-        rects.push({ x: bounds.left - origin.left + x * scaleX, y: bounds.top - origin.top + y * scaleY, width: width * scaleX, height: height * scaleY });
+        rects.push(space.rect({left:bounds.left+x*scaleX,top:bounds.top+y*scaleY,width:width*scaleX,height:height*scaleY}));
       }
     }
     return rects;
   }
+  function unionRects(rects){
+    const edges=[...new Set(rects.flatMap(rect=>[rect.y,rect.y+rect.height]))].sort((a,b)=>a-b),result=[];let previous=[];
+    for(let index=0;index<edges.length-1;index++){
+      const y=edges[index],bottom=edges[index+1],spans=rects.filter(rect=>rect.y<=y&&rect.y+rect.height>=bottom).map(rect=>[rect.x,rect.x+rect.width]).sort((a,b)=>a[0]-b[0]),merged=[];
+      for(const span of spans){const last=merged.at(-1);if(last&&span[0]<=last[1])last[1]=Math.max(last[1],span[1]);else merged.push([...span]);}
+      const row=[];for(const [left,right]of merged){const above=previous.find(rect=>rect.x===left&&rect.x+rect.width===right&&rect.y+rect.height===y);if(above){above.height=bottom-above.y;row.push(above);}else{const rect={x:left,y,width:right-left,height:bottom-y};result.push(rect);row.push(rect);}}previous=row;
+    }return result;
+  }
   function syncInteractiveClip() {
     const round = value => Math.round(value * 10) / 10;
-    const holes = interactiveRects().filter(rect => rect.x < viewWidth && rect.y < viewHeight && rect.x + rect.width > 0 && rect.y + rect.height > 0);
+    const holes = unionRects(interactiveRects().filter(rect => rect.width>0&&rect.height>0&&rect.x < viewWidth && rect.y < viewHeight && rect.x + rect.width > 0 && rect.y + rect.height > 0));
     // Regions are disjoint, so even-odd turns each one into a hole that hit testing skips.
     const next = holes.length ? `path(evenodd, "M0 0H${round(viewWidth)}V${round(viewHeight)}H0Z${holes.map(rect => `M${round(rect.x)} ${round(rect.y)}h${round(rect.width)}v${round(rect.height)}h${round(-rect.width)}Z`).join('')}")` : '';
     if (next === interactiveClip) return;
     interactiveClip = next;
-    if (next) canvas.style.setProperty('clip-path', next); else canvas.style.removeProperty('clip-path');
+    if (next) hitLayer.style.setProperty('clip-path', next); else hitLayer.style.removeProperty('clip-path');
   }
   function insideInteractiveRegion(point) {
     return interactiveRects().some(rect => point.x >= rect.x && point.y >= rect.y && point.x <= rect.x + rect.width && point.y <= rect.y + rect.height);
   }
   function strokeWidth(stroke, point) { return stroke.width * (0.35 + 0.65 * point.pressure); }
   function paintStroke(stroke) {
-    const points = stroke.points;
-    if (!points.length) return;
-    context.strokeStyle = stroke.color;
-    context.fillStyle = stroke.color;
-    context.lineCap = 'round';
-    context.lineJoin = 'round';
-    const dot = point => {
-      context.beginPath();
-      context.arc(point.x, point.y, strokeWidth(stroke, point) / 2, 0, Math.PI * 2);
-      context.fill();
-    };
-    dot(points[0]);
-    for (let i = 1; i < points.length; i++) {
-      const previous = points[i - 1], current = points[i];
-      const from = i === 1 ? previous : { x: (points[i - 2].x + previous.x) / 2, y: (points[i - 2].y + previous.y) / 2 };
-      const to = i === points.length - 1 ? current : { x: (previous.x + current.x) / 2, y: (previous.y + current.y) / 2 };
-      context.lineWidth = (strokeWidth(stroke, previous) + strokeWidth(stroke, current)) / 2;
-      context.beginPath();
-      context.moveTo(from.x, from.y);
-      context.quadraticCurveTo(previous.x, previous.y, to.x, to.y);
-      context.stroke();
-    }
-    if (points.length > 1) dot(points[points.length - 1]);
+    paintInkStroke(context,stroke);
   }
   function paint() {
     if (destroyed) return;
@@ -266,7 +266,8 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
     syncInteractiveClip();
     context.setTransform(1, 0, 0, 1, 0, 0);
     context.clearRect(0, 0, canvas.width, canvas.height);
-    if (mode === 'practice') return;
+    answerInk.sync();canvas.hidden=mode==='practice'&&!answerInk.hasAreas();
+    if (mode === 'practice') {answerInk.paintPractice(context,pixelRatio);return;}
     context.setTransform(pixelRatio * camera.zoom, 0, 0, pixelRatio * camera.zoom,
       pixelRatio * (camera.x * camera.zoom - scroll.x), pixelRatio * (camera.y * camera.zoom - scroll.y));
     for (const stroke of model.strokes) {
@@ -549,11 +550,7 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
   }
   function screenPoint(event) {
     syncScroll(); // Programmatic scrolling may precede its deferred scroll event.
-    const bounds = canvas.getBoundingClientRect();
-    return {
-      x: (event.clientX - bounds.left) * viewWidth / (bounds.width || viewWidth),
-      y: (event.clientY - bounds.top) * viewHeight / (bounds.height || viewHeight),
-    };
+    return canvasSpace(canvas,{width:viewWidth,height:viewHeight}).point({x:event.clientX,y:event.clientY});
   }
   function cameraPoint(point) {
     const scroll = scrollOffset();
@@ -572,7 +569,26 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
     pointers.clear();
     for (const id of ids) { try { if (canvas.hasPointerCapture(id)) canvas.releasePointerCapture(id); } catch {} }
   }
+  const setTapTimer=win.setTimeout?.bind(win)||setTimeout,clearTapTimer=win.clearTimeout?.bind(win)||clearTimeout;
+  function cancelImageTap(){if(pendingImageTap)clearTapTimer(pendingImageTap.timer);pendingImageTap=null;}
+  function flushImageTap(){
+    const tap=pendingImageTap;if(!tap)return;cancelImageTap();if(readOnly||destroyed)return;
+    try{let changed=false;if(tap.tool==='pen')changed=model.appendStroke({id:nextStrokeId(),color:tap.color,width:tap.width,points:tap.points});else if(tap.tool==='eraser')changed=model.eraseAlong(tap.points,tap.radius);if(changed)emitChange();}catch(error){report(error.message);}requestPaint();
+  }
+  function finishImageTap(tap){
+    const previous=pendingImageTap,now=Date.now(),matches=previous&&previous.picture.frame===tap.picture.frame&&previous.picture.id===tap.picture.id&&previous.picture.imageId===tap.picture.imageId&&now-previous.time<=350&&Math.hypot(previous.screen.x-tap.screen.x,previous.screen.y-tap.screen.y)<=24;
+    finishInteraction(false);
+    if(matches){cancelImageTap();answerInk.selectImage(tap.picture);return;}
+    flushImageTap();pendingImageTap={...tap,time:now,timer:setTapTimer(flushImageTap,350)};
+  }
+  function resumeImageGesture(tap){
+    flushImageTap();
+    if(tap.tool==='hand')beginPan(tap.pointerId,tap.screen);
+    else if(tap.tool==='eraser'){gesture={kind:'erase',pointerId:tap.pointerId,pointerType:tap.pointerType,radius:tap.radius,points:tap.points,erasedIds:new Set()};previewErase(gesture.points);}
+    else gesture={kind:'ink',pointerId:tap.pointerId,pointerType:tap.pointerType,stroke:{id:nextStrokeId(),color:tap.color,width:tap.width,points:tap.points}};
+  }
   function cancelInteraction() {
+    cancelImageTap();
     gesture = null;
     if (cameraBefore) setDraftCamera(cameraBefore);
     cameraBefore = null;
@@ -583,6 +599,7 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
     requestPaint();
   }
   function finishInteraction(commit = true) {
+    if(commit)flushImageTap();
     if (!interaction) return;
     const active = gesture;
     gesture = null;
@@ -606,6 +623,7 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
     requestPaint();
   }
   function startPinch() {
+    cancelImageTap();
     const touches = [...pointers.entries()].filter(([, pointer]) => pointer.type === 'touch');
     if (touches.length < 2) return;
     const [first, second] = touches;
@@ -627,21 +645,26 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
     if (mode !== 'draft' || capturing || !confirmation.hidden || (event.pointerType === 'mouse' && ![0, 1, 2].includes(event.button))) return;
     const screen = screenPoint(event);
     // Browsers that ignore clip-path hit testing still leave question controls alone.
-    if (tool === 'hand' && !gesture && insideInteractiveRegion(screen)) return;
+    if (!event.qfAnswerPan && !gesture && insideInteractiveRegion(screen)) return;
+    if(answerInk.dismissImages()){event.preventDefault();return;}
+    const picture=answerInk.imageAt(screen);
+    if(pendingImageTap&&(!picture||picture.frame!==pendingImageTap.picture.frame||picture.imageId!==pendingImageTap.picture.imageId))flushImageTap();
+    clearAnswerFocus(container);
     event.preventDefault();
     // A resting palm cannot replace an active stylus gesture.
     if (event.pointerType === 'touch' && gesture?.pointerType === 'pen') return;
     if (event.pointerType === 'pen' && gesture && gesture.pointerType !== 'pen') cancelInteraction();
     pointers.set(event.pointerId, { type: event.pointerType, screen });
-    capture(event);
+    if(!event.qfAnswerPan)capture(event);
     if (!interaction) { cameraBefore = draftCamera(); notifyInteraction(true); report(); }
     if (event.pointerType === 'touch' && [...pointers.values()].filter(pointer => pointer.type === 'touch').length >= 2) {
       startPinch();
       return;
     }
     if (gesture) return;
-    const selectedTool = event.pointerType === 'mouse' && event.button !== 0 ? 'hand' : tool;
-    if (selectedTool === 'capture') { selectedIds=[]; gesture={kind:'capture',pointerId:event.pointerId,pointerType:event.pointerType,from:screen,to:screen}; }
+    const selectedTool = event.qfAnswerPan || event.pointerType === 'mouse' && event.button !== 0 ? 'hand' : tool;
+    if(picture&&!readOnly&&['pen','eraser','hand'].includes(selectedTool)){gesture={kind:'image-tap',picture,pointerId:event.pointerId,pointerType:event.pointerType,screen,points:[inkPoint(event)],tool:selectedTool==='hand'||event.pointerType==='touch'&&penOnly.checked?'hand':selectedTool,color:inkColor.value,width:Number(widthInput.value),radius:eraserRadius()};}
+    else if (selectedTool === 'capture') { selectedIds=[]; gesture={kind:'capture',pointerId:event.pointerId,pointerType:event.pointerType,from:screen,to:screen}; }
     else if (selectedTool === 'select-ink' && !readOnly) {
       const point = inkPoint(event);
       if (containsPoint(selectionBounds(),point)) gesture={kind:'move-selection',pointerId:event.pointerId,pointerType:event.pointerType,from:point,dx:0,dy:0};
@@ -688,6 +711,7 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
       const anchor = cameraPoint(midpoint);
       setDraftCamera({ x: bound(anchor.x / zoom - gesture.anchor.x), y: bound(anchor.y / zoom - gesture.anchor.y), zoom });
     } else if (gesture?.pointerId === event.pointerId) {
+      if(gesture.kind==='image-tap'){if(Math.hypot(pointer.screen.x-gesture.screen.x,pointer.screen.y-gesture.screen.y)>6){const tap=gesture;resumeImageGesture(tap);pointerMove(event);}else if(gesture.tool!=='hand')addSamples(event);return;}
       if (gesture.kind === 'pan') setDraftCamera(translateCamera(gesture.camera, pointer.screen.x - gesture.origin.x, pointer.screen.y - gesture.origin.y));
       else if (gesture.kind === 'box') gesture.to=inkPoint(event);
       else if (gesture.kind === 'capture') gesture.to=pointer.screen;
@@ -702,7 +726,8 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
     event.preventDefault();
     pointerMove(event); // Include the final position even if the browser omitted a last move.
     pointers.delete(event.pointerId);
-    if (gesture?.kind === 'pinch') {
+    if(gesture?.kind==='image-tap'){const tap=gesture;finishImageTap(tap);}
+    else if (gesture?.kind === 'pinch') {
       const touches = [...pointers.entries()].filter(([, pointer]) => pointer.type === 'touch');
       if (touches.length >= 2) startPinch();
       else if (touches.length === 1) beginPan(touches[0][0], touches[0][1].screen);
@@ -763,11 +788,19 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
     else if (action === 'copy-selection' && selectedIds.length) {
       try { const copies=translateStrokes(model.strokes,selectedIds,24/draftCamera().zoom,24/draftCamera().zoom,nextStrokeId);changed=model.editStrokes([...model.strokes,...copies]);selectedIds=copies.map(stroke=>stroke.id); } catch(error){report(error.message);}
     }
-    else if (action === 'undo') { selectedIds=[];changed = model.undo(); }
-    else if (action === 'redo') { selectedIds=[];changed = model.redo(); }
-    else if (action === 'clear' && model.strokes.length) { closeSettings(); confirmation.hidden = false; select('[data-action="cancel-clear"]').focus(); }
-    else if (action === 'cancel-clear') { confirmation.hidden = true; focusTool(); }
-    else if (action === 'confirm-clear') { changed = model.clear(); confirmation.hidden = true; focusTool(); }
+    else if (action === 'undo') { selectedIds=[];if(!sendAnswerCommand(container,'undo'))changed = model.undo(); }
+    else if (action === 'redo') { selectedIds=[];if(!sendAnswerCommand(container,'redo'))changed = model.redo(); }
+    else if (action === 'clear' && (model.strokes.length || activeAnswerFrame(container))) {
+      answerClearTarget=activeAnswerFrame(container)?.qfAnswerAreaFocus?.id??null;
+      select('[data-control="clear-message"]').textContent=answerClearTarget?'清空当前正式答题区的文字与笔迹？区域外草稿不变，清空后可以撤销。':answerInk.hasAreas()?'清空本题全部手写笔迹（包含答题区内笔迹）？打字内容不变，清空后可以撤销。':'清空本题的普通草稿笔迹？正式答题区不变，清空后可以撤销。';
+      closeSettings();confirmation.hidden = false; select('[data-action="cancel-clear"]').focus();
+    }
+    else if (action === 'cancel-clear') { answerClearTarget=null;confirmation.hidden = true; focusTool(); }
+    else if (action === 'confirm-clear') {
+      if(answerClearTarget){if(activeAnswerFrame(container)?.qfAnswerAreaFocus?.id===answerClearTarget)sendAnswerCommand(container,'clear');else report('答题区已切换，请重新选择后清空。');}
+      else changed = model.clear();
+      answerClearTarget=null;confirmation.hidden = true;focusTool();
+    }
     else if (action === 'fullscreen' && mode === 'draft') { closeSettings(); onFullscreen(); }
     toolbar.inert = !confirmation.hidden;
     if (changed) emitChange();
@@ -786,13 +819,20 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
     else if (button.dataset.action) perform(button.dataset.action);
   }
   listen(canvas, 'pointerdown', pointerDown);
+  listen(hitLayer, 'pointerdown', pointerDown);
   listen(canvas, 'pointermove', pointerMove);
+  listen(hitLayer, 'pointermove', pointerMove);
   listen(canvas, 'pointerup', pointerUp);
+  listen(hitLayer, 'pointerup', pointerUp);
   listen(canvas, 'pointercancel', event => { if (pointers.has(event.pointerId)) cancelInteraction(); });
+  listen(hitLayer, 'pointercancel', event => { if (pointers.has(event.pointerId)) cancelInteraction(); });
   listen(canvas, 'lostpointercapture', event => { if (pointers.has(event.pointerId)) cancelInteraction(); });
+  listen(hitLayer, 'lostpointercapture', event => { if (pointers.has(event.pointerId)) cancelInteraction(); });
   listen(canvas, 'pointerleave', () => { eraserCursor = null; requestPaint(); });
+  listen(hitLayer, 'pointerleave', () => { eraserCursor = null; requestPaint(); });
   listen(canvas, 'contextmenu', event => { if (mode === 'draft') event.preventDefault(); });
-  listen(canvas, 'wheel', event => {
+  listen(hitLayer, 'contextmenu', event => { if (mode === 'draft') event.preventDefault(); });
+  const wheelInput = event => {
     if (mode !== 'draft') return;
     event.preventDefault();
     finishInteraction();
@@ -801,7 +841,9 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
     if (setDraftCamera(zoomAt(camera, camera.zoom * Math.exp(-amount * 0.002), cameraPoint(screenPoint(event))))) emitViewChange();
     syncCamera();
     requestPaint();
-  }, { passive: false });
+  };
+  listen(canvas,'wheel',wheelInput,{passive:false});
+  listen(hitLayer,'wheel',wheelInput,{passive:false});
   for (const scope of [toolbar, ...popups]) listen(scope, 'click', event => controlClick(event, scope));
   listen(selectionActions,'click',event=>{const button=event.target.closest('button');if(button&&selectionActions.contains(button)&&confirmation.hidden)perform(button.dataset.action);});
   listen(toolbar, 'pointerdown', startToolbarDrag);
@@ -833,8 +875,9 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
     const button = event.target.closest('button');
     if (button && confirmation.contains(button)) perform(button.dataset.action);
   });
-  listen(widthInput, 'input', () => { widthValue.value = widthInput.value; widthValue.textContent = widthInput.value; });
-  listen(penOnly, 'change', cancelInteraction);
+  listen(widthInput, 'input', () => { widthValue.value = widthInput.value; widthValue.textContent = widthInput.value; updateControls(); });
+  listen(penOnly, 'change', () => { cancelInteraction();updateControls(); });
+  listen(container,'qf-answer-area-focus',updateControls);
   for (const control of [paperColor, pattern]) listen(control, 'change', () => {
     if (readOnly) { updateControls(); return; }
     finishInteraction();
@@ -865,9 +908,13 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
   listen(win, 'blur', () => {cancelInteraction();if(toolbarDrag)cancelToolbarDrag({pointerId:toolbarDrag.id});});
   listen(container, 'scroll', () => { syncScroll(); requestPaint(); onScroll(); }, { passive: true });
   listen(container, 'qf-interactive-regions', requestPaint);
+  listen(container,'qf-shared-answer-layout',()=>{try{answerInk.sync();requestPaint();}catch(error){report(error.message);}});
+  listen(container,'qf-answer-ink-sync',()=>{finishInteraction();answerInk.sync();});
   const observer = win.ResizeObserver ? new win.ResizeObserver(resize) : null;
   if (observer) observer.observe(container);
-  else listen(win, 'resize', resize);
+  // Page zoom may change DPR without changing the observed content box.
+  listen(win, 'resize', resize);
+  if(win.visualViewport?.addEventListener)listen(win.visualViewport,'resize',resize);
   root.dataset.tool = tool;
   syncCamera();
   resize();
@@ -910,6 +957,7 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
       selectedIds=[];captureGeneration++;closePalette();
       if(capturePreview.open)capturePreview.close();
       model.load(next);
+      answerInk.reset();
       loadGeneration++;
       localCamera = model.viewport;
       if (readOnly) readOnlyCamera = model.viewport;

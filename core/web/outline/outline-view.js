@@ -12,12 +12,12 @@ export function renderOutlineView({document,pane,onNavigate,onSummary}){
   // nodes and keyboard focus until visible labels, navigation or states change.
   const signature=JSON.stringify([rows,extension,qid,pane?.outlineItemId,pane?.summaryShown,summaryAvailable,
     pane?.summaryShown?pane.scoreSummary?.questions:null,
-    rows.map(row=>{const state=outlineStateFor(pane,row.id);return [state.status,state.result?.score,state.result?.maxScore,state.outlineStates];})]);
+    rows.map(row=>{const state=outlineStateFor(pane,row.id);return [state.status,state.result?.score,state.result?.maxScore,state.result?.gradingStatus,state.outlineStates];})]);
   const previous=renderedOutlines.get(root);
   if(previous?.pane===pane&&previous.signature===signature)return;
   root.replaceChildren();
   const roundScores=new Map(pane?.summaryShown?(pane.scoreSummary?.questions||[]).map(question=>[question.id,question]):[]);
-  const statusLabels={unanswered:'未作答',draft:'已作答，待提交',correct:'正确',incorrect:'错误'};
+  const statusLabels={unanswered:'未作答',draft:'已作答，待提交',pending:'已提交，待评分',correct:'正确',incorrect:'错误'};
   for(const group of consecutiveQuestionGroups(rows,extension)){
     const section=el('section','outline-group'),matrix=el('div','outline-matrix');section.append(el('h2','outline-group-title',group.name),matrix);root.append(section);
     for(const {question:row,number}of group.items){
@@ -38,7 +38,7 @@ export function renderOutlineView({document,pane,onNavigate,onSummary}){
     }
     const result=roundScore||state.result;
     const draft=(roundScore?roundScore.answerState?.status??roundScore.status:state.status)==='draft';
-    const status=!submitted?(draft?'draft':'unanswered'):Number.isFinite(result?.score)&&Number.isFinite(result?.maxScore)&&result.score===result.maxScore?'correct':'incorrect';
+    const status=!submitted?(draft?'draft':'unanswered'):result?.gradingStatus==='pending'?'pending':Number.isFinite(result?.score)&&Number.isFinite(result?.maxScore)&&result.score===result.maxScore?'correct':'incorrect';
     const parentActive=row.id===qid;
     const button=el('button',`outline-item ${status}${parentActive?' active':''}`,label);button.type='button';button.dataset.questionId=row.id;button.setAttribute('aria-current',parentActive?'true':'false');button.setAttribute('aria-label',`第 ${label} 题：${row.title}，${statusLabels[status]}`);button.title=`第 ${label} 题 · ${row.title} · ${statusLabels[status]}`;
     button.addEventListener('click',()=>jump(null));matrix.append(button);

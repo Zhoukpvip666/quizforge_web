@@ -78,7 +78,7 @@ function makeWriteQueue(pane){return createWriteQueue({
     onSaved:(qid,action,value)=>{
       questionsCache.set(questionCacheKey(pane,qid),value);
       pane.collection.states[qid]=value.state;
-      if(pane.questionId===qid){pane.payload=value;if(action!=='whiteboard'&&action!=='draft')pane.plugin?.update(contextFor(pane));}
+      if(pane.questionId===qid){pane.payload=value;if(action==='retry'&&pane.plugin?.frame?.qfSharedAnswerAreas?.length){pane.ink.clear();clearTimeout(pane.inkTimer);pane.inkTimer=null;pane.whiteboard.load(value.draft);}if(action!=='whiteboard'&&action!=='draft')pane.plugin?.update(contextFor(pane));}
       if(active()===pane){renderOutline();updateChrome();saveStatus(pane.writes.hasFailures?'仍有内容未保存':pane.answerPreviews?.size?'答案尚未保存':practiceSaveLabel(pane),pane.writes.hasFailures?'error':pane.answerPreviews?.size?'saving':'');renderRecovery();}
     },
     onFailed:async(qid,_action,error)=>{
@@ -90,7 +90,7 @@ async function mutate(pane,action,data,options={}){
   if(action==='whiteboard'&&!collectionFeature(pane,'whiteboard'))throw Object.assign(new Error('题库未开放草稿白板'),{code:'FEATURE_DISABLED'});
   const qid=pane.questionId,contentVersion=pane.renderedContentVersion,answerState=action==='draft'?answerStateForSave(pane,qid,options.answerStateId):null,preview=action==='draft'?previewDraftAnswer(pane,qid,options.answerStateId):null;
   if(preview&&active()===pane){renderOutline();saveStatus('保存中…','saving');}
-  if(action==='submit'){pane.whiteboard.flush();await saveInk(pane);}
+  if(action==='submit'||action==='retry'&&pane.plugin?.frame?.qfSharedAnswerAreas?.length){pane.whiteboard.flush();await saveInk(pane);}
   const value=await pane.writes.enqueue(qid,action,answerState?{...data,answerState}:data,{contentVersion});
   if(preview)confirmAnswerPreview(pane,qid,preview);
   if(action==='submit'||action==='retry')pane.answerPreviews?.delete(qid);

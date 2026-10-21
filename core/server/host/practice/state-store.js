@@ -12,6 +12,8 @@ import { snapshotPage } from '../extensions/extension-packages.js';
 import { catalogRevision } from '../library/collections.js';
 import { gradingStatus, legacyRounds, matchesId, publicRecord, pageKey, summarize, validatePage, validateResult, validateRound, deleteLegacy } from '../history/history-rounds.js';
 import { validateDraft } from './whiteboard.js';
+import { prepareAnswerAreasWithImages as prepareAnswerAreas, draftWithoutAnswerInk } from './answer-areas.js';
+import { ResourceStore } from '../resources/resources.js';
 import { decorateReview, normalizeInput, targetId, validTargetId, validateInput } from '../ai/ai-protocol.js';
 
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -64,15 +66,16 @@ function requestId(request) { requireObject(request, 'Request must be an object'
 function retainReceipts(receipts, limitBytes = false) { while (receipts.length > 32 || limitBytes && receipts.length > 1 && jsonBytes(receipts).length > 16 * 1024 * 1024) receipts.shift(); }
 
 export class StateStore {
-  constructor(root, rules, { stateRoot = root, memoryOnly = false } = {}) {
+  constructor(root, rules, { stateRoot = root, memoryOnly = false, resources = null } = {}) {
     this.root = root; this.directory = path.join(stateRoot, '.state'); this.rules = rules; this.memoryOnly = memoryOnly;
+    this.resources=resources??new ResourceStore(root,{memory:memoryOnly});
     this.edits = new EditJournal(root, stateRoot); this.cache = new Map(); this.cachedBytes = 0; this.aiSupport = new Map(); this.outlineCache = new Map(); this.outlineCachedBytes = 0; this.stampKey = randomBytes(32); this.transactions = new SerialTransactions();
     if (!memoryOnly) safeDirectory(this.directory, true);
     for (const name of ['overview', 'stamp', 'question', 'summary', 'submitSaved', 'completionResult', 'saveCompletionResult', 'finish', 'restart', 'editor', 'edit', 'history', 'deleteHistory', 'act', 'prepareAiGrading', 'prepareAutomaticAiGrading', 'bindAiTask', 'aiCurrent', 'confirmAi', 'confirmedAiReceipt', 'currentAiTaskId', 'currentAiTaskIds']) {
       const method = this[name]; if (method) this[name] = (...args) => this.transactions.run(() => method.apply(this, args));
     }
   }
-  static memory(root, rules) { return new StateStore(root, rules, { memoryOnly: true }); }
+  static memory(root, rules, resources = null) { return new StateStore(root, rules, { memoryOnly: true, resources }); }
   temporary(collection) { return this.memoryOnly || !collection.features.history; }
   memoryBytes() { return this.cachedBytes + this.outlineCachedBytes; }
   clearMemory() { this.cache.clear(); this.cachedBytes = 0; this.outlineCache.clear(); this.outlineCachedBytes = 0; }
@@ -359,13 +362,15 @@ export class StateStore {
         if (name !== 'draft' || !extension.answerStateDeclared) throw bad('answerState requires an API 1.3 answer-state draft');
         validateAnswerState(data.answerState, question);
       }
-      const evaluated = await this.rules.run(extension, { op: name === 'submit' ? 'submit' : 'validateAnswer', withCapabilities: true, data: question.data, answer: data.answer, ...(name === 'draft' ? { projectAfterValidation: true, outlineAfterValidation: !extension.answerStateDeclared && question.outlineItems.length > 0, outlineRevision: next.revision } : {}) }); this.rememberAiSupport(extension, evaluated);
-      next.answer = cloneJson(data.answer); next.status = name === 'submit' ? 'submitted' : 'draft'; next.result = name === 'submit' ? cloneJson(evaluated.result) : null; projected = evaluated.projected;
+      const answer=extension.answerAreasDeclared?await prepareAnswerAreas(data.answer,this.resources,{submit:name==='submit',targetIds:question.outlineItems.map(item=>item.id)}):data.answer;
+      const evaluated = await this.rules.run(extension, { op: name === 'submit' ? 'submit' : 'validateAnswer', withCapabilities: true, data: question.data, answer, ...(name === 'draft' ? { projectAfterValidation: true, outlineAfterValidation: !extension.answerStateDeclared && question.outlineItems.length > 0, outlineRevision: next.revision } : {}) }); this.rememberAiSupport(extension, evaluated);
+      next.answer = cloneJson(answer); next.status = name === 'submit' ? 'submitted' : 'draft'; next.result = name === 'submit' ? cloneJson(evaluated.result) : null; projected = evaluated.projected;
       if (name === 'draft' && evaluated.outlineScore) this.cacheOutline(collection, question, next, evaluated.outlineScore);
       if (name === 'draft') { if (data.answerState) next.answerState = cloneJson(data.answerState); else delete next.answerState; }
       else delete next.answerState;
       if (name === 'submit') { next.submissionGeneration = increment(current.submissionGeneration ?? 0); next.gradingGeneration = increment(current.gradingGeneration ?? 0); next.aiTaskId = null; delete next.aiTaskIds; delete next.aiTargetGenerations; }
     } else if (name === 'retry') {
+      if(next.draft)next.draft=draftWithoutAnswerInk(next.draft,current.answer);
       Object.assign(next, { status: 'unanswered', answer: null, result: null, submissionGeneration: increment(current.submissionGeneration ?? 0), gradingGeneration: increment(current.gradingGeneration ?? 0), aiTaskId: null }); delete next.aiTaskIds; delete next.aiTargetGenerations; delete next.answerState;
     } else if (name === 'review') {
       if (!this.reviewAvailable(collection, question, current, persisted)) throw new ApiError(409, 'REVIEW_UNAVAILABLE', '只能调整当前未完成练习中已提交题目的评分。');

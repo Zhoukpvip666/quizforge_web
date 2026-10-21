@@ -11,6 +11,7 @@ import { QuizForgeServer } from './server.js';
 import { readJson, safeDirectory, within } from '../platform/files.js';
 import { jsonBytes } from '../platform/json.js';
 import { MIME as archiveMime } from '../library/library-archive.js';
+import { build } from 'esbuild';
 const codeRoot = fileURLToPath(new URL('../../../', import.meta.url)), base = path.join(path.dirname(codeRoot), '.temp', 'node-migration');
 async function fixture(t, options = {}) {
   safeDirectory(base, true); const root = fs.mkdtempSync(path.join(base, 'http-')); fs.mkdirSync(path.join(root, 'extensions')); fs.mkdirSync(path.join(root, 'question-banks'));
@@ -26,6 +27,26 @@ async function fixture(t, options = {}) {
   return { root, service, api, raw };
 }
 const rawGet = (port, uri, headers = {}) => new Promise((resolve, reject) => { const request = http.get({ host: '127.0.0.1', port, path: uri, headers }, response => { const bytes = []; response.on('data', chunk => bytes.push(chunk)); response.on('end', () => resolve({ status: response.statusCode, data: Buffer.concat(bytes).toString() })); }); request.on('error', reject); });
+
+test('all browser entry modules load over HTTP including the shared answer model and brush', async t => {
+  const { api, service } = await fixture(t), origin = 'http://127.0.0.1:' + service.port(), loaded = new Set();
+  await build({ entryPoints: [origin + '/app.js'], bundle: true, write: false, platform: 'browser', format: 'esm', logLevel: 'silent', plugins: [{
+    name: 'real-http-module-graph', setup(build) {
+      build.onResolve({ filter: /^https?:\/\// }, args => ({ path: args.path, namespace: 'http-module' }));
+      build.onResolve({ filter: /.*/, namespace: 'http-module' }, args => ({ path: new URL(args.path, args.importer).href, namespace: 'http-module' }));
+      build.onLoad({ filter: /.*/, namespace: 'http-module' }, async args => {
+        const response = await fetch(args.path); assert.equal(response.status, 200, 'Missing browser dependency: ' + args.path);
+        assert.match(response.headers.get('content-type'), /^text\/javascript/); loaded.add(new URL(args.path).pathname);
+        return { contents: await response.text(), loader: 'js' };
+      });
+    }
+  }] });
+  assert.ok(loaded.has('/shared/answer-area/1.4.0/model.js')); assert.ok(loaded.has('/shared/ink/1.0.0/renderer.js'));
+  assert.equal((await api('/shared/answer-area/1.3.0/model.js')).status,200,'old pure model remains available');
+  assert.ok(loaded.size > 30, 'check the whole startup graph, not just the new files');
+  for (const uri of ['/shared/answer-area/1.3.0/component.js', '/shared/answer-area/1.2.0/model.js', '/shared/ink/1.0.0/renderer.js.map', '/server/host/http/server.js']) assert.equal((await api(uri)).status, 404, uri);
+  assert.equal((await api('/api/library/index')).data.banks.length, 1);
+});
 
 test('desktop graceful shutdown finishes an accepted save and its HTTP response before releasing the directory', async t => {
   const { api, service, root, raw } = await fixture(t);

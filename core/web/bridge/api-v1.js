@@ -4,6 +4,7 @@ export function bootstrapV1(boot) {
   const outlineSupported=boot.api.capabilities.includes('outline-items');
   const resourceCache=new Map(),resourceUrls=new Set();let resourceBytes=0,editorLoading=null,contentFacade=null;
   const requests=new Map(),pending=new Set();
+  let draftMode=boot.answerAreaDraft===true,answerAreaService=null;
   // API 1.4: host theme and panel transparency, mirrored on <html> for CSS.
   let appearance=boot.appearance?Object.freeze({...boot.appearance}):null;const appearanceListeners=new Set();
   const send=message=>parent.postMessage({...message,channel:'quizforge-extension',session:boot.session},'*');
@@ -17,7 +18,7 @@ export function bootstrapV1(boot) {
     const id=String(++sequence),generation=inputGeneration;
     return track(new Promise(resolve=>{const timer=setTimeout(()=>{requests.delete(id);resolve(fail('REQUEST_TIMEOUT','保存等待超时，请检查连接后重试'));},15000);requests.set(id,{resolve,timer,method,generation,clearsInput:method==='save'||method==='action'&&['submit','retry'].includes(args?.action)});send({kind:'request',id,method,args});}));
   }
-  function load(next) { context=next;try{return track(hooks?.onLoad?.(structuredClone(context)));}catch(error){send({kind:'error',message:error.message});return Promise.reject(error);} }
+  function load(next) { context=next;answerAreaService?.refresh();try{return track(hooks?.onLoad?.(structuredClone(context)));}catch(error){send({kind:'error',message:error.message});return Promise.reject(error);} }
   async function register(value){if(hooks)throw new Error('页面只能注册一次');if(!value||typeof value.onLoad!=='function')throw new TypeError('必须提供 onLoad');if(outlineSupported&&value.onOutlineNavigate!==undefined&&typeof value.onOutlineNavigate!=='function')throw new TypeError('onOutlineNavigate 必须是函数');hooks=value;await load(context);if(editorHooks&&boot.editorDraft!=null){if(typeof editorHooks.importDraft!=='function')throw new Error('拓展不支持恢复编辑草稿');await editorHooks.importDraft(structuredClone(boot.editorDraft));}send({kind:'registered'});resize();return structuredClone(context);}
   const unwrap=reply=>{if(!reply?.ok)throw Object.assign(new Error(reply?.error?.message||'资源操作失败'),{code:reply?.error?.code});return reply.data;};
   const resources=Object.freeze({
@@ -69,13 +70,19 @@ export function bootstrapV1(boot) {
     ui.onAppearanceChange=callback=>{if(typeof callback!=='function')throw new TypeError('onAppearanceChange 需要一个函数');appearanceListeners.add(callback);return()=>{appearanceListeners.delete(callback);};};
   }
   Object.freeze(ui);
+  if(boot.answerAreasDeclared===true&&boot.api.capabilities.includes('answer-areas')){
+    const provider=globalThis.__qfAnswerAreaProvider;
+    if(!provider||!['1.0.0','1.1.0','1.2.0','1.3.0','1.3.1','1.3.2','1.4.0','1.4.1'].includes(provider.version))throw new Error('手写答题区组件缺失或版本不兼容');
+    answerAreaService=provider.create({model:provider.model,getContext:()=>context,isDraft:()=>draftMode,resources,resize,tools:boot.answerAreaTools,onRegions:areas=>send({kind:'answer-area-layout',areas}),onSync:()=>invoke('answer-area-sync',{}).then(unwrap),onFocus:focus=>send({kind:'answer-area-focus',focus}),onPan:pointer=>send({kind:'answer-area-pan',pointer}),onDirty:()=>{inputGeneration++;send({kind:'input-dirty',changed:true});}});
+  }
+  delete globalThis.__qfAnswerAreaProvider;
   globalThis.QF=Object.freeze({
     api,
     page:Object.freeze({register,...(boot.api.capabilities.includes('answer-state')?{reportAnswerState:value=>invoke('answer-state',value)}:{})}),
     editor:Object.freeze({register(value){if(context.mode!=='edit')throw new Error('当前页面不是编辑模式');if(typeof value?.getDocument!=='function')throw new TypeError('必须提供 getDocument');editorHooks=value;return register(value);}}),
     save:value=>invoke('save',value),requestAction:value=>invoke('action',value),
     ai:Object.freeze({grade:(value={})=>invoke('ai-grade',value),getTask:(value={})=>invoke('ai-task',value),retry:(value={})=>invoke('ai-retry',value),confirm:(value={})=>invoke('ai-confirm',value)}),
-    ui,resources,get content(){return content();}
+    ui,resources,...(answerAreaService?{answerAreas:answerAreaService.api}:{}),get content(){return content();}
   });
   let inputGeneration=0;
   if(boot.legacyPage){
@@ -86,7 +93,7 @@ export function bootstrapV1(boot) {
     document.addEventListener('DOMContentLoaded',()=>{if(!closed&&!hooks)register({onLoad(){}}).catch(error=>send({kind:'error',message:error.message}));},{once:true});
   }
   addEventListener('message',event=>{const value=event.data;if(event.source!==parent||value?.channel!=='quizforge-host'||value.session!==boot.session)return;
-    if(value.kind==='reply'){const item=requests.get(value.id);if(item){clearTimeout(item.timer);requests.delete(value.id);if(boot.development&&item.clearsInput&&value.reply?.ok===true&&item.generation===inputGeneration)send({kind:'input-dirty',changed:false});item.resolve(value.reply);}}
+    if(value.kind==='reply'){const item=requests.get(value.id);if(item){clearTimeout(item.timer);requests.delete(value.id);if((boot.development||answerAreaService)&&item.clearsInput&&value.reply?.ok===true&&item.generation===inputGeneration)send({kind:'input-dirty',changed:false});item.resolve(value.reply);}}
     else if(value.kind==='outline-navigate'&&!closed&&typeof value.id==='string'){
       const reply=(ok,error)=>{if(!closed)send({kind:'outline-navigated',id:value.id,ok,...(error?{error}:{})});};
       const itemId=value.itemId;
@@ -100,7 +107,11 @@ export function bootstrapV1(boot) {
         catch(error){reply(false,{code:typeof error?.code==='string'?error.code:'OUTLINE_NAVIGATION_FAILED',message:error?.message||'子题定位失败，请重试'});}
       });
     }
-    else if(value.kind==='visibility'){inactive=value.active!==true;if(inactive){sizeObserver.disconnect?.();for(const item of requests.values()){clearTimeout(item.timer);item.resolve(fail('PAGE_INACTIVE','题卡已暂停，当前输入保留'));}requests.clear();}else{sizeObserver.observe(document.body);sizeObserver.observe(document.documentElement);resize();}}
+    else if(value.kind==='visibility'){inactive=value.active!==true;answerAreaService?.setActive(!inactive);if(inactive){sizeObserver.disconnect?.();for(const item of requests.values()){clearTimeout(item.timer);item.resolve(fail('PAGE_INACTIVE','题卡已暂停，当前输入保留'));}requests.clear();}else{sizeObserver.observe(document.body);sizeObserver.observe(document.documentElement);resize();}}
+    else if(value.kind==='answer-area-mode'&&answerAreaService&&!closed){draftMode=value.draft===true;answerAreaService.refresh();}
+    else if(value.kind==='answer-area-tooling'&&answerAreaService&&!closed)answerAreaService.setTools?.(value.tools);
+    else if(value.kind==='answer-area-command'&&answerAreaService&&!closed)answerAreaService.command?.({id:value.id,action:value.action,imageId:value.imageId});
+    else if(value.kind==='answer-area-ink'&&answerAreaService&&!closed)answerAreaService.setInk?.(value.value);
     else if(value.kind==='appearance'&&appearance&&!closed){
       const next=value.appearance;
       if(typeof next?.theme!=='string'||!/^[a-z][a-z-]{0,31}$/.test(next.theme)||!Number.isFinite(next.transparency)||next.transparency<0||next.transparency>1)return;
@@ -109,12 +120,17 @@ export function bootstrapV1(boot) {
       for(const callback of [...appearanceListeners]){try{callback(appearance);}catch(error){send({kind:'error',message:error?.message||'外观更新处理失败'});}}
     }
     else if(value.kind==='context')load(value.context).catch(error=>send({kind:'error',message:error.message}));
-    else if(value.kind==='flush'){(async()=>{try{await hooks?.onFlush?.();while(pending.size)await Promise.allSettled([...pending]);send({kind:'flushed',id:value.id,ok:true});}catch(error){send({kind:'flushed',id:value.id,ok:false,error:{message:error.message||'编辑内容尚未保存'}});}})();}
+    else if(value.kind==='flush'){(async()=>{try{await answerAreaService?.flush();await hooks?.onFlush?.();while(pending.size)await Promise.allSettled([...pending]);send({kind:'flushed',id:value.id,ok:true});}catch(error){send({kind:'flushed',id:value.id,ok:false,error:{message:error.message||'编辑内容尚未保存'}});}})();}
     else if(value.kind==='read-draft'&&!closed){(async()=>{try{await hooks?.onFlush?.();const supported=typeof editorHooks?.exportDraft==='function';const changed=editorHooks?.hasChanges?!!(await editorHooks.hasChanges()):true;const draft=supported?structuredClone(await editorHooks.exportDraft()):null;send({kind:'editor-draft',id:value.id,ok:true,supported,draft,changed});}catch(error){send({kind:'editor-draft',id:value.id,ok:false,error:{message:error.message||'编辑草稿读取失败'}});}})();}
     else if(value.kind==='read-document'&&!closed){(async()=>{try{if(!editorHooks)throw new Error('拓展未注册编辑接口');const changed=editorHooks.hasChanges?!!(await editorHooks.hasChanges()):true;const document=value.checkOnly?undefined:structuredClone(await editorHooks.getDocument());send({kind:'document',id:value.id,ok:true,document,changed});}catch(error){send({kind:'document',id:value.id,ok:false,error:{code:'INVALID_DOCUMENT',message:error.message||'题目内容不完整'}});}})();}
-    else if(value.kind==='dispose'){closed=true;try{hooks?.onDispose?.();}catch{}for(const url of resourceUrls)URL.revokeObjectURL(url);resourceUrls.clear();resourceCache.clear();sizeObserver.disconnect?.();for(const item of requests.values()){clearTimeout(item.timer);item.resolve(fail('PAGE_CLOSED','题目页面已关闭'));}requests.clear();}
+    else if(value.kind==='dispose'){closed=true;answerAreaService?.destroy();try{hooks?.onDispose?.();}catch{}for(const url of resourceUrls)URL.revokeObjectURL(url);resourceUrls.clear();resourceCache.clear();sizeObserver.disconnect?.();for(const item of requests.values()){clearTimeout(item.timer);item.resolve(fail('PAGE_CLOSED','题目页面已关闭'));}requests.clear();}
   });
-  addEventListener('error',event=>send({kind:'error',message:event.message||'题型页面发生错误'}));
+  addEventListener('error',event=>{
+    // Browser resize-delivery diagnostics are not thrown extension exceptions.
+    // A real Error with the same message must still be reported to the host.
+    if(!event.error&&['ResizeObserver loop completed with undelivered notifications.','ResizeObserver loop limit exceeded'].includes(event.message)){event.preventDefault?.();return;}
+    send({kind:'error',message:event.message||'题型页面发生错误'});
+  });
   addEventListener('unhandledrejection',event=>send({kind:'error',message:event.reason?.message||'题型操作失败'}));
   // Observe a change before target handlers can synchronously start its save.
   // A later edit still advances the generation and cannot be cleared by an old reply.

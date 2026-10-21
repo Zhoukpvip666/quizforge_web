@@ -2,7 +2,7 @@
 
 ## 版本声明
 
-应用版本、拓展 `id@version`、Extension API、题库格式及富文本接口独立管理。当前支持 Extension API 1.0–1.4、题库格式 1；未实现 API 2、题库格式 2 或通用题型迁移。
+应用版本、拓展 `id@version`、Extension API、题库格式及富文本接口独立管理。当前支持 Extension API 1.0–1.5、题库格式 1；未实现 API 2、题库格式 2 或通用题型迁移。
 
 ```json
 "requiresApi": {
@@ -12,7 +12,7 @@
 }
 ```
 
-整个 requiresApi 省略时按 1.0 读取。显式声明只允许 major/minMinor/capabilities：前两项必填整数，当前接受 major=1、minMinor=0–4；能力可省略或为空，必须是不重复的已支持非空字符串。未知字段、版本或能力明确拒绝。
+整个 requiresApi 省略时按 1.0 读取。显式声明只允许 major/minMinor/capabilities：前两项必填整数，当前接受 major=1、minMinor=0–5；能力可省略或为空，必须是不重复的已支持非空字符串。未知字段、版本或能力明确拒绝。
 
 | 能力 | 含义 |
 | --- | --- |
@@ -25,10 +25,13 @@
 | `outline-items` | 小题定位，minMinor 至少 1 |
 | `answer-state` | 即时作答进度，minMinor 至少 3 |
 | `appearance` | 只读宿主主题与面板透明度（`QF.ui.appearance`），minMinor 至少 4 |
+| `answer-areas` | 公共手写答题区、提交出图，minMinor 至少 5；只注入到明确声明的页面 |
 
 能力声明不授予写权限，页面仍须检查 `context.capabilities`。页面响应与 `QF.api` 提供实际 API 版本；历史使用冻结页面自己的版本，缺省按 1.0 读取。完整参数见[API 文档](API.md)。
 
 API 1.3 使用 `reportAnswerState` 与关联的 draft 保存提供未提交进度；`getScore` 负责分值与已提交小题状态。API 1.0–1.2 未声明 answer-state 的旧拓展保留原查询路径，旧历史不注入新方法。具体约定见[大纲接口](SUBQUESTION_OUTLINE.md)。
+
+API 1.5 的手写答题区是按需新增：不改变原有答案格式、包指纹或状态身份，不改装当前题库与基础拓展。新接入的拓展自行声明带可选 snapshot 的答案 Schema；宿主仅对这些拓展的标记文档出图。完成历史冻结组件源码和已提交图片，旧冻结页面保留原 API。说明及独立样例见[手写答题区](ANSWER_AREAS.md)。这不修复“直接修改既有拓展源码可能重置进行中练习”的既有兼容边界，不能以清空练习代替验收。
 
 题库 `formatVersion` 省略按 1 读取，不补写文件；显式值仅支持整数 1。根 features 允许 editing/whiteboard/history/exam，默认全开，语义见[题库格式](QUESTION_BANK_FORMAT.md#整库功能开关)。富文本新声明使用 requiresRichText，旧 dependencies 保留读取，见[富文本服务](RICHTEXT_SERVICE.md)。
 

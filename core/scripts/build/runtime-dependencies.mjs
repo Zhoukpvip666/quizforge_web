@@ -3,11 +3,11 @@ import path from 'node:path';
 
 export function copyRuntimeDependencies(root, target) {
   const moduleRoot = path.join(root, 'core/node_modules'), modules = new Map();
-  function resolvePackage(name, from) {
+  function resolvePackage(name, from, optional = false) {
     for (let cursor = from; ; cursor = path.dirname(cursor)) {
       const candidate = path.join(cursor, 'node_modules', name);
       if (fs.existsSync(path.join(candidate, 'package.json'))) return candidate;
-      if (cursor === path.dirname(cursor)) throw new Error('Missing runtime dependency: ' + name);
+      if (cursor === path.dirname(cursor)) { if (optional) return null; throw new Error('Missing runtime dependency: ' + name); }
     }
   }
   function includeModule(directory) {
@@ -23,7 +23,8 @@ export function copyRuntimeDependencies(root, target) {
         return !nested.some(part => ['node_modules', 'test', 'tests', 'benchmark', 'benchmarks', '.github'].includes(part)) && name !== 'test.js' && !/\.test\.(mjs|cjs|js)$/.test(name);
       } });
     for (const name of Object.keys(metadata.dependencies ?? {})) includeModule(resolvePackage(name, directory));
+    for (const name of Object.keys(metadata.optionalDependencies ?? {})) { const installed=resolvePackage(name,directory,true);if(installed)includeModule(installed); }
   }
-  for (const name of ['ajv', 'qrcode-generator', 'yauzl', 'yazl']) includeModule(path.join(moduleRoot, name));
+  for (const name of ['ajv', 'qrcode-generator', 'yauzl', 'yazl', '@napi-rs/canvas']) includeModule(path.join(moduleRoot, name));
   return [...modules.values()];
 }

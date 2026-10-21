@@ -19,6 +19,7 @@
     "test:rules": "node scripts/test/run.mjs rules"
   },
   "dependencies": {
+    "@napi-rs/canvas": "1.0.12",
     "@tiptap/core": "3.31.4",
     "@tiptap/extension-color": "3.31.4",
     "@tiptap/extension-font-family": "3.31.4",

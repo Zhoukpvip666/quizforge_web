@@ -39,6 +39,8 @@ core/
     windows/                  # Windows 托盘启动器
     installer/                # 当前用户安装、快捷方式与卸载配置
   shared/richtext/             # 基础与高级文档约定的当前富文本实现
+  shared/answer-area/          # 可冻结的公共手写答题区、笔迹格式与绘制
+  examples/                   # 独立组件示例，不自动安装到用户题库
   docs/
     README.md                 # 文档索引
     reference/                # 当前接口、格式和兼容规范
@@ -55,3 +57,5 @@ core/
 - `npm run test:rules`：规则进程测试。
 
 文档入口见 [docs/README.md](docs/README.md)。接口与持久化约束见 [API.md](docs/reference/API.md)，模块职责见 [CORE_SOURCE.md](docs/guides/CORE_SOURCE.md)。
+
+可选手写答题区使用 Extension API 1.5，接入与独立示例构建见 [ANSWER_AREAS.md](docs/reference/ANSWER_AREAS.md)。旧拓展不自动启用此组件。
