@@ -1,3 +1,5 @@
+import {yuan} from './hub-login.js';
+
 const HUB='/api/settings/ai/hub';
 
 // Settings → 用户中心: the QuizForge account this computer is logged in to, its free AI
@@ -14,8 +16,8 @@ export function bindUserCenter({request,login,document=globalThis.document}){
   function lock(){for(const node of [code,submit,refresh,logout,loginButton])node.disabled=busy||!value;submit.textContent=busy?'正在处理…':'兑换';panel.setAttribute('aria-busy',String(busy));}
   function showError(cause){error.textContent=cause?.message||'操作没有完成，请重试。';error.hidden=false;}
   function showPoints(ai){
-    points.textContent=value?.unavailable?'暂时查询不到':ai?ai.enabled?`${ai.points} 点`:`${ai.points} 点 · 暂不可用`:'—';
-    points.classList.toggle('empty',Boolean(ai&&ai.points<1));
+    points.textContent=value?.unavailable?'暂时查询不到':ai?ai.enabled?yuan(ai.balance):`${yuan(ai.balance)} · 暂不可用`:'—';
+    points.classList.toggle('empty',Boolean(ai&&ai.balance<1));
   }
   function render(next){
     value=next;const connected=Boolean(next.connected);
@@ -52,8 +54,8 @@ export function bindUserCenter({request,login,document=globalThis.document}){
       result.textContent='';result.classList.remove('error');
       try{
         const added=await request(`${HUB}/redeem`,{method:'POST',body:JSON.stringify({code:input})});if(token!==epoch||!dialog.open)return;
-        code.value='';result.textContent=`已兑换 ${added.added} 点，当前剩余 ${added.points} 点。`;
-        value={...value,ai:{...(value.ai||{enabled:true}),points:added.points}};showPoints(value.ai);
+        code.value='';result.textContent=`已兑换 ${yuan(added.added)}，当前剩余 ${yuan(added.balance)}。`;
+        value={...value,ai:{...(value.ai||{enabled:true}),balance:added.balance}};showPoints(value.ai);
       }catch(cause){
         if(token!==epoch||!dialog.open)return;
         result.textContent=cause?.message||'兑换没有完成，请重试。';result.classList.add('error');

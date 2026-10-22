@@ -17,7 +17,7 @@ const TOKEN = 'qfd_' + 'A'.repeat(43);
 
 // A minimal stand-in for the Hub side of docs/HUB_CONNECT_AI.md.
 async function fakeHub(t, { gateway } = {}) {
-  const state = { grants: new Map(), requests: [], revoked: false, points: 30 };
+  const state = { grants: new Map(), requests: [], revoked: false, balance: 300000 };
   const server = http.createServer(async (req, res) => {
     const chunks = []; for await (const chunk of req) chunks.push(chunk);
     const body = chunks.length ? JSON.parse(Buffer.concat(chunks).toString()) : null;
@@ -29,11 +29,11 @@ async function fakeHub(t, { gateway } = {}) {
       const valid = grant && createHash('sha256').update(body.code_verifier).digest('base64url') === grant.challenge && body.redirect_uri === grant.redirectUri && body.client === 'web' && body.v === 1;
       return valid ? send(200, { token: TOKEN, device: { id: 'device-1', name: grant.name, client: 'web', created: '2026-10-22T00:00:00Z' }, user: { name: 'alice' } }) : send(400, { error: { code: 'INVALID_GRANT', message: '授权已过期或无效，请重新登录' } });
     }
-    if (req.url === '/api/connect/me') return authorized ? send(200, { user: { name: 'alice' }, device: { id: 'device-1', name: 'pc', client: 'web' }, ai: { enabled: true, model: '通义千问 qwen-vl-plus', vision: true, points: state.points, tokensPerPoint: 1000 } }) : send(401, { error: { code: 'DEVICE_TOKEN_INVALID', message: 'x' } });
+    if (req.url === '/api/connect/me') return authorized ? send(200, { user: { name: 'alice' }, device: { id: 'device-1', name: 'pc', client: 'web' }, ai: { enabled: true, model: '通义千问 qwen-vl-plus', vision: true, balance: state.balance, pricePerMillion: 30000 } }) : send(401, { error: { code: 'DEVICE_TOKEN_INVALID', message: 'x' } });
     if (req.url === '/api/connect/redeem') {
       if (!authorized) return send(401, { error: { code: 'DEVICE_TOKEN_INVALID', message: 'x' } });
       if (body.code !== 'AI-GOOD-CODE-0000-0000') return send(400, { error: { code: 'REDEEM_CODE_INVALID', message: '<b>server text</b>' } });
-      state.points += 100; return send(200, { added: 100, points: state.points });
+      state.balance += 50000; return send(200, { added: 50000, balance: state.balance });
     }
     if (req.url === '/api/connect/logout') { state.revoked = true; res.writeHead(204).end(); return; }
     if (req.url === '/api/ai/v1/chat/completions') {
@@ -77,8 +77,8 @@ test('completing login saves only the device token, reads quota, and logout revo
   assert.equal(saved.token, TOKEN); assert.equal('verifier' in saved, false);
   assert.equal(new HubConnection(root, { origin: fake.origin }).token(), TOKEN, 'the connection survives a restart');
   const account = await hub.account();
-  assert.deepEqual(account.ai, { enabled: true, model: '通义千问 qwen-vl-plus', points: 30 });
-  assert.deepEqual(await hub.redeem(' AI-GOOD-CODE-0000-0000 '), { added: 100, points: 130 });
+  assert.deepEqual(account.ai, { enabled: true, model: '通义千问 qwen-vl-plus', balance: 300000 });
+  assert.deepEqual(await hub.redeem(' AI-GOOD-CODE-0000-0000 '), { added: 50000, balance: 350000 });
   await assert.rejects(hub.redeem('AI-WRONG'), error => error.code === 'REDEEM_CODE_INVALID' && error.status === 400 && !error.message.includes('<b>'), 'the message is our own, not the server text');
   await assert.rejects(hub.redeem(''), { code: 'REDEEM_CODE_INVALID' });
   assert.deepEqual(await hub.logout(), { connected: false });
@@ -112,12 +112,12 @@ test('the free quota grades through the Hub gateway with the device token and ke
 });
 
 test('gateway errors become clear, non-retried messages and a rejected token logs out', async t => {
-  let reply = [402, { error: { code: 'AI_POINTS_EXHAUSTED', message: 'x', points: 0 } }];
+  let reply = [402, { error: { code: 'AI_BALANCE_EXHAUSTED', message: 'x', balance: 0 } }];
   const root = directory(t), fake = await fakeHub(t, { gateway: () => reply }), hub = new HubConnection(root, { origin: fake.origin });
   const settings = new AiSettings(root); settings.attachHub(hub); await settings.update({ useOfficial: true, enabled: true });
   await hub.complete(fake.allow(hub.start('http://127.0.0.1:8787/hub/connect/callback').authorizeUrl));
   const provider = new OpenAiCompatibleProvider(settings, { read() {} });
-  await assert.rejects(provider.generate({ gradingInput }), error => error.code === 'AI_OFFICIAL_POINTS' && !error.retryable && /兑换码/.test(error.message));
+  await assert.rejects(provider.generate({ gradingInput }), error => error.code === 'AI_OFFICIAL_BALANCE' && !error.retryable && /兑换码/.test(error.message));
   reply = [503, { error: { code: 'AI_BUDGET_EXHAUSTED', message: 'x' } }];
   await assert.rejects(provider.generate({ gradingInput }), { code: 'AI_OFFICIAL_BUDGET' });
   reply = [502, { error: { code: 'AI_UPSTREAM_FAILED', message: 'x' } }];
@@ -143,7 +143,7 @@ test('with both sources on, the free quota grades first and the custom model tak
   await hub.complete(fake.allow(hub.start('http://127.0.0.1:8787/hub/connect/callback').authorizeUrl));
   const first = await provider.generate({ gradingInput });
   assert.equal(first.provider, 'quizforge-official'); assert.equal(custom.length, 1, 'the free quota is tried first');
-  for (const [status, code] of [[402, 'AI_POINTS_EXHAUSTED'], [503, 'AI_BUDGET_EXHAUSTED'], [502, 'AI_UPSTREAM_FAILED'], [404, 'OFFICIAL_AI_DISABLED']]) {
+  for (const [status, code] of [[402, 'AI_BALANCE_EXHAUSTED'], [503, 'AI_BUDGET_EXHAUSTED'], [502, 'AI_UPSTREAM_FAILED'], [404, 'OFFICIAL_AI_DISABLED']]) {
     reply = [status, { error: { code, message: 'x' } }];
     const result = await provider.generate({ gradingInput });
     assert.equal(result.provider, 'openai-compatible', code); assert.equal(result.output, '{"score":1,"feedback":"自定义"}');
@@ -152,9 +152,9 @@ test('with both sources on, the free quota grades first and the custom model tak
   reply = [400, { error: { code: 'AI_REQUEST_UNSUPPORTED', message: 'x' } }];
   await assert.rejects(provider.generate({ gradingInput }), { code: 'AI_CONFIG' }, 'a request problem is not hidden by switching models');
   reply = null; const frozen = provider.freeze(); await settings.update({ useCustom: false });
-  reply = [402, { error: { code: 'AI_POINTS_EXHAUSTED', message: 'x' } }];
+  reply = [402, { error: { code: 'AI_BALANCE_EXHAUSTED', message: 'x' } }];
   assert.equal((await frozen.generate({ gradingInput })).provider, 'openai-compatible', 'a queued task keeps the sources it started with');
-  await assert.rejects(provider.generate({ gradingInput }), { code: 'AI_OFFICIAL_POINTS' }, 'with only the free quota there is nothing to fall back to');
+  await assert.rejects(provider.generate({ gradingInput }), { code: 'AI_OFFICIAL_BALANCE' }, 'with only the free quota there is nothing to fall back to');
 });
 
 test('settings saved with one source before this version keep working', t => {

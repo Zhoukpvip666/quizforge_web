@@ -201,7 +201,7 @@ test('choosing the free quota while logged out opens the login dialog; cancellin
   const request=async(path,options)=>{
     if(path.endsWith('/credential'))return {apiKey:credential};
     if(path.endsWith('/hub/login'))return {authorizeUrl:'https://quizforge.treenewbee.cloud/connect/authorize?v=1'};
-    if(path.endsWith('/hub'))return connected?{connected:true,user:{name:'alice'},device:{name:'书房电脑',client:'web'},ai:{enabled:true,model:'通义千问 qwen-vl-plus',points:42}}:{connected:false};
+    if(path.endsWith('/hub'))return connected?{connected:true,user:{name:'alice'},device:{name:'书房电脑',client:'web'},ai:{enabled:true,model:'通义千问 qwen-vl-plus',balance:420000}}:{connected:false};
     if(options){const body=JSON.parse(options.body);bodies.push(body);return {...profile,...body,hub:{connected}};}
     return {...profile,hub:{connected:false}};};
   const ui=bindAiSettings({request,document,openWindow:url=>opened.push(url),setTimer:fn=>{timers.push(fn);return timers.length;},clearTimer:()=>{}});
@@ -216,7 +216,7 @@ test('choosing the free quota while logged out opens the login dialog; cancellin
   await choose();await timers.shift()();assert.equal(timers.length,1,'still waiting while not connected');
   connected=true;await timers.shift()();await settle();
   assert.equal(login.open,false,'the dialog closes by itself after the login');assert.deepEqual(bodies,[{useOfficial:true}]);
-  assert.equal(get('useOfficial').checked,true);assert.equal(get('points').textContent,'剩余 42 点');assert.match(get('status').textContent,/免费 AI 额度已开启/);
+  assert.equal(get('useOfficial').checked,true);assert.equal(get('points').textContent,'剩余 ¥42.00');assert.match(get('status').textContent,/免费 AI 额度已开启/);
   ui.destroy();dom.window.close();
 });
 
@@ -237,19 +237,19 @@ async function userCenter(request){
 }
 
 test('the user center shows the account and points, redeems codes and logs out',async()=>{
-  const calls=[];let connected=true,points=5;
+  const calls=[];let connected=true,balance=50000;
   const f=await userCenter(async(path,options)=>{calls.push({path,body:options?.body&&JSON.parse(options.body)});
-    if(path.endsWith('/hub/redeem')){const {code}=JSON.parse(options.body);if(code!=='AI-GOOD')throw Object.assign(new Error('兑换码无效、已使用或已过期。'),{code:'REDEEM_CODE_INVALID',status:400});points+=100;return {added:100,points};}
+    if(path.endsWith('/hub/redeem')){const {code}=JSON.parse(options.body);if(code!=='AI-GOOD')throw Object.assign(new Error('兑换码无效、已使用或已过期。'),{code:'REDEEM_CODE_INVALID',status:400});balance+=1000000;return {added:1000000,balance};}
     if(path.endsWith('/hub/logout')){connected=false;return {connected:false};}
-    return connected?{connected:true,user:{name:'alice'},device:{name:'书房电脑'},ai:{enabled:true,points},manageUrl:'https://quizforge.treenewbee.cloud/manage/'}:{connected:false};});
+    return connected?{connected:true,user:{name:'alice'},device:{name:'书房电脑'},ai:{enabled:true,balance},manageUrl:'https://quizforge.treenewbee.cloud/manage/'}:{connected:false};});
   f.document.getElementById('settings-user-tab').click();await settle();
   assert.equal(f.get('panel').hidden,false);assert.equal(f.document.getElementById('ai-settings-panel').hidden,true);assert.equal(f.document.getElementById('network-settings-form').hidden,true);
-  assert.equal(f.get('name').textContent,'alice');assert.equal(f.get('avatar').textContent,'a');assert.match(f.get('device').textContent,/书房电脑/);assert.equal(f.get('points').textContent,'5 点');
+  assert.equal(f.get('name').textContent,'alice');assert.equal(f.get('avatar').textContent,'a');assert.match(f.get('device').textContent,/书房电脑/);assert.equal(f.get('points').textContent,'¥5.00');
   assert.equal(f.get('manage').href,'https://quizforge.treenewbee.cloud/manage/');assert.equal(f.get('guest').hidden,true);
   const redeem=code=>{f.get('code').value=code;f.get('redeem').dispatchEvent(new f.dom.window.Event('submit',{cancelable:true}));return settle().then(settle);};
   await redeem('');assert.match(f.get('redeem-result').textContent,/请输入兑换码/);assert.equal(calls.some(call=>call.path.endsWith('/redeem')),false);
   await redeem('AI-BAD');assert.match(f.get('redeem-result').textContent,/无效/);assert.ok(f.get('redeem-result').classList.contains('error'));assert.equal(f.get('code').value,'AI-BAD','a wrong code stays for correction');
-  await redeem(' AI-GOOD ');assert.equal(calls.at(-1).body.code,'AI-GOOD');assert.match(f.get('redeem-result').textContent,/已兑换 100 点，当前剩余 105 点/);assert.equal(f.get('points').textContent,'105 点');assert.equal(f.get('code').value,'');
+  await redeem(' AI-GOOD ');assert.equal(calls.at(-1).body.code,'AI-GOOD');assert.match(f.get('redeem-result').textContent,/已兑换 ¥100\.00，当前剩余 ¥105\.00/);assert.equal(f.get('points').textContent,'¥105.00');assert.equal(f.get('code').value,'');
   f.get('logout').click();await settle();await settle();
   assert.equal(f.get('account').hidden,true);assert.equal(f.get('guest').hidden,false);assert.match(f.get('status').textContent,/已退出登录/);
   f.document.getElementById('settings-network-tab').click();assert.equal(f.get('panel').hidden,true);
@@ -258,11 +258,11 @@ test('the user center shows the account and points, redeems codes and logs out',
 
 test('a logged-out user center logs in through the dialog, and remote devices only see an explanation',async()=>{
   let connected=false;
-  const f=await userCenter(async path=>{if(path.endsWith('/hub/login'))return {authorizeUrl:'https://quizforge.treenewbee.cloud/connect/authorize?v=1'};return connected?{connected:true,user:{name:'bob'},device:{name:'pc'},ai:{enabled:true,points:0}}:{connected:false};});
+  const f=await userCenter(async path=>{if(path.endsWith('/hub/login'))return {authorizeUrl:'https://quizforge.treenewbee.cloud/connect/authorize?v=1'};return connected?{connected:true,user:{name:'bob'},device:{name:'pc'},ai:{enabled:true,balance:0}}:{connected:false};});
   await f.ui.open();assert.equal(f.get('guest').hidden,false);assert.equal(f.get('account').hidden,true);
   f.get('login').click();await settle();assert.equal(f.document.getElementById('hub-login-dialog').open,true);
   connected=true;await f.timers.shift()();await settle();
-  assert.equal(f.document.getElementById('hub-login-dialog').open,false);assert.equal(f.get('name').textContent,'bob');assert.equal(f.get('points').textContent,'0 点');assert.ok(f.get('points').classList.contains('empty'));
+  assert.equal(f.document.getElementById('hub-login-dialog').open,false);assert.equal(f.get('name').textContent,'bob');assert.equal(f.get('points').textContent,'¥0.00');assert.ok(f.get('points').classList.contains('empty'));
   f.ui.destroy();f.dom.window.close();
   const remote=await userCenter(async()=>{throw Object.assign(new Error('Open settings on the host computer'),{code:'LOCAL_SETTINGS_ONLY',status:403});});
   await remote.ui.open();assert.match(remote.get('status').textContent,/只能在运行 QuizForge 的电脑上/);assert.equal(remote.get('guest').hidden,true);assert.equal(remote.get('account').hidden,true);assert.equal(remote.get('error').hidden,true);

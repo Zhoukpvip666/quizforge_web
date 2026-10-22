@@ -1,4 +1,4 @@
-import {createHubLogin} from './hub-login.js';
+import {createHubLogin,yuan} from './hub-login.js';
 
 const PATH='/api/settings/ai';
 const HUB=`${PATH}/hub`;
@@ -53,7 +53,7 @@ export function bindAiSettings({request,document=globalThis.document,login=null,
     else if(hub.unavailable)text='暂时查询不到余额';
     else if(!hub.ai)text='正在查询…';
     else if(!hub.ai.enabled)text='暂不可用';
-    else{text=`剩余 ${hub.ai.points} 点`;empty=hub.ai.points<1;balance=true;}
+    else{text=`剩余 ${yuan(hub.ai.balance)}`;empty=hub.ai.balance<1;balance=true;}
     points.textContent=text;points.hidden=!text;points.classList.toggle('empty',empty);points.classList.toggle('muted',!balance);
   }
   function describe(value){

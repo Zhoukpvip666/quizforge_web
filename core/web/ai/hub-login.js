@@ -1,4 +1,6 @@
 const HUB='/api/settings/ai/hub';
+// Free AI amounts are integers of 0.0001 yuan; show yuan rounded down to the cent.
+export const yuan=amount=>'¥'+(Math.floor(Number(amount||0)/100)/100).toFixed(2);
 
 // Logs this computer in to a QuizForge account for the free AI quota (Hub docs/HUB_CONNECT_AI.md 4):
 // opens the Hub page in the browser and waits in a small dialog until the loopback callback lands.

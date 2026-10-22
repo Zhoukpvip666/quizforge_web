@@ -62,7 +62,7 @@ export class HubConnection {
       const result = await response.json().catch(() => null);
       if (!response.ok || !result?.ai) return { ...this.summary(), unavailable: true };
       const ai = result.ai;
-      return { ...this.summary(), ai: { enabled: ai.enabled === true, model: typeof ai.model === 'string' ? ai.model.slice(0, 80) : '', points: count(ai.points) } };
+      return { ...this.summary(), ai: { enabled: ai.enabled === true, model: typeof ai.model === 'string' ? ai.model.slice(0, 80) : '', balance: count(ai.balance) } };
     } catch { return { ...this.summary(), unavailable: true }; }
   }
   // Adds AI points to the account with a redeem code (docs/HUB_CONNECT_AI.md 5, 6.1).
@@ -77,8 +77,8 @@ export class HubConnection {
     if (response.status === 401) { this.invalidate(token); throw new ApiError(409, 'HUB_LOGIN_REQUIRED', '登录已失效，请重新登录 QuizForge 账号。'); }
     const failed = { REDEEM_CODE_INVALID: [400, '兑换码无效、已使用或已过期。'], REDEEM_LOCKED: [429, '兑换码输错次数太多，请 1 小时后再试。'] }[result?.error?.code];
     if (failed) throw new ApiError(failed[0], result.error.code, failed[1]);
-    if (!response.ok || !Number.isSafeInteger(result?.points)) throw new ApiError(502, 'HUB_REDEEM_FAILED', '兑换没有完成，请稍后重试。');
-    return { added: count(result.added), points: count(result.points) };
+    if (!response.ok || !Number.isSafeInteger(result?.balance)) throw new ApiError(502, 'HUB_REDEEM_FAILED', '兑换没有完成，请稍后重试。');
+    return { added: count(result.added), balance: count(result.balance) };
   }
   async logout() {
     const token = this.token(); if (!token) return this.summary();
