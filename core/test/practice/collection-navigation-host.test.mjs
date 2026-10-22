@@ -10,6 +10,7 @@ import vm from 'node:vm';
 import {JSDOM} from 'jsdom';
 import {createDraftBuffer,createWriteQueue} from '../../web/shared/write-queue.js';
 import {createEditorSession} from '../../web/editor/editor-session.js';
+import {checkEditorExit} from '../../web/editor/editor-navigation.js';
 import {collectionFeature,practiceSaveLabel} from '../../web/practice/practice-context.js';
 import {extensionGroups} from '../../web/library/extension-groups.js';
 
@@ -28,7 +29,7 @@ function fixture(t,{drawer=false,developmentEnabled=false}={}){
   const dom=new JSDOM(html,{url:'http://localhost/'});t.after(()=>dom.window.close());
   const document=dom.window.document,collections=new Map(),errors=[],saved=[];
   const descriptors=new Map();
-  const sandbox={createLibraryIndexClient,takeImportedBank:catalog=>takeImportedBank(catalog,dom.window.location,dom.window.history),collectionLoading:createCollectionLoading(document),renderLibraryView,document,$:selector=>document.querySelector(selector),collections,activeKey:null,pendingLibraryKey:null,listMode:'bank',transition:Promise.resolve(),
+  const sandbox={allowDiscardEditor:checkEditorExit,disposeEditorSession(pane){pane.editorSession?.destroy();pane.editorSession=null;pane.plugin=null;},createLibraryIndexClient,takeImportedBank:catalog=>takeImportedBank(catalog,dom.window.location,dom.window.history),collectionLoading:createCollectionLoading(document),renderLibraryView,document,$:selector=>document.querySelector(selector),collections,activeKey:null,pendingLibraryKey:null,listMode:'bank',transition:Promise.resolve(),
     catalog:{banks:[],extensions:[],developmentEnabled},collapsedExtensionGroups:new Set(),extensionGroups,createDraftBuffer,collectionFeature,practiceSaveLabel,previewDraftAnswer,confirmAnswerPreview,
     sidebarPreferences:{library:true,outline:true},libraryDrawer:{matches:drawer},outlineDrawer:{matches:drawer},localStorage:dom.window.localStorage,
     active:()=>collections.get(sandbox.activeKey),notice(){},failure:error=>errors.push(error),renderOutline(){},renderRecovery(){},saveStatus(){},
@@ -202,20 +203,18 @@ test('normal mode exposes only banks and developer mode enables the full extensi
   assert.equal(f.document.querySelector('#catalog-count'),null);
 });
 
-test('turning developer mode off returns to the previous bank and preserves a sample editor draft',async t=>{
+test('turning developer mode off can close a clean sample editor and returns to the previous bank',async t=>{
   const f=fixture(t,{developmentEnabled:true});f.add('bank');f.add('sample','extension');await f.host.openCollection('bank','bank');
   f.collections.get('bank:bank').questionId='second';
   f.document.querySelector('#show-extensions').click();await f.sandbox.transition;
-  const pane=f.collections.get('extension:sample'),draft={stem:'样例的未保存修改'},persisted=[];
-  pane.view='edit';pane.plugin.exportDraft=async()=>({supported:true,changed:true,draft});
-  pane.editorSession=createEditorSession({persistDraft:async(id,entry,snapshot)=>persisted.push(snapshot.draft)});
-  pane.editorSession.add('first',{id:'first',plugin:pane.plugin,changed:true,value:{contentVersion:'v1'}});
+  const pane=f.collections.get('extension:sample');pane.view='edit';pane.plugin.isDirty=false;pane.plugin.getDocument=async()=>({changed:false});
+  pane.editorSession=createEditorSession();pane.editorSession.add('first',{id:'first',plugin:pane.plugin,value:{contentVersion:'v1'}});
   const request=f.sandbox.request;
   f.sandbox.request=async path=>path==='/api/settings/development'?{enabled:false}:path==='/api/library/index'?{...f.sandbox.catalog,developmentEnabled:false}:request(path);
   await f.host.refreshCatalog();
   assert.equal(f.document.querySelector('.library-switch').hidden,true);assert.equal(f.sandbox.listMode,'bank');
   assert.equal(f.sandbox.activeKey,'bank:bank');assert.equal(f.collections.get('bank:bank').questionId,'second');
-  assert.deepEqual(persisted,[draft]);assert.equal(pane.editorSession.isDirty,true);assert.deepEqual(f.errors,[]);
+  assert.equal(pane.editorSession,null);assert.equal(pane.view,'practice');assert.deepEqual(f.errors,[]);
 });
 
 test('turning developer mode off without any banks shows the welcome page and keeps the sample session',async t=>{
@@ -248,15 +247,19 @@ test('sidebar switching saves answers and ink, releases the inactive runtime and
   assert.equal(pane.node.hidden,false);assert.equal(f.document.querySelector('#document-title').textContent,'one');assert.deepEqual(f.errors,[]);
 });
 
-test('unsaved editor drafts survive switching away and returning from the file list',async t=>{
+test('unsaved current edit blocks switching banks from the file list without making draft requests',async t=>{
   const f=fixture(t);f.add('edit');f.add('other');await f.host.openCollection('bank','edit');
-  const pane=f.collections.get('bank:edit'),draft={stem:'修改中的题干'},persisted=[];
-  pane.view='edit';pane.plugin.exportDraft=async()=>({supported:true,changed:true,draft});
-  pane.editorSession=createEditorSession({persistDraft:async(id,entry,snapshot)=>persisted.push({id,draft:snapshot.draft})});
-  pane.editorSession.add('first',{id:'first',plugin:pane.plugin,changed:true,value:{contentVersion:'v1'}});
+  const pane=f.collections.get('bank:edit');pane.view='edit';pane.plugin.isDirty=true;pane.plugin.getDocument=async()=>({changed:true});
+  pane.editorSession=createEditorSession();pane.editorSession.add('first',{plugin:pane.plugin,value:{}});
   f.sandbox.showEditorQuestion=async(target,id)=>{assert.equal(target,pane);assert.equal(id,'first');target.plugin={flush:async()=>{}};};
-  await f.click('other');assert.deepEqual(persisted,[{id:'first',draft}]);assert.equal(pane.editorSession.isDirty,true);
-  await f.click('edit');assert.equal(pane.view,'edit');assert.equal(pane.editorSession.isDirty,true);assert.deepEqual(f.errors,[]);
+  await f.click('other');assert.equal(f.errors.at(-1)?.code,'UNSAVED_EDITOR_CHANGES');
+  assert.equal(f.sandbox.activeKey,'bank:edit');assert.equal(pane.view,'edit');assert.equal(pane.editorSession.isDirty,true);assert.equal(f.collections.has('bank:other'),false);assert.equal(pane.node.inert,false);
+});
+
+test('a clean current editor exits when switching to an already opened bank',async t=>{
+  const f=fixture(t);f.add('edit');f.add('other');await f.host.openCollection('bank','other');await f.host.openCollection('bank','edit');
+  const pane=f.collections.get('bank:edit');pane.view='edit';pane.plugin.isDirty=false;pane.plugin.getDocument=async()=>({changed:false});pane.editorSession=createEditorSession();pane.editorSession.add('first',{plugin:pane.plugin,value:{}});
+  await f.click('other');assert.equal(f.sandbox.activeKey,'bank:other');assert.equal(pane.view,'practice');assert.equal(pane.editorSession,null);assert.deepEqual(f.errors,[]);
 });
 
 test('save failures keep the current question and input available instead of switching collections',async t=>{

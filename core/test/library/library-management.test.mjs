@@ -1,3 +1,4 @@
+import {checkEditorExit} from '../../web/editor/editor-navigation.js';
 import {renderLibraryView} from '../../web/library/library-view.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -92,7 +93,7 @@ test('failed preparation prevents a write and keeps the dialog usable',async t=>
 
 test('directory preparation identifies the exact hidden development question without discarding it',async()=>{
   const pane={id:'dev-bank',collection:{title:'受阻题库'},questionId:'q2',payload:{question:{title:'待保存小题'}},plugin:{hasUnsavedInput:true}},flushed=[];
-  const sandbox={collections:new Map([['current',{id:'other'}],['hidden',pane]]),transitionTo:fn=>fn(),flushPane:async value=>{flushed.push(value);return value!==pane;}};
+  const sandbox={allowDiscardEditor:checkEditorExit,collections:new Map([['current',{id:'other'}],['hidden',pane]]),transitionTo:fn=>fn(),flushPane:async value=>{flushed.push(value);return value!==pane;}};
   vm.runInNewContext(source.slice(source.indexOf('const prepareLibraryChange='),source.indexOf('\nasync function applyLibraryChange('))+'\nglobalThis.prepare=prepareLibraryChange;',sandbox);
   await assert.rejects(sandbox.prepare(),/受阻题库.*待保存小题.*重试保存/);
   assert.equal(flushed.length,2);assert.equal(pane.plugin.hasUnsavedInput,true);
@@ -100,7 +101,7 @@ test('directory preparation identifies the exact hidden development question wit
 });
 
 test('directory preparation restores page interactivity after flushing, including failures',async()=>{
-  const pane={node:{inert:false}},sandbox={collections:new Map([['active',pane]]),transitionTo:fn=>fn(),flushPane:async value=>{value.node.inert=true;return true;}};
+  const pane={node:{inert:false}},sandbox={allowDiscardEditor:checkEditorExit,collections:new Map([['active',pane]]),transitionTo:fn=>fn(),flushPane:async value=>{value.node.inert=true;return true;}};
   vm.runInNewContext(source.slice(source.indexOf('const prepareLibraryChange='),source.indexOf('\nasync function applyLibraryChange('))+'\nglobalThis.prepare=prepareLibraryChange;',sandbox);
   await sandbox.prepare();assert.equal(pane.node.inert,false);
   sandbox.flushPane=async value=>{value.node.inert=true;throw new Error('save failed');};
@@ -120,11 +121,12 @@ function changedFixture(){
   return {a,b,sandbox,events,panes,apply:(banks,operation={action:'delete'})=>sandbox.applyLibraryChange({catalog:{banks,extensions:[],groups:{banks:[],extensions:[]}},archivedTo:'.trash/library/test'},operation)};
 }
 test('deleting another bank uses the returned catalog and keeps the current answer page',async()=>{
-  const f=changedFixture(),current=f.panes.get('bank:a');await f.apply([f.a]);
+  const f=changedFixture(),current=f.panes.get('bank:a');await f.apply([f.a],{kind:'bank',action:'delete'});
   assert.equal(f.sandbox.catalog.canManage,true);assert.equal(f.sandbox.catalog.developmentEnabled,true);
   assert.equal(f.panes.get('bank:a'),current);assert.equal(current.needsRefresh,undefined);
   assert.equal(f.panes.has('bank:b'),false);assert.ok(f.events.includes('destroy:b'));
   assert.ok(!f.events.some(value=>value.startsWith('activate:')||value.startsWith('open:')||value==='destroy:a'));
+  assert.ok(f.events.some(value=>value.includes('配套拓展文件已保留')));
 });
 test('a changed surviving bank is refreshed even when deletion targeted another bank',async()=>{
   const f=changedFixture();await f.apply([{...f.a,contentRevision:'new-revision'}]);
@@ -201,7 +203,7 @@ test('bank and group actions live in edit; export keeps unsaved fields and delet
  const name=f.document.querySelector('#library-manage-name');name.value='尚未保存的名称';
  failExport=true;f.document.querySelector('#library-manage-export').click();for(let i=0;i<12;i++)await Promise.resolve();
  assert.match(f.document.querySelector('#library-manage-error').textContent,/导出失败/);assert.equal(f.dialog.open,true);assert.equal(name.value,'尚未保存的名称');assert.equal(f.document.querySelector('#library-manage-export').disabled,false);failExport=false;
- f.document.querySelector('#library-manage-delete').click();assert.equal(f.calls.length,0);assert.equal(f.document.querySelector('#library-manage-more').hidden,true);assert.match(f.document.querySelector('#library-manage-hint').textContent,/配套.*拓展组.*保留/);
+ f.document.querySelector('#library-manage-delete').click();assert.equal(f.calls.length,0);assert.equal(f.document.querySelector('#library-manage-more').hidden,true);assert.match(f.document.querySelector('#library-manage-hint').textContent,/配套拓展文件会保留，不随题库删除/);
  f.document.querySelector('#library-manage-cancel').click();assert.equal(f.dialog.open,true);assert.equal(name.value,'尚未保存的名称');
  f.document.querySelector('#library-manage-export').click();for(let i=0;i<12;i++)await Promise.resolve();assert.equal(f.exports.at(-1)[0].title,'练习');assert.equal(name.value,'尚未保存的名称');
  f.document.querySelector('#library-manage-delete').click();await f.submit();assert.deepEqual(JSON.parse(f.calls[0].body),{kind:'bank',target:'item',action:'delete',path:'资料/练习'});

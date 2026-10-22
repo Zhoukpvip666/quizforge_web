@@ -69,7 +69,7 @@ HTML 是 body 片段；CSS 和 JS 由宿主注入。页面及规则脚本按普�
 
 `mode:"example"` 是拓展示例练习，使用独立示例状态；不要把示例写入题库。`mode:"history"` 复用练习页面展示冻结快照：所有上述 capabilities 为 `false`，`aiTask:null`，必须纯只读；不保存、不上传、不启动 AI 或轮询、不尝试由当前题库补全旧内容。历史只能读取图片及已声明 SDK；`QF.requestAction` 也会被拒绝，历史切题由宿主负责。
 
-宿主解释 [题库 features](bank-format.md#整库功能开关)，拓展只按 context.capabilities 操作，不猜存储方式或直接写状态。编辑上下文与练习投影不同，不能用公开数据覆盖私有原题。
+宿主解释 [题库 features](bank-format.md#整库功能开关)，拓展只按 context.capabilities 操作，不猜存储方式或直接写状态。编辑上下文与练习投影不同，不能用公开数据覆盖私有原题。 当前 Web 采用单题显式保存：有修改时阻止切题、切库及其他离开操作，须保存本题或取消编辑；刷新丢弃未保存编辑，不自动暂存或恢复 editor-drafts。普通作答自动保存不变，拓展仍使用原 QF.editor.register，无需新增接口。
 
 `canSave` 与 `canSubmit` 独立：不能因禁止提交而禁止保存或锁住输入。单题提交按钮标记 `data-qf-action="submit"`，重做按钮标记 `data-qf-action="retry"`；宿主考试 iframe 统一隐藏这些按钮，拓展仍须按能力控制请求。未提交答案通过 `purpose:"draft"` 自动保存，`onFlush` 必须等待 debounce、上传和保存完成；宿主只能对已保存的答案统一评分。结果与解析仅根据服务器返回的 `status/result` 和投影显示，不自行提交后揭示。交卷后按 `canReview/canAiGrade` 提供人工评分、AI 重试；AI 失败不改答案或伪造成功。考试上下文另含 `exam:{id,status,deadline}`，不由拓展决定时长或交卷。
 
@@ -326,7 +326,7 @@ html[data-qf-theme="sepia"] .my-card{background:#fbf6e9}
 
 笔迹文档是 `type:"qf-answer-area",formatVersion:1` 的普通答案对象，不是富文本节点。答案 Schema 必须允许宿主生成的可选 `snapshot:{type:"image",attrs:{assetId}}`。草稿模式书写、练习模式保留显示，普通白板笔记不进入正式答案。逻辑尺寸独立于屏幕尺寸。单题提交、完成练习和考试交卷时，宿主从本次已保存笔迹生成完整 PNG，拓展在 `prepareAiGrading` 中使用现有 `{type:"image",assetId}`；未判分应返回 pending／null，失败保留答案并允许重试／人工评分。无需自行截图或创建新的评分通道。
 
-详见 [完整接口与边界](../../../core/docs/reference/ANSWER_AREAS.md)。已安装的真实展示参考 `extensions/基础题型/答题区/` 与“基础题型展示”第 11 题；独立接入参考 `core/examples/handwritten-short-answer/`，在产品根目录运行 `node core/scripts/build/build-handwritten-example.mjs` 生成测试包。此例不替换基础简答题，不为旧题库批量增加答题区。真实手机／触控笔和真实图片模型仍需对应环境验收。
+详见 [完整接口与边界](../../../core/docs/reference/ANSWER_AREAS.md)。已安装的真实展示参考 `extensions/基础题型/简答题（答题区）/` 与“基础题型展示”第 11 题；独立接入参考 `core/examples/handwritten-short-answer/`，在产品根目录运行 `node core/scripts/build/build-handwritten-example.mjs` 生成测试包。此例不替换基础简答题，不为旧题库批量增加答题区。真实手机／触控笔和真实图片模型仍需对应环境验收。
 
 ## 版本与历史兼容
 

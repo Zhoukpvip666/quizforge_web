@@ -2051,19 +2051,46 @@
         "label": "11"
       },
       "data": {
-        "stem": "请用文字、手写示意图或图片，说明一次手机拍照中的输入、处理和输出三个环节，并为每个环节举出具体内容。",
-        "referenceAnswer": "输入：摄像头接收光线并转化为图像信号（1 分）；处理：设备对图像信号进行去噪、曝光或颜色处理等（2 分）；输出：屏幕显示照片或保存图像文件（1 分）；三个环节之间的关系说明清楚（1 分）。表述不同但含义准确可按同样标准评分。",
-        "maxScore": 5,
-        "areas": [
+        "formatVersion": 1,
+        "material": null,
+        "parts": [
           {
             "id": "answer",
-            "label": "答题区",
-            "height": 700
+            "stem": {
+              "type": "doc",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "请用文字、手写示意图或图片，说明一次手机拍照中的输入、处理和输出三个环节，并为每个环节举出具体内容。"
+                    }
+                  ]
+                }
+              ]
+            },
+            "answerAndExplanation": {
+              "type": "doc",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "输入：摄像头接收光线并转化为图像信号（1 分）；处理：设备对图像信号进行去噪、曝光或颜色处理等（2 分）；输出：屏幕显示照片或保存图像文件（1 分）；三个环节之间的关系说明清楚（1 分）。表述不同但含义准确可按同样标准评分。"
+                    }
+                  ]
+                }
+              ]
+            },
+            "maxScore": 5,
+            "answerHeight": 700
           }
         ]
       },
       "extension": {
-        "path": "extensions/基础题型/答题区"
+        "path": "extensions/基础题型/简答题（答题区）"
       }
     }
   ]

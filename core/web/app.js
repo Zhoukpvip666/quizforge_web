@@ -5,13 +5,13 @@ import {request,readResource,setAccessToken,collectionPath,questionPath,makeRequ
 import {mountExtension} from './bridge/frame.js';
 import {prepareExtensionAssets} from './bridge/page-assets.js';
 import {mountWhiteboard} from './draft/whiteboard.js';
-import {captureDraftRegion} from './draft/whiteboard-capture.js';
 import {createWriteQueue,createDraftBuffer} from './shared/write-queue.js';
 import {createQuestionCache} from './practice/question-cache.js';
 import {navigateOutlineTarget} from './outline/outline-navigation.js';
 import {syncQuestionLayout,rememberDraftView,rememberDraftScroll} from './practice/question-layout.js';
 import {createHistoryView,historyProgress} from './history/history-view.js';
 import {createEditorSession} from './editor/editor-session.js';
+import {checkEditorExit,renderEditorStatus,bindEditorLeaveNotice,shouldWarnBeforeUnload} from './editor/editor-navigation.js';
 import {mountPracticeSummary} from './practice/practice-summary.js';
 import {bindNetworkSettings} from './shell/network-settings.js';
 import {bindAiSettings} from './ai/ai-settings.js';
@@ -39,7 +39,6 @@ const collapsedExtensionGroups=new Set();
 const questionsCache=createQuestionCache(),pagesCache=createQuestionCache({capacity:4,maxBytes:4*1024*1024});
 const sdkCache=createQuestionCache({capacity:4,maxBytes:8*1024*1024});
 const collectionLoading=createCollectionLoading(document);
-const editorDraftPath=(pane,qid)=>`/api/${pane.kind.startsWith('development')?'development/':''}editor-drafts/${encodeURIComponent(pane.id)}/${encodeURIComponent(qid)}${['extension','development'].includes(pane.kind)?`?kind=${pane.kind}`:''}`;
 async function prepareAssets(assets){return prepareExtensionAssets(assets,dependency=>sdkCache.load(`${dependency.id}:${dependency.version}:static`,()=>request(`/api/sdk/${encodeURIComponent(dependency.id)}/${encodeURIComponent(dependency.version)}`)));}
 const sidebarPreferences={library:true,outline:true};
 try{const saved=JSON.parse(localStorage.getItem('quizforge-sidebars')||'{}');for(const key of Object.keys(sidebarPreferences))if(typeof saved[key]==='boolean')sidebarPreferences[key]=saved[key];}catch{}
@@ -50,9 +49,10 @@ const el=(tag,className,text)=>{const node=document.createElement(tag);if(classN
 // Apply the saved appearance before the first question renders.
 bindAppearanceSettings({document});
 function notice(message){$('#notice').textContent=message||'';$('#notice').hidden=!message;}
-function failure(error){notice(error.message||String(error));}
+function failure(error){notice(error.message||String(error));if(error.code==='UNSAVED_EDITOR_CHANGES')showEditorLeaveNotice(error);}
 function transitionTo(fn){const run=transition.then(async()=>{notice('');$('#previous').disabled=true;$('#next').disabled=true;try{return await fn();}finally{for(const pane of collections.values())pane.node.inert=false;updateChrome();renderRecovery();}});transition=run.catch(()=>{});run.catch(failure);return run;}
 const active=()=>collections.get(activeKey);
+const showEditorLeaveNotice=bindEditorLeaveNotice(document);
 const draftFullscreen=createDraftFullscreen(document,{
   canEnter:()=>draftViewActive(active()),
   onChange:state=>{const shell=$('.app-shell');if(state.active&&!shell.classList.contains('draft-fullscreen'))closeDrawers();shell.classList.toggle('draft-fullscreen',state.active);for(const pane of collections.values())pane.whiteboard?.setFullscreenState(state);},
@@ -204,6 +204,7 @@ function showPageFailure(pane,error,qid=pane.questionId){
   const box=el('div','question-error'),message=el('p','',String(error.message||error).slice(0,1000)),retry=el('button','','重新加载题卡');
   box.setAttribute('role','alert');retry.type='button';retry.addEventListener('click',()=>transitionTo(async()=>{
     if(pane.closed)return;
+    await allowDiscardEditor(pane);
     if((pane.plugin?.hasUnsavedInput||pane.keepRuntime)&&!confirm('重新加载会放弃这张题卡尚未保存的输入，是否继续？'))return;
     pagesCache.clear();questionsCache.delete(questionCacheKey(pane,qid));
     if(pane.view==='edit'){pane.editorSession?.remove(qid);pane.plugin=null;await showEditorQuestion(pane,qid);clearPageFailure(pane);}
@@ -266,13 +267,10 @@ function resizeStage(pane,camera=pane.whiteboard?.getViewCamera()){
   pane.stage.style.height=`${Math.max(1,height)}px`;
   if(pane.draftScrollRestore!=null&&!pane.loading){pane.viewport.scrollTop=pane.draftScrollRestore;pane.draftScrollRestore=null;}
 }
-async function allowDiscardEditor(pane){
+async function allowDiscardEditor(pane,{discard=false}={}){
   if(pane?.view!=='edit')return true;
   pane.node.inert=true;
-  let changed;try{changed=await pane.editorSession.hasChanges();}catch(error){if(!pane.development)throw error;changed=true;}
-  const accepted=!changed||confirm('本题库还有未保存的编辑，是否放弃所有题目的修改？');
-  if(accepted){clearTimeout(pane.editorTimer);await pane.editorDraftWrites;if(collectionFeature(pane,'history'))for(const entry of pane.editorSession.values())await request(editorDraftPath(pane,entry.id),{method:'DELETE'});disposeEditorSession(pane);}
-  return accepted;
+  return checkEditorExit(pane,{discard,confirmDiscard:message=>confirm(message)});
 }
 // Warm the neighbouring cards while idle. Navigation still revalidates the
 // stamp, so a prefetched payload only turns the next read into a short reply.
@@ -296,7 +294,7 @@ function prefetchAdjacent(pane){
   });
 }
 async function navigateQuestion(pane,qid){
-  if(pane.view==='edit'){await showEditorQuestion(pane,qid);return;}
+  if(pane.view==='edit'&&pane.questionId===qid)return;
   if(pane.view==='history'){await showHistoryQuestion(pane,qid);return;}
   if(!await allowDiscardEditor(pane))return;
   const saved=await flushPane(pane),previousId=pane.questionId;
@@ -304,13 +302,15 @@ async function navigateQuestion(pane,qid){
   if(pane.development&&restoreDevelopmentQuestion(pane,qid))return;
   try{await showQuestion(pane,qid);}catch(error){if(pane.development)restoreDevelopmentQuestion(pane,previousId);throw error;}
 }
-async function returnToPractice(pane){
-  if(!await allowDiscardEditor(pane))return;
-  await flushPane(pane);const collection=await request(collectionPath(pane.kind,pane.id));
+async function returnToPractice(pane,options){
+  const editing=pane?.view==='edit';
+  if(!await allowDiscardEditor(pane,options))return false;
+  if(!editing)await flushPane(pane);const collection=await request(collectionPath(pane.kind,pane.id));
   const qid=collection.questions.some(row=>row.id===pane.questionId)?pane.questionId:collection.questions[0]?.id;
-  if(!qid)throw new Error('题库中没有题目');await showQuestion(pane,qid,{collection});
+  if(!qid)throw new Error('题库中没有题目');await showQuestion(pane,qid,{collection});return true;
 }
 async function showScoreSummary(pane){
+  if(!await allowDiscardEditor(pane))return;
   if(!hasScoreSummary(pane))return;const history=pane.view==='history';
   if(await flushPane(pane)===false){saveStatus('答案尚未保存，请先完成保存后再查看汇总','error');return;}
   if(!allowLeaveDevelopmentInput(pane))return;pane.loading=true;updateChrome();
@@ -422,7 +422,7 @@ function renderHistoryList(pane){
   if(!pane.historyRecords.length)list.append(el('p','list-empty','还没有历史记录。练习提交后或考试完成后，会在这里保存记录。'));
 }
 async function openHistoryList(pane){
-  if(!pane||!collectionFeature(pane,'history'))return;await flushPane(pane);
+  if(!pane||!collectionFeature(pane,'history'))return;if(!await allowDiscardEditor(pane))return;await flushPane(pane);
   const value=await request(historyPath(pane));pane.historyRecords=value.records;
   historyError();renderHistoryList(pane);
   if(pane.view==='history'&&!value.records.some(row=>row.id===pane.historyEntry.id))await removeHistoryRecord(pane,pane.historyEntry.id);
@@ -464,57 +464,44 @@ function disposeEditorSession(pane){
   if(!pane.editorSession)return;
   pane.editorSession.destroy();pane.editorSession=null;pane.editState=null;pane.plugin=null;
 }
-function writeEditorDraft(pane,id,entry,snapshot){if(!collectionFeature(pane,'history')){entry.draft=structuredClone(snapshot.draft);entry.changed=snapshot.changed;return Promise.resolve();}const body=JSON.stringify({contentVersion:entry.value.draftVersion||entry.value.contentVersion,draft:snapshot.draft,changed:snapshot.changed});const task=(pane.editorDraftWrites||Promise.resolve()).catch(()=>{}).then(()=>request(editorDraftPath(pane,id),{method:'PUT',body}));pane.editorDraftWrites=task;return task;}
-function newEditorSession(pane){return createEditorSession({ensureActive:id=>showEditorQuestion(pane,id),persistDraft:collectionFeature(pane,'history')?(id,entry,snapshot)=>writeEditorDraft(pane,id,entry,snapshot):undefined});}
-async function persistEditorDraft(pane){
-  clearTimeout(pane.editorTimer);pane.editorTimer=null;
-  const qid=pane.questionId,entry=pane.editorSession?.get(qid);if(!entry?.plugin||pane.closed)return;
-  const snapshot=await entry.plugin.exportDraft();if(!snapshot.supported)return;
-  await writeEditorDraft(pane,qid,entry,snapshot);entry.changed=snapshot.changed;
-}
-function scheduleEditorDraft(pane){clearTimeout(pane.editorTimer);pane.editorTimer=setTimeout(()=>{persistEditorDraft(pane).catch(error=>{saveStatus('编辑草稿未保存','error');failure(error);});},600);}
+function newEditorSession(){return createEditorSession();}
 async function showEditorQuestion(pane,qid){
   if(!canEditCollection(pane)||pane.closed)return;
-  if(pane.view==='edit'&&pane.questionId===qid&&pane.plugin)return;
+  if(pane.view==='edit'){
+    if(pane.questionId===qid&&pane.plugin)return;
+    await allowDiscardEditor(pane);
+  }
   pane.node.inert=true;if(!pane.development||!pane.plugin?.hasError)await pane.plugin?.flush();
-  const oldPlugin=pane.plugin,session=pane.editorSession||newEditorSession(pane),old=session.get(pane.questionId);
-  const previous={view:pane.view,questionId:pane.questionId,editState:pane.editState,editorSession:pane.editorSession};
-  if(old)old.scrollTop=pane.viewport.scrollTop;
-  let entry=session.get(qid);
+  const oldPlugin=pane.plugin,session=newEditorSession(),previous={view:pane.view,questionId:pane.questionId,editState:pane.editState,editorSession:pane.editorSession};
+  let container,plugin,committed=false;
   pane.loading=true;updateChrome();
   try{
-    if(!entry?.plugin){
-      await pane.editorDraftWrites;
-      const value=await request(`${questionPath(pane.kind,pane.id,qid)}/editor`),savedDraft=collectionFeature(pane,'history')?await request(editorDraftPath(pane,qid)):{draft:entry?.draft||null,changed:!!entry?.changed,contentVersion:entry?.value.draftVersion||entry?.value.contentVersion};
-      if(!value.editor)throw new Error('这个题型拓展尚未提供编辑器');
-      if(savedDraft.draft!=null&&savedDraft.contentVersion!==(value.draftVersion||value.contentVersion)){
-        if(savedDraft.changed!==false)throw new Error('题目已变更，旧编辑草稿仍保留，请先处理版本冲突。');
-        savedDraft.draft=null;
-      }
-      value.editor=await prepareAssets(value.editor);
-      const container=el('div','editor-question-container');container.hidden=true;pane.frameHost.append(container);
-      let plugin;
-      try{
-        plugin=mountExtension(container,value.editor,{mode:'edit',question:value.question,...(pane.development?{development:pane.development}:{}),capabilities:{canEdit:true}},{editorDraft:savedDraft.draft,onDirty:()=>{if(pane.plugin===plugin)scheduleEditorDraft(pane);},onLayout:(options,frame)=>setEditorLayout(pane,options,frame),onRequest:(method,args)=>['resource-get','sdk-editor'].includes(method)||pane.plugin===plugin?pageRequest({...pane,view:'edit',editState:value},method,args):Promise.resolve({ok:false,error:{code:'READ_ONLY',message:'当前编辑题卡未处于活动状态'}}),onError:message=>{if(active()===pane&&pane.plugin===plugin){if(pane.development)showPageFailure(pane,new Error(message),qid);else notice(message);}}});
-        await plugin.ready;
-        if(pane.closed)throw new Error('题库页面已关闭');
-        // Keep the current form and any suspended target draft until the new
-        // editor has registered and the old form can be durably suspended.
-        if(old?.plugin){try{await session.suspend(previous.questionId);}catch(error){if(!pane.development)throw error;if(session.values().filter(item=>item.plugin).length>=4)throw new Error('开发编辑器已有 4 张题卡保留未保存输入，请先完成保存。');old.container.hidden=true;}}
-        else oldPlugin?.destroy();
-      }catch(error){plugin?.destroy();container.remove();Object.assign(pane,previous);pane.plugin=oldPlugin;throw error;}
-      if(!entry)entry=session.add(qid,{id:qid,value,plugin:null,container:null,scrollTop:0});else entry.value=value;
-      entry.plugin=plugin;entry.container=container;entry.changed=!!savedDraft.changed;
-    }
-    // Invalid intermediate forms are persisted before the previous iframe
-    // is released; only the target editor remains mounted.
-    pane.editorSession=session;pane.view='edit';pane.questionId=qid;pane.outlineItemId=null;pane.editState=entry.value;pane.historyEntry=null;pane.historyView=null;pane.historyQuestion=null;pane.historyQuestionId=null;pane.plugin=entry.plugin;
-    for(const item of session.values())if(item.container){item.container.hidden=item!==entry;item.plugin?.setActive?.(item===entry);}
-    entry.container.hidden=false;pane.node.classList.remove('is-draft');pane.node.classList.add('is-edit');pane.tools.hidden=true;
-    pane.whiteboard.setMode('practice');pane.viewport.scrollTop=entry.scrollTop;pane.viewport.scrollLeft=0;
-    syncPracticeCamera(pane);saveStatus('编辑中');renderOutline();
-  }catch(error){if(pane.development)showPageFailure(pane,error,qid);throw error;}finally{pane.loading=false;updateChrome();}
+    const value=await request(questionPath(pane.kind,pane.id,qid)+'/editor');
+    if(!value.editor)throw new Error('这个题型拓展尚未提供编辑器');
+    value.editor=await prepareAssets(value.editor);
+    container=el('div','editor-question-container');container.hidden=true;pane.frameHost.append(container);
+    plugin=mountExtension(container,value.editor,{mode:'edit',question:value.question,...(pane.development?{development:pane.development}:{}),capabilities:{canEdit:true}},{
+      onDirty:()=>{if(pane.plugin===plugin)renderEditorStatus(document,pane);},
+      onLayout:(options,frame)=>setEditorLayout(pane,options,frame),
+      onRequest:(method,args)=>['resource-get','sdk-editor'].includes(method)||pane.plugin===plugin?pageRequest({...pane,view:'edit',editState:value},method,args):Promise.resolve({ok:false,error:{code:'READ_ONLY',message:'当前编辑题卡未处于活动状态'}}),
+      onError:message=>{if(active()===pane&&pane.plugin===plugin){if(pane.development)showPageFailure(pane,new Error(message),qid);else notice(message);}}
+    });
+    await plugin.ready;if(pane.closed)throw new Error('题库页面已关闭');
+    // The replacement registers before the previous page is released. No
+    // draft endpoint is read, written or used to revive an unfinished form.
+    previous.editorSession?.destroy();if(!previous.editorSession)oldPlugin?.destroy();
+    session.add(qid,{id:qid,value,plugin,container});
+    pane.editorSession=session;pane.view='edit';pane.questionId=qid;pane.outlineItemId=null;pane.editState=value;pane.historyEntry=null;pane.historyView=null;pane.historyQuestion=null;pane.historyQuestionId=null;pane.plugin=plugin;committed=true;
+    for(const child of [...pane.frameHost.children])if(child!==container)child.remove();
+    container.hidden=false;pane.node.classList.remove('is-draft');pane.node.classList.add('is-edit');pane.tools.hidden=true;
+    pane.whiteboard.setMode('practice');pane.viewport.scrollTop=0;pane.viewport.scrollLeft=0;
+    syncPracticeCamera(pane);saveStatus('本题未修改');renderOutline();
+  }catch(error){
+    if(!committed){plugin?.destroy();container?.remove();Object.assign(pane,previous);pane.plugin=oldPlugin;}
+    if(pane.development)showPageFailure(pane,error,qid);throw error;
+  }finally{pane.loading=false;updateChrome();}
 }
+
 async function openEditor(pane){
   if(!canEditCollection(pane)||pane.view!=='practice')return;await flushPane(pane);
   if(!allowLeaveDevelopmentInput(pane))return;
@@ -522,38 +509,31 @@ async function openEditor(pane){
 }
 async function saveEditor(pane){
   if(!canEditCollection(pane)||pane.view!=='edit'||pane.loading)return;
-  pane.node.inert=true;await pane.plugin.flush();
-  const session=pane.editorSession;let confirmed=0;pane.loading=true;pendingWrites++;updateChrome();saveStatus('保存中…','saving');
+  pane.node.inert=true;
+  const session=pane.editorSession;let confirmed=false;pane.loading=true;pendingWrites++;updateChrome();saveStatus('保存中…','saving');
   try{
-    const saved=await session.saveAll(async({id,entry,document})=>{
+    await pane.plugin.flush();
+    const saved=await session.saveCurrent(async({id,entry,document})=>{
       const edit=entry.value;
       if(!edit.request||edit.request.sourceVersion!==edit.sourceVersion||edit.request.title!==document.title||JSON.stringify(edit.request.data)!==JSON.stringify(document.data))edit.request={requestId:makeRequestId(),revision:edit.revision,contentVersion:edit.contentVersion,sourceVersion:edit.sourceVersion,title:document.title,data:document.data};
-      const body=JSON.stringify(edit.request),send=()=>request(`${questionPath(pane.kind,pane.id,id)}/edit`,{method:'POST',body});let value;
+      const body=JSON.stringify(edit.request),send=()=>request(questionPath(pane.kind,pane.id,id)+'/edit',{method:'POST',body});let value;
       try{value=await send();}catch(error){if(!(error instanceof TypeError))throw error;value=await send();}
       return value;
     },async({id,entry,document},value)=>{
-      confirmed++;
-      session.confirmSourceVersion(value.previousSourceVersion,value.sourceVersion);
-      questionsCache.deleteCollection(`${pane.key}:`);questionsCache.set(questionCacheKey(pane,id),value.payload);
+      confirmed=true;
+      questionsCache.deleteCollection(pane.key+':');questionsCache.set(questionCacheKey(pane,id),value.payload);
       pane.collection=value.collection;entry.value={...entry.value,question:{id,title:document.title,data:document.data},revision:value.payload.state.revision,contentVersion:value.payload.stamp.contentVersion,sourceVersion:value.sourceVersion};
-      delete entry.value.request;
-      clearTimeout(pane.editorTimer);await pane.editorDraftWrites;
-      if(collectionFeature(pane,'history'))await request(editorDraftPath(pane,id),{method:'DELETE'});entry.draft=null;entry.changed=false;
-      if(id!==pane.questionId)session.remove(id);
-      else{entry.plugin?.update({mode:'edit',question:entry.value.question,capabilities:{canEdit:true}});await entry.plugin?.flush();}
+      delete entry.value.request;entry.plugin.update({mode:'edit',question:entry.value.question,capabilities:{canEdit:true}});await entry.plugin.flush();
     });
     const collection=await request(collectionPath(pane.kind,pane.id)),payload=await loadQuestion(pane,pane.questionId);
-    await showQuestion(pane,pane.questionId,{payload,collection});await refreshCatalog();notice(saved?`已保存 ${saved} 道题目的修改。${collectionFeature(pane,'history')?'旧历史记录保留。':''}`:'没有需要保存的修改。');
+    await showQuestion(pane,pane.questionId,{payload,collection});await refreshCatalog();notice(saved?'本题修改已保存。':'本题没有修改，已退出编辑。');
   }catch(error){
-    // Display the form that needs attention without discarding other edits.
-    if(error.questionId&&session.get(error.questionId)&&error.questionId!==pane.questionId){pane.loading=false;await showEditorQuestion(pane,error.questionId);pane.loading=true;if(error.phase==='validation')await pane.plugin.getDocument().catch(()=>{});}
-    saveStatus(error.phase?'仍有修改未保存':'读取题库失败','error');
+    saveStatus(confirmed?'本题已保存，读取失败':'本题修改未保存','error');
     const reason=error.status===409?'题目或练习状态已更新，当前编辑内容已保留。':error.message;
-    const savedCount=error.savedCount??confirmed;
-    error.message=savedCount?`已保存 ${savedCount} 道题；${error.phase?'其余修改仍保留。':'重新读取题库失败。'}${reason}`:reason;
-    throw error;
+    error.message=confirmed?'本题已保存，但重新读取失败。'+reason:reason;throw error;
   }finally{pane.loading=false;pendingWrites--;}
 }
+
 const developmentPath=pane=>`/api/development/${pane.kind==='development-bank'?'banks':'extensions'}/${encodeURIComponent(pane.id)}`;
 function developmentTitle(){return '开发版';}
 function syncDevelopmentCatalog(pane,descriptor){
@@ -565,9 +545,9 @@ function syncDevelopmentCatalog(pane,descriptor){
 }
 async function prepareDevelopmentSettings(settings){
   const panes=[...collections.values()].filter(pane=>pane.development);
-  for(const pane of panes){const saved=await flushPane(pane);if(!settings.enabled&&(saved===false||pane.retainedQuestions?.size)&&!confirm('关闭开发者模式会丢弃尚未保存的开发输入，是否继续？'))throw new Error('开发输入已保留，设置未更改');if(pane.view==='edit'){await persistEditorDraft(pane);await pane.editorDraftWrites;}}
+  for(const pane of panes){await allowDiscardEditor(pane);const saved=await flushPane(pane);if(!settings.enabled&&(saved===false||pane.retainedQuestions?.size)&&!confirm('关闭开发者模式会丢弃尚未保存的开发输入，是否继续？'))throw new Error('开发输入已保留，设置未更改');}
   if(settings.enabled)return;
-  // Keep persisted editor drafts: closing developer mode is not a discard action.
+  // Editing can be closed here only after its unsaved-change guard passed.
   for(const pane of panes){pane.closed=true;pane.developmentWatcher?.destroy();clearTimeout(pane.inkTimer);clearTimeout(pane.editorTimer);pane.sizeObserver?.disconnect();pane.worldObserver?.disconnect();if(pane.retainedQuestions)disposeRetainedQuestions(pane);disposeEditorSession(pane);disposeScoreSummary(pane);pane.plugin?.destroy();pane.whiteboard?.destroy();pane.node.remove();collections.delete(pane.key);questionsCache.deleteCollection(`${pane.key}:`);for(const prefix of unusedPagePrefixes(pane,collections.values()))pagesCache.deleteCollection(prefix);}
   if(!collections.has(activeKey)){activeKey=null;await activateReady([...collections.keys()].at(-1)||null);}else{updateChrome();}
 }
@@ -600,6 +580,7 @@ async function openCollection(kind,id){
   let pane=null,committed=false;
   if(previous)previous.node.inert=true;
   try{
+    if(previous?.key!==key)await allowDiscardEditor(previous);
     pendingLibraryKey=key;renderLibrary();
     await flushPane(previous);
     if(collections.has(key)){loading.setDetail('正在恢复题目…');await activateReady(key);return;}
@@ -636,13 +617,13 @@ async function openCollection(kind,id){
   }
 }
 function activate(key){const selected=collections.get(key);if(selected){collections.delete(key);collections.set(key,selected);}activeKey=key;notice('');for(const pane of collections.values()){pane.node.hidden=pane.key!==key;pane.plugin?.setActive?.(pane.key===key);pane.developmentWatcher?.setActive(pane.key===key);}$('#welcome').hidden=!!selected;renderLibrary();renderOutline();updateChrome();renderRecovery();closeDrawers();const pane=active();saveStatus(pane?.writes.hasFailures?'仍有内容未保存':pane?.view==='history'?'只读快照':pane?.view==='edit'?'编辑中':pane?.payload&&pane.payload.state.status!=='unanswered'?practiceSaveLabel(pane):'',pane?.writes.hasFailures?'error':'');}
-function attachRuntime(pane){if(pane.whiteboard)return;pane.whiteboard=mountWhiteboard(pane.viewport,{toolbarContainer:pane.tools,toolbarObstacles:()=>document.querySelectorAll('.question-arrow'),onChange:value=>enqueueInk(pane,value),onViewChange:camera=>{rememberDraftView(pane,camera);resizeStage(pane,camera);},onScroll:()=>rememberDraftScroll(pane),onFullscreen:()=>draftFullscreen.toggle(),onCapture:value=>captureDraftRegion(value,{viewport:pane.viewport,frame:pane.plugin?.frame,capture:pane.plugin?.captureRegion?.bind(pane.plugin)})});pane.whiteboard.setFullscreenState(draftFullscreen.getState());pane.sizeObserver?.observe(pane.viewport);pane.worldObserver?.observe(pane.world);}
+function attachRuntime(pane){if(pane.whiteboard)return;pane.whiteboard=mountWhiteboard(pane.viewport,{toolbarContainer:pane.tools,toolbarObstacles:()=>document.querySelectorAll('.question-arrow'),onChange:value=>enqueueInk(pane,value),onViewChange:camera=>{rememberDraftView(pane,camera);resizeStage(pane,camera);},onScroll:()=>rememberDraftScroll(pane),onFullscreen:()=>draftFullscreen.toggle()});pane.whiteboard.setFullscreenState(draftFullscreen.getState());pane.sizeObserver?.observe(pane.viewport);pane.worldObserver?.observe(pane.world);}
 async function suspendPane(pane){
   if(!pane||pane.closed||!pane.whiteboard)return;
   const saved=await flushPane(pane);clearTimeout(pane.editorTimer);
   pane.savedScrollTop=pane.viewport.scrollTop;
   if(pane.development&&(saved===false||pane.retainedQuestions?.size)){pane.keepRuntime=true;pane.node.inert=true;return;}
-  if(pane.view==='edit'){try{await pane.editorSession.suspend(pane.questionId);}catch(error){if(!pane.development)throw error;pane.keepRuntime=true;pane.node.inert=true;return;}pane.plugin=null;}
+  if(pane.view==='edit'){await allowDiscardEditor(pane);disposeEditorSession(pane);pane.view='practice';pane.node.classList.remove('is-edit');}
   else{pane.plugin?.destroy();pane.plugin=null;pane.frameHost.replaceChildren();if(pane.view==='history'){pane.pausedHistoryId=pane.historyEntry.id;pane.historyEntry={id:pane.historyEntry.id,collectionTitle:pane.historyEntry.collectionTitle};pane.historyView=null;pane.historyQuestion=null;}}
   pane.summaryCard?.destroy();pane.summaryCard=null;
   pane.whiteboard.destroy();pane.whiteboard=null;pane.tools.replaceChildren();pane.sizeObserver?.disconnect();pane.worldObserver?.disconnect();pane.payload=null;pane.collection.states={};
@@ -691,8 +672,8 @@ function updateChrome(){
   $('#mode-bar').hidden=!pane||['practice','summary'].includes(view);
   $('#history-choose').hidden=!collectionFeature(pane,'history')||!['history','history-deleted'].includes(view);$('#return-practice').hidden=!['history','history-deleted'].includes(view);
   for(const id of ['edit-cancel','edit-save']){$(`#${id}`).hidden=view!=='edit';$(`#${id}`).disabled=!!pane?.loading;}
-  $('#edit-save').textContent='保存全部修改';
-  $('#mode-label').textContent=view==='history'?`只读历史 · ${pane.historyEntry.mode==='exam'?'考试 · ':''}${historyProgress(pane.historyEntry)} · ${historyTime(pane.historyEntry.createdAt)}`:view==='history-deleted'?'记录已删除，请选择其他记录或返回作答。':view==='edit'?'编辑题库 · 切题保留未保存内容，保存后仅重置内容有改动的题目':'';
+  $('#mode-label').textContent=view==='history'?`只读历史 · ${pane.historyEntry.mode==='exam'?'考试 · ':''}${historyProgress(pane.historyEntry)} · ${historyTime(pane.historyEntry.createdAt)}`:view==='history-deleted'?'记录已删除，请选择其他记录或返回作答。':'';
+  renderEditorStatus(document,pane);
   if(!pane){$('#document-title').textContent='选择一本题库';$('#progress-text').textContent='';$('#previous').disabled=true;$('#next').disabled=true;saveStatus('');return;}
   const rows=visibleQuestions(pane),index=navigationIndex(pane),count=rows.length;
   const libraryRow=(['extension','development'].includes(pane.kind)?catalog.extensions:catalog.banks).find(row=>row.id===pane.id&&(row.kind||(['extension','development'].includes(pane.kind)?'extension':'bank'))===pane.kind);
@@ -750,12 +731,13 @@ function libraryIndexClient(){
     onError:error=>{if(error.status===401){if(!$('#access-dialog').open)$('#access-dialog').showModal();}else failure(error);},
   });
 }
-function switchList(kind){if(kind==='extension'&&!catalog.developmentEnabled)return;listMode=kind;renderLibrary();const open=[...collections.values()].filter(pane=>kind==='bank'?['bank','development-bank'].includes(pane.kind):['extension','development'].includes(pane.kind)).at(-1);const first=(kind==='bank'?catalog.banks:catalog.extensions).find(row=>!row.error);if(open||first)transitionTo(()=>openCollection(open?.kind||first.kind||kind,open?.id||first.id));}
+function switchList(kind){if(kind==='extension'&&!catalog.developmentEnabled)return;transitionTo(async()=>{await allowDiscardEditor(active());listMode=kind;renderLibrary();const open=[...collections.values()].filter(pane=>kind==='bank'?['bank','development-bank'].includes(pane.kind):['extension','development'].includes(pane.kind)).at(-1);const first=(kind==='bank'?catalog.banks:catalog.extensions).find(row=>!row.error);if(open||first)await openCollection(open?.kind||first.kind||kind,open?.id||first.id);});}
 
 $('#show-banks').addEventListener('click',()=>switchList('bank'));$('#show-extensions').addEventListener('click',()=>switchList('extension'));
-$('#refresh').addEventListener('click',()=>transitionTo(async()=>{for(const pane of collections.values())await flushPane(pane);questionsCache.clear();pagesCache.clear();await refreshCatalog();for(const pane of collections.values())pane.needsRefresh=true;if(activeKey)await activateReady(activeKey);}));
+$('#refresh').addEventListener('click',()=>transitionTo(async()=>{for(const pane of collections.values())await allowDiscardEditor(pane);for(const pane of collections.values()){if(pane.view==='edit')await returnToPractice(pane);await flushPane(pane);}questionsCache.clear();pagesCache.clear();await refreshCatalog();for(const pane of collections.values())pane.needsRefresh=true;if(activeKey)await activateReady(activeKey);}));
 const prepareLibraryChange=()=>transitionTo(async()=>{
-    if([...collections.values()].some(pane=>pane.view==='edit'))throw new Error('请先保存或取消题目编辑，再修改目录。');
+    for(const pane of collections.values())await allowDiscardEditor(pane);
+    for(const pane of collections.values())if(pane.view==='edit')await returnToPractice(pane);
     for(const pane of collections.values()){
       const inert=pane.node?.inert;
       try{if(await flushPane(pane)===false){
@@ -789,7 +771,7 @@ async function applyLibraryChange(result,operation){
     if(!collections.has(activeKey)){activeKey=null;const first=(listMode==='bank'?catalog.banks:catalog.extensions).find(row=>!row.error);if(first)await openCollection(first.kind||listMode,first.id);else activate(null);}
     else if(activeChanged)await activateReady(activeKey);
     updateChrome();
-    notice(operation.action==='delete'?`已移入回收目录：${result.archivedTo}${result.removedExtensionGroups?.length?'；已一并移除配套拓展组：'+result.removedExtensionGroups.join('、'):''}${result.retainedExtensionGroups?.length?'；保留仍被使用或引用无法确认的拓展组：'+result.retainedExtensionGroups.join('、'):''}`:'目录已更新。');
+    notice(operation.action==='delete'?`已移入回收目录：${result.archivedTo}${operation.kind==='bank'?'；配套拓展文件已保留。':''}`:'目录已更新。');
 }
 const libraryManager=bindLibraryManagement({request,getContext:()=>({kind:listMode,catalog}),beforeChange:prepareLibraryChange,
   onExport:(row,target)=>target==='item'?libraryTransfer.exportBank(row,{throwOnError:true}):libraryTransfer.exportGroup(row,{throwOnError:true}),
@@ -821,7 +803,7 @@ $('#history-delete-dialog').addEventListener('close',()=>{const resolve=historyD
 $('#return-practice').addEventListener('click',()=>transitionTo(()=>returnToPractice(active())));
 $('#edit-open').addEventListener('click',()=>transitionTo(()=>openEditor(active())));
 $('#edit-save').addEventListener('click',()=>transitionTo(()=>saveEditor(active())));
-$('#edit-cancel').addEventListener('click',()=>transitionTo(()=>returnToPractice(active())));
+$('#edit-cancel').addEventListener('click',()=>transitionTo(()=>returnToPractice(active(),{discard:true})));
 for(const key of ['library','outline'])$(`#${key}-toggle`).addEventListener('click',()=>toggleSidebar(key));
 for(const media of [libraryDrawer,outlineDrawer])media.addEventListener('change',closeDrawers);
 phoneLayout.addEventListener('change',()=>{for(const pane of collections.values())syncPracticeCamera(pane);});
@@ -850,7 +832,7 @@ $('#access-form').addEventListener('submit',async event=>{
   catch(error){$('#access-error').textContent=error.code==='PASSWORD_REQUIRED'||error.code==='TOKEN_REQUIRED'?'密码不正确，请重试。':error.code==='LOGIN_RATE_LIMITED'?'尝试次数过多，请等待一分钟后再连接。':error.message;}
   finally{button.disabled=false;}
 });
-window.addEventListener('beforeunload',event=>{if(pendingWrites||[...collections.values()].some(pane=>pane.ink.pending||pane.writes.hasFailures||pane.editorSession?.isDirty||pane.plugin?.hasUnsavedInput||pane.retainedQuestions?.size)){event.preventDefault();event.returnValue='';}});
+window.addEventListener('beforeunload',event=>{if(shouldWarnBeforeUnload(collections.values(),pendingWrites)){event.preventDefault();event.returnValue='';}});
 window.addEventListener('pagehide',()=>refreshCatalog.client?.stop());
 document.addEventListener('visibilitychange',()=>{refreshCatalog.client?.visibilityChanged();if(document.visibilityState==='hidden'){const pane=active();if(pane&&!pane.loading&&pane.view==='practice'){pane.whiteboard.flush();saveInk(pane).catch(()=>{});}}});
 async function start(){await refreshCatalog();const imported=takeImportedBank(catalog),first=imported||catalog.banks.find(row=>!row.error);if(first&&(!collections.size||imported))await transitionTo(()=>openCollection(first.kind||'bank',first.id));if(imported)notice(`已导入并打开「${imported.title}」。`);}

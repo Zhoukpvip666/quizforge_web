@@ -18,7 +18,7 @@
 | --- | --- |
 | `practice` | 页面注册、恢复、保存和提交 |
 | `score` | 拓展评分与宿主汇总，1.2 起可带小题评分状态 |
-| `editor`、`editor-drafts` | 编辑文档及未完成表单恢复 |
+| `editor`、`editor-drafts` | 题目编辑文档及旧草稿接口；当前 Web 编辑器只保留当前题内存输入，不自动暂存或恢复表单 |
 | `manual-review`、`ai-grading` | 人工评分与 AI 任务 |
 | `resources`、`richtext` | 图片资源与公共富文本服务 |
 | `navigation`、`lifecycle` | 切题请求、flush/dispose |

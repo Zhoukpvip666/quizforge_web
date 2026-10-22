@@ -66,9 +66,13 @@ class Element {
     }
     return event;
   }
-  get clientWidth() { return 800; }
-  get clientHeight() { return 600; }
-  getBoundingClientRect() { return { left: 0, top: 0, width: 800, height: 600 }; }
+  get layoutHidden() {
+    const layout=this.ownerDocument.layout;
+    return layout?.hidden || (layout?.width<=600 && this.closest('.qf-whiteboard')?.matches('.qf-whiteboard--practice'));
+  }
+  get clientWidth() { return this.layoutHidden ? 0 : this.ownerDocument.layout?.width ?? 800; }
+  get clientHeight() { return this.layoutHidden ? 0 : this.ownerDocument.layout?.height ?? 600; }
+  getBoundingClientRect() { return { left: 0, top: 0, width: this.clientWidth, height: this.clientHeight }; }
   getContext() {
     if (!this.context) this.context = {
       transform: [1, 0, 0, 1, 0, 0],
@@ -87,8 +91,8 @@ class Element {
   focus() { this.ownerDocument.activeElement = this; }
 }
 
-function fixture({ externalToolbar = false, onFullscreen = () => {} } = {}) {
-  const document = { createElement(tag) { return new Element(tag, this); }, querySelector() { throw new Error('Global queries are forbidden'); } };
+function fixture({ externalToolbar = false, onFullscreen = () => {}, layout } = {}) {
+  const document = { layout, createElement(tag) { return new Element(tag, this); }, querySelector() { throw new Error('Global queries are forbidden'); } };
   const window = new Element('window', document);
   let sequence = 0;
   const frames = new Map();
@@ -111,6 +115,47 @@ function fixture({ externalToolbar = false, onFullscreen = () => {} } = {}) {
   const click = selector => (root.querySelector(selector) || toolbarContainer?.querySelector(selector)).dispatch('click');
   return { board, root, canvas, container, toolbarContainer, changes, interactions, pointer, click, window, paint };
 }
+
+test('phone first draft entry measures the newly visible overlay without a viewport resize',()=>{
+  for(const width of [360,390,480,600]) {
+    const f=fixture({layout:{width,height:700}});
+    assert.equal(f.root.clientWidth,0,'Phone practice CSS hides the overlay at mount.');
+    f.board.setMode('draft');f.paint();
+    assert.equal(f.canvas.width,width*2,'The backing bitmap must match the visible CSS width and DPR.');
+    assert.equal(f.canvas.height,1400);
+    f.pointer('pointerdown',100,100);f.pointer('pointerup',150,150);
+    assert.deepEqual(f.board.getDraft().strokes[0].points.map(({x,y})=>[x,y]),[[100,100],[150,150]]);
+    f.click('[data-tool="select-ink"]');f.pointer('pointerdown',80,80,'touch');f.pointer('pointerup',170,170,'touch');f.paint();
+    assert.equal(f.root.querySelector('.qf-whiteboard-selection-actions').hidden,false,'Box selection uses the same correctly sized coordinate plane.');
+    f.board.destroy();
+  }
+});
+
+test('a hidden pane preserves its backing bitmap and remeasures on paint when it becomes visible',()=>{
+  const layout={width:390,height:700},f=fixture({layout});f.board.setMode('draft');f.paint();
+  f.pointer('pointerdown',100,100);f.pointer('pointerup',150,150);const saved=f.board.getDraft();
+  layout.hidden=true;f.window.dispatch('resize');f.paint();
+  assert.equal(f.canvas.width,780,'A hidden pane must not overwrite its bitmap with a 1-pixel measurement.');
+  layout.width=420;layout.height=620;layout.hidden=false;
+  f.board.load(saved);f.paint();
+  assert.equal(f.canvas.width,840);assert.equal(f.canvas.height,1240);
+  assert.deepEqual(f.board.getDraft(),saved,'Display measurements must not modify saved ink or camera.');
+  f.board.destroy();
+});
+
+test('draft capture tools, preview and C shortcut are absent while selection and undo remain available',()=>{
+  const f=fixture({externalToolbar:true});f.board.setMode('draft');f.paint();
+  assert.equal(f.toolbarContainer.querySelector('[data-tool="capture"]'),null);
+  assert.equal(f.root.querySelector('.qf-whiteboard-capture-preview'),null);
+  assert.equal(f.root.querySelector('[data-action="copy-capture"]'),null);
+  for(const key of ['c','C']) {
+    const event=f.canvas.dispatch('keydown',{key});assert.equal(event.defaultPrevented,undefined);assert.equal(f.root.dataset.tool,'pen');
+  }
+  f.pointer('pointerdown',100,100);f.pointer('pointerup',150,150);
+  f.click('[data-tool="select-ink"]');f.pointer('pointerdown',80,80);f.pointer('pointerup',170,170);
+  f.click('[data-action="delete-selection"]');assert.equal(f.board.getDraft().strokes.length,0);
+  f.click('[data-action="undo"]');assert.equal(f.board.getDraft().strokes.length,1);f.board.destroy();
+});
 
 test('box selection with mouse, touch and pen ignores pen-only mode and supports move, copy, delete and undo',()=>{
   for(const type of ['mouse','touch','pen']) {
@@ -157,7 +202,8 @@ test('readonly history restores paper and camera, allows pan and zoom, and never
   assert.deepEqual(board.getViewCamera(), draft.viewport);
   assert.equal(root.dataset.tool, 'hand');
   for (const tool of ['pen', 'eraser', 'select-ink']) assert.equal(toolbarContainer.querySelector(`[data-tool="${tool}"]`).hidden, true);
-  for (const tool of ['hand', 'capture']) assert.equal(toolbarContainer.querySelector(`[data-tool="${tool}"]`).hidden, false);
+  assert.equal(toolbarContainer.querySelector('[data-tool="hand"]').hidden, false);
+  assert.equal(toolbarContainer.querySelector('[data-tool="capture"]'), null);
   assert.equal(toolbarContainer.querySelector('[data-action="settings"]').hidden, true);
   assert.equal(toolbarContainer.querySelector('[data-action="undo"]').parentElement.hidden, true);
   assert.equal(toolbarContainer.querySelector('.qf-whiteboard-zoom-controls'), null, 'Zoom uses wheel and pinch, without corner buttons.');
@@ -405,7 +451,7 @@ test('pen and eraser leave only declared answer-area rectangles to the component
     const down=f.pointer('pointerdown',150,150);f.pointer('pointerup',180,180);assert.equal(down.defaultPrevented,undefined);assert.equal(f.board.getDraft().strokes.length,0);
   }
   f.click('[data-tool="pen"]');f.pointer('pointerdown',420,110);f.pointer('pointerup',425,120);assert.equal(f.board.getDraft().strokes.length,1,'Ordinary buttons do not become writing holes');
-  f.click('[data-tool="capture"]');f.paint();assert.equal(f.root.querySelector('.qf-whiteboard-input').style['clip-path'],undefined,'Capture still includes the complete selected area');f.board.destroy();
+  f.click('[data-tool="select-ink"]');f.paint();assert.equal(f.root.querySelector('.qf-whiteboard-input').style['clip-path'],undefined,'Box selection still covers the complete area');f.board.destroy();
 });
 
 test('V and H choose the hand tool from the draft canvas without consuming input field, modified or practice shortcuts', () => {

@@ -136,16 +136,6 @@
 .qf-whiteboard-status:empty { display: none; }
 .qf-whiteboard-selection-actions { display:flex;align-items:center;gap:3px;position:absolute;z-index:3;top:12px;left:50%;transform:translateX(-50%);white-space:nowrap;padding:5px;border:1px solid #ebe7f1;border-radius:12px;background:#fffffff5;box-shadow:0 4px 16px #3e33581a;pointer-events:auto;color:#6e617d;font:12px/1.4 system-ui,sans-serif; }
 .qf-whiteboard-selection-actions span { padding:0 8px;font-size:11px; }
-.qf-whiteboard-capture-preview { pointer-events:auto;width:min(720px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow:auto;padding:18px;border:1px solid #e1dceb;border-radius:16px;color:#6e617d;background:white;box-shadow:0 12px 48px #3e335830; }
-.qf-whiteboard-capture-preview::backdrop { background:#33274466; }
-.qf-whiteboard-capture-head,.qf-whiteboard-capture-footer { display:flex;justify-content:space-between;align-items:center;gap:12px; }
-.qf-whiteboard-capture-preview svg { width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7; }
-.qf-whiteboard-capture-preview img { display:block;max-width:100%;max-height:calc(100dvh - 190px);margin:16px auto;border:1px solid #eee8f5;object-fit:contain; }
-.qf-whiteboard-capture-footer span { font-size:11px;color:#a294b0; }
-.qf-whiteboard-capture-actions { display:flex;gap:8px;flex:none; }
-.qf-whiteboard-capture-actions button { padding:10px 16px;border:1px solid #d9cbee;border-radius:8px;background:#f5f1fa;color:#7358bf;font-size:12px; }
-@media (max-width:600px) { .qf-whiteboard-capture-footer { flex-wrap:wrap; } .qf-whiteboard-capture-actions { margin-left:auto; } }
-.qf-whiteboard-capture-footer a { flex:none;padding:10px 16px;border-radius:8px;background:#8055bd;color:white;text-decoration:none;font-size:12px; }
 /* Touch targets stay usable without the toolbar taking over a tablet screen. */
 @media (pointer: coarse) {
   .qf-whiteboard-toolbar { --qf-tool: 38px; }

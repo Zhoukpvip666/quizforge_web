@@ -45,14 +45,18 @@
     if (!part) throw new Error('请选择有效的小问');
     return part;
   }
+  function referenceBlocks(part) {
+    const reference = blocks(part.answerAndExplanation);
+    return reference.length ? reference : [{type:'text',text:'未提供参考答案或评分细则。请依据题干明确要求评价作答；不要虚构参考答案或官方评分标准。题干信息不足以可靠评分时，请在反馈中明确说明，供人工复核。'}];
+  }
   function aiInput(data, answer, targetId) {
     const part = target(data, targetId);
     if (!nonempty(answer.responses[part.id])) throw new Error('该小问尚未作答');
-    return {protocolVersion:1,question:[...blocks(data.material),...blocks(part.stem)],answer:blocks(answer.responses[part.id]),referenceAnswer:blocks(part.answerAndExplanation),maxScore:part.maxScore,scoreStep:0.5};
+    return {protocolVersion:1,question:[...blocks(data.material),...blocks(part.stem)],answer:blocks(answer.responses[part.id]),referenceAnswer:referenceBlocks(part),maxScore:part.maxScore,scoreStep:0.5};
   }
   QF.defineType({
     validateQuestion(data) {
-      return object(data) && data.formatVersion === 1 && (data.material === null || document(data.material)) && Array.isArray(data.parts) && data.parts.length > 0 && data.parts.length <= 100 && data.parts.every(part => object(part) && /^[A-Za-z0-9_-]{1,64}$/.test(part.id) && document(part.stem) && nonempty(part.stem) && document(part.answerAndExplanation) && nonempty(part.answerAndExplanation) && Number.isFinite(part.maxScore) && part.maxScore > 0 && part.maxScore <= 100000 && Number.isInteger(part.maxScore * 2)) && new Set(data.parts.map(part => part.id)).size === data.parts.length && total(data) <= 100000;
+      return object(data) && data.formatVersion === 1 && (data.material === null || document(data.material)) && Array.isArray(data.parts) && data.parts.length > 0 && data.parts.length <= 100 && data.parts.every(part => object(part) && /^[A-Za-z0-9_-]{1,64}$/.test(part.id) && document(part.stem) && nonempty(part.stem) && document(part.answerAndExplanation) && Number.isFinite(part.maxScore) && part.maxScore > 0 && part.maxScore <= 100000 && Number.isInteger(part.maxScore * 2)) && new Set(data.parts.map(part => part.id)).size === data.parts.length && total(data) <= 100000;
     },
     validateAnswer: answerValid,
     project(data, state) {return {formatVersion:1,material:data.material,parts:data.parts.map(part => ({id:part.id,stem:part.stem,maxScore:part.maxScore,...(state?.submitted ? {answerAndExplanation:part.answerAndExplanation} : {})}))};},

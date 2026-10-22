@@ -42,6 +42,9 @@ test('all browser entry modules load over HTTP including the shared answer model
     }
   }] });
   assert.ok(loaded.has('/shared/answer-area/1.4.0/model.js')); assert.ok(loaded.has('/shared/ink/1.0.0/renderer.js'));
+  assert.ok(loaded.has('/editor/editor-navigation.js'));
+  const editorStyle=await api('/editor/editor-navigation.css');assert.equal(editorStyle.status,200);assert.match(editorStyle.headers.get('content-type'),/^text\/css/);
+  const entry=await api('/');assert.match(entry.data.toString(),/id="editor-leave-dialog"/);assert.match(entry.data.toString(),/href="\/editor\/editor-navigation.css"/);
   assert.equal((await api('/shared/answer-area/1.3.0/model.js')).status,200,'old pure model remains available');
   assert.ok(loaded.size > 30, 'check the whole startup graph, not just the new files');
   for (const uri of ['/shared/answer-area/1.3.0/component.js', '/shared/answer-area/1.2.0/model.js', '/shared/ink/1.0.0/renderer.js.map', '/server/host/http/server.js']) assert.equal((await api(uri)).status, 404, uri);
@@ -290,7 +293,7 @@ test('HTTP group export and import transport the native qbank stream and install
   assert.equal((await other.api('/api/collections/bank/'+imported.catalog.banks[0].id)).status, 200);
 });
 
-test('HTTP individual export imports at root and deleting its renamed bank archives only its own extensions', async t => {
+test('HTTP individual export imports at root and deleting its renamed bank preserves all extensions', async t => {
   const { api, root, service } = await fixture(t);
   for (const body of [{}, {bank:'bank',group:'Group'}, {bank:'bank',extra:true}, []]) assert.equal((await api('/api/library/export', {method:'POST',body})).status, 400);
   assert.equal((await api('/api/library/export', {method:'POST',body:{bank:'../bank'}})).status, 404);
@@ -304,10 +307,10 @@ test('HTTP individual export imports at root and deleting its renamed bank archi
   assert.equal((await api('/api/collections/bank/'+row.id)).status, 200);
   const renamed = await api('/api/library/manage', {method:'POST',body:{kind:'bank',action:'update',target:'item',path:'单题库',name:'改过名',group:''}}); assert.equal(renamed.status,200);
   const removed = await api('/api/library/manage', {method:'POST',body:{kind:'bank',action:'delete',target:'item',path:'改过名'}});
-  assert.equal(removed.status,200,JSON.stringify(removed.data)); assert.deepEqual(removed.data.removedExtensionGroups,['单题库']);
-  assert.equal(fs.existsSync(path.join(root,'extensions/单题库')),false);
+  assert.equal(removed.status,200,JSON.stringify(removed.data)); assert.deepEqual(removed.data.removedExtensionGroups,[]);
+  assert.ok(fs.existsSync(path.join(root,'extensions/单题库/choice/manifest.json')));
   assert.ok(fs.existsSync(path.join(root,removed.data.archivedTo,'content/改过名/bank.json')));
-  assert.ok(fs.existsSync(path.join(root,removed.data.archivedTo,'extensions/单题库/choice/manifest.json')));
+  assert.equal(fs.existsSync(path.join(root,removed.data.archivedTo,'extensions')),false);
   assert.ok(fs.existsSync(path.join(root,'extensions/Test/choice/manifest.json')));
   assert.ok(fs.existsSync(path.join(root,'question-banks/bank/bank.json')));
 });

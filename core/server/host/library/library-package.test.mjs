@@ -92,7 +92,7 @@ test('changed or higher versions always add a copy and preserve existing source,
   const imported = await target.library.collection('bank', result.catalog.banks.find(row => row.group === result.group).id);
   assert.equal((await states.question(imported, imported.questions[0])).state.status, 'unanswered');
   const deleted = await target.library.manage({ kind: 'bank', target: 'group', action: 'delete', path: 'Group' });
-  assert.deepEqual(deleted.removedExtensionGroups, ['Test']); states.clearMemory();
+  assert.deepEqual(deleted.removedExtensionGroups, []); assert.ok(fs.existsSync(path.join(target.root, 'extensions/Test/choice/manifest.json'))); states.clearMemory();
   assert.deepEqual((await states.history('bank', collection.id)).records, history);
   assert.deepEqual(await states.history('bank', collection.id, history[0].id), frozen);
 });
@@ -127,8 +127,10 @@ test('extension structural writes are blocked and physical group deletion checks
   await assert.rejects(target.library.manage({ kind: 'extension', action: 'delete', target: 'group', path: 'Group' }), { code: 'EXTENSION_IN_USE' });
   assert.deepEqual(fs.readFileSync(file), before);
   const removed = await target.library.manage({ kind: 'bank', action: 'delete', target: 'group', path: result.group });
-  assert.deepEqual(removed.removedExtensionGroups, ['Group']);
-  assert.ok(fs.existsSync(path.join(target.root, removed.archivedTo, 'extensions/Group/choice/manifest.json')));
+  assert.deepEqual(removed.removedExtensionGroups, []);
+  assert.ok(fs.existsSync(path.join(target.root, removed.archivedTo, 'content/Group/leaf/bank.json')));
+  assert.deepEqual(fs.readFileSync(file), before);
+  await target.library.manage({ kind: 'extension', action: 'delete', target: 'group', path: 'Group' });
   assert.equal(fs.existsSync(file), false);
 });
 

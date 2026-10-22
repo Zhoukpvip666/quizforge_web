@@ -11,6 +11,7 @@
   <link rel="manifest" href="/manifest.webmanifest">
   <meta name="theme-color" content="#ffffff">
   <link rel="stylesheet" href="/shell/app.css">
+  <link rel="stylesheet" href="/editor/editor-navigation.css">
   <link rel="stylesheet" href="/draft/whiteboard.css">
   <link rel="stylesheet" href="/draft/camera.css">
   <link rel="stylesheet" href="/shell/refinements.css">
@@ -48,7 +49,7 @@
               d="m10 3-.7 2.2-2 .9-2.1-.5-2 3.4 1.5 1.7v2.6l-1.5 1.7 2 3.4 2.1-.5 2 .9.7 2.2h4l.7-2.2 2-.9 2.1.5 2-3.4-1.5-1.7v-2.6l1.5-1.7-2-3.4-2.1.5-2-.9L14 3Z" />
             <circle cx="12" cy="12" r="3" />
           </svg></button><a id="library-download" class="library-download-link"
-          href="https://quizforge.treenewbee.cloud/#library" target="_blank" rel="noopener noreferrer"
+          href="https://quizforge.treenewbee.cloud/manage/#library" target="_blank" rel="noopener noreferrer"
           title="在新标签页打开题库广场" aria-label="获取题库，在新标签页打开题库广场">获取题库<span aria-hidden="true">↗</span></a></div>
     </aside>
     <main class="main">
@@ -148,6 +149,11 @@
             id="library-manage-confirm" type="submit">保存</button></div>
       </div>
     </form>
+  </dialog>
+  <dialog id="editor-leave-dialog" class="editor-leave-dialog" aria-labelledby="editor-leave-title">
+    <h2 id="editor-leave-title">请先处理当前编辑</h2>
+    <p id="editor-leave-message">当前题目有修改未保存，请先保存或取消编辑。</p>
+    <div class="dialog-actions"><button id="editor-leave-return" type="button" autofocus>返回编辑</button></div>
   </dialog>
   <dialog id="history-dialog" class="history-dialog" aria-labelledby="history-title">
     <div class="dialog-heading">

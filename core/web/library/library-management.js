@@ -21,7 +21,7 @@ export function bindLibraryManagement({request,getContext,beforeChange,onChanged
     $('#library-manage-fields').hidden=removing||readOnly;$('#library-manage-confirm').hidden=readOnly;$('#library-manage-confirm').textContent=removing?'移入回收目录':'保存';
     $('#library-manage-confirm').classList.toggle('danger-button',removing);
     const hint=removing?`${row?.title||row?.name||row?.path}：${target==='group'?'此分组及其全部内容（包括未显示的文件）':'此'+type}将移入 .trash/library 回收目录，作答与历史数据保留。${kind==='extension'?'仍有题库引用时无法删除。':''}`:target==='group'?'分组名就是文件夹名；改名不会重置作答与历史。':'名称对应实际文件夹或文件名，移动或改名不会重置作答与历史。';
-    $('#library-manage-hint').textContent=readOnly?`${row?.name||row?.title||row?.path}：拓展按实际路径引用，不支持改名或移动。可在下方删除；仍有题库引用时无法删除。`:hint+(removing&&kind==='bank'?' 配套且未被其他题库使用的拓展组会一起移入回收目录；仍被使用或无法确认引用的组会保留。':'');
+    $('#library-manage-hint').textContent=readOnly?`${row?.name||row?.title||row?.path}：拓展按实际路径引用，不支持改名或移动。可在下方删除；仍有题库引用时无法删除。`:hint+(removing&&kind==='bank'?' 配套拓展文件会保留，不随题库删除。':'');
     $('#library-manage-more').hidden=action!=='update';$('#library-manage-export').hidden=kind!=='bank'||!onExport;$('#library-manage-export').textContent=target==='group'?'导出分组':'导出题库';
     $('#library-manage-cancel').textContent=readOnly?'关闭':'取消';
     const select=$('#library-manage-group');select.closest('label').hidden=target==='group';$('#library-manage-cancel').hidden=creatingGroup;select.replaceChildren(new Option('未分组（根目录）',''));

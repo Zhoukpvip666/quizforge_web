@@ -82,19 +82,19 @@ test('formal and development packages remain in one extension list with distinct
   const items=[...document.querySelectorAll('.library-item')];assert.equal(items.length,2);assert.equal(document.querySelectorAll('#library-list .development-badge').length,1);assert.doesNotMatch(items[1].textContent,/UI 预览|功能调试/);items[0].click();items[1].click();assert.deepEqual(opened,[['extension','choice'],['development','choice-dev']]);
   assert.equal(document.querySelectorAll('.library-switch button').length,2,'No separate developer list group.');
 });
-test('disabling developer mode saves pending editor drafts before removing development pages without discarding them',async t=>{
+test('disabling developer mode checks editor changes before removing clean development pages',async t=>{
   const dom=new JSDOM(html);t.after(()=>dom.window.close());const node=dom.window.document.createElement('section');dom.window.document.body.append(node);const steps=[];
   const pane={id:'bank',key:'development-bank:bank',kind:'development-bank',development:{mode:'runtime'},view:'edit',node,editorDraftWrites:Promise.resolve(),plugin:{destroy(){steps.push('destroy');}},whiteboard:{destroy(){}},sizeObserver:{disconnect(){}},worldObserver:{disconnect(){}},developmentWatcher:{destroy(){steps.push('stop-watch');}}},collections=new Map([[pane.key,pane]]);
-  const sandbox={collections,activeKey:pane.key,clearTimeout,flushPane:async()=>steps.push('flush'),persistEditorDraft:async()=>{steps.push('draft-put');pane.editorDraftWrites=Promise.resolve();},disposeEditorSession(){},disposeScoreSummary(){},questionsCache:{deleteCollection(){}},pagesCache:{deleteCollection(){}},unusedPagePrefixes:()=>[],activateReady:async key=>{assert.equal(key,null);steps.push('activate');},updateChrome(){}};
+  const sandbox={collections,activeKey:pane.key,clearTimeout,allowDiscardEditor:async()=>steps.push('check-edit'),flushPane:async()=>steps.push('flush'),disposeEditorSession(){},disposeScoreSummary(){},questionsCache:{deleteCollection(){}},pagesCache:{deleteCollection(){}},unusedPagePrefixes:()=>[],activateReady:async key=>{assert.equal(key,null);steps.push('activate');},updateChrome(){}};
   vm.runInNewContext(part('async function prepareDevelopmentSettings(', '\nfunction watchDevelopment(')+'\nglobalThis.prepare=prepareDevelopmentSettings;',sandbox);await sandbox.prepare({enabled:false});
-  assert.equal(collections.size,0);assert.equal(pane.closed,true);assert.equal(node.isConnected,false);assert.deepEqual(steps,['flush','draft-put','stop-watch','destroy','activate']);
+  assert.equal(collections.size,0);assert.equal(pane.closed,true);assert.equal(node.isConnected,false);assert.deepEqual(steps,['check-edit','flush','stop-watch','destroy','activate']);
 });
 
 
 test('unfinished development uses ordinary practice, editor and history branches without a publish control',()=>{
   assert.doesNotMatch(source,/mountDevelopmentPreview|showDevelopmentPage|showRuntimeDevelopmentEditor|uiDevelopment|previewDevelopmentEditor|bindDevelopmentPublish/);
   assert.doesNotMatch(part('async function navigateQuestion(', '\nasync function returnToPractice('),/development-edit|development-preview/);
-  assert.match(part('async function navigateQuestion(', '\nasync function returnToPractice('),/showEditorQuestion.*showHistoryQuestion/s);
+  assert.match(part('async function navigateQuestion(', '\nasync function returnToPractice('),/showHistoryQuestion.*allowDiscardEditor.*showQuestion/s);
 });
 
 test('ordinary candidate-first loading retains the previous frame after a broken development registration, with a local retry',async t=>{
@@ -154,7 +154,7 @@ test('failed development save blocks summary without confirmation, destroying th
   const node=dom.window.document.querySelector('section'),frameHost=node.firstElementChild,input=frameHost.querySelector('textarea'),notices=[];
   const plugin={hasUnsavedInput:failure==='unsaved',flush:async()=>{if(failure==='hook')throw new Error('save rejected');},destroy(){throw new Error('Failed input must remain mounted');}};
   const pane={node,frameHost,plugin,development:{folder:'fixture'},view:'practice',questionId:'q',whiteboard:{flush(){}},writes:{settled:async()=>{},hasFailures:failure==='writes'}};
-  const sandbox={active:()=>pane,examActive:()=>false,saveInk:async()=>{},saveStatus(){},notice:value=>notices.push(value),hasScoreSummary:()=>true,updateChrome(){},allowLeaveDevelopmentInput(){throw new Error('Failed save cannot be discarded to enter summary');},request(){throw new Error('Summary must not load');}};
+  const sandbox={allowDiscardEditor:async()=>true,active:()=>pane,examActive:()=>false,saveInk:async()=>{},saveStatus(){},notice:value=>notices.push(value),hasScoreSummary:()=>true,updateChrome(){},allowLeaveDevelopmentInput(){throw new Error('Failed save cannot be discarded to enter summary');},request(){throw new Error('Summary must not load');}};
   vm.runInNewContext(part('async function flushPane(', '\nconst pageRequest=')+part('async function showScoreSummary(', '\nasync function finishPractice(')+'\nglobalThis.summary=showScoreSummary;',sandbox);
   await sandbox.summary(pane);assert.equal(pane.plugin,plugin);assert.equal(input.value,'local test answer');assert.equal(frameHost.contains(input),true);assert.equal(pane.view,'practice');assert.equal(pane.loading,undefined);
  }

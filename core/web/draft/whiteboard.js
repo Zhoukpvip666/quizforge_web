@@ -1,6 +1,5 @@
 import { WhiteboardModel, DRAFT_LIMITS, normalizeViewport, screenToWorld, zoomAt, translateCamera, strokeTouchesPath } from './whiteboard-model.js';
 import { rectangle, strokeBounds, containsPoint, enclosedStrokes, translateStrokes } from './whiteboard-selection.js';
-import { copyCaptureImage } from './whiteboard-capture.js';
 import { publishAnswerTools, activeAnswerFrame, sendAnswerCommand, clearAnswerFocus } from '../shared/answer-area-channel.js';
 import {paintInkStroke} from '../../shared/ink/1.0.0/renderer.js';
 import {createAnswerInk} from './answer-ink.js';
@@ -13,8 +12,8 @@ const swatches = (colors, kind) => colors.map(([color,label]) => `<button type="
 const TOOLBAR_STORAGE_KEY = 'quizforge.whiteboard.toolbar';
 // The question tool and the old pan tool are one tool now; keep their names working.
 const TOOL_ALIASES = { select: 'hand', pan: 'hand' };
-const READ_ONLY_TOOLS = ['hand', 'capture'];
-const TOOL_LABELS = { hand: '操作／移动', pen: '画笔', eraser: '整笔擦除', 'select-ink': '框选笔迹', capture: '区域截图' };
+const READ_ONLY_TOOLS = ['hand'];
+const TOOL_LABELS = { hand: '操作／移动', pen: '画笔', eraser: '整笔擦除', 'select-ink': '框选笔迹' };
 
 const icons = {
   hand: '<path d="M18 11V6a2 2 0 0 0-4 0v4"></path><path d="M14 10V4a2 2 0 0 0-4 0v6"></path><path d="M10 10.5V6a2 2 0 0 0-4 0v8"></path><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-6-2.3l-3.6-3.6a2 2 0 0 1 2.8-2.8L7 15"></path>',
@@ -32,13 +31,12 @@ const icons = {
   clear: '<path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"></path>',
   close: '<path d="m6 6 12 12M6 18 18 6"></path>',
   'select-ink': '<rect x="4" y="4" width="16" height="16" rx="1" stroke-dasharray="3 3"></rect>',
-  capture: '<path d="M8 3H3v5M16 3h5v5M21 16v5h-5M8 21H3v-5"></path><rect x="7" y="7" width="10" height="10" rx="1"></rect>',
   copy: '<rect x="8" y="8" width="13" height="13" rx="2"></rect><path d="M16 8V3H3v13h5"></path>',
 };
 const icon = name => `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">${icons[name]}</svg>`;
 const toolIcon = (name, color) => name === 'pen' ? `${icon('pen')}<span class="qf-whiteboard-pen-color" style="--swatch:${color}"></span>` : icon(name);
 
-export function mountWhiteboard(container, { onChange = () => {}, onViewChange = () => {}, onInteractionChange = () => {}, onFullscreen = () => {}, onScroll = () => {}, onCapture = null, toolbarContainer = null, toolbarObstacles = () => [] } = {}) {
+export function mountWhiteboard(container, { onChange = () => {}, onViewChange = () => {}, onInteractionChange = () => {}, onFullscreen = () => {}, onScroll = () => {}, toolbarContainer = null, toolbarObstacles = () => [] } = {}) {
   if (!container?.ownerDocument) throw new TypeError('Whiteboard requires a DOM container');
   const doc = container.ownerDocument, win = doc.defaultView;
   if (toolbarContainer && (toolbarContainer.ownerDocument !== doc || typeof toolbarContainer.append !== 'function')) {
@@ -62,7 +60,6 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
         <button type="button" data-tool="pen" title="画笔 (P)，选中后再点一次选择颜色" aria-label="画笔，选中后再次点击选择颜色" aria-pressed="true" aria-expanded="false">${toolIcon('pen','#334155')}</button>
         <button type="button" data-tool="eraser" title="整笔擦除 (E)" aria-label="整笔擦除" aria-pressed="false">${icon('eraser')}</button>
         <button type="button" data-tool="select-ink" title="框选笔迹 (S)" aria-label="框选笔迹" aria-pressed="false">${icon('select-ink')}</button>
-        <button type="button" data-tool="capture" title="区域截图 (C)" aria-label="区域截图" aria-pressed="false">${icon('capture')}</button>
       </div>
       <div class="qf-whiteboard-group" data-group="history">
         <button type="button" data-action="undo" title="撤销 (Ctrl / ⌘ Z)" aria-label="撤销">${icon('undo')}</button>
@@ -83,7 +80,6 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
       <button type="button" class="qf-whiteboard-clear" data-action="clear" title="清空本题笔迹" aria-label="清空本题笔迹">${icon('clear')}</button>
     </div>
     <div class="qf-whiteboard-selection-actions" role="group" aria-label="选中笔迹" hidden><span data-control="selection-count"></span><button type="button" data-action="copy-selection" aria-label="复制选中笔迹" title="复制一份">${icon('copy')}</button><button type="button" data-action="delete-selection" aria-label="删除选中笔迹" title="删除">${icon('clear')}</button><button type="button" data-action="cancel-selection" aria-label="取消选择" title="取消选择">${icon('close')}</button></div>
-    <dialog class="qf-whiteboard-capture-preview" aria-label="区域截图预览"><div class="qf-whiteboard-capture-head"><strong>区域截图</strong><button type="button" data-action="close-capture" aria-label="关闭截图预览">${icon('close')}</button></div><img alt="选定区域的题目与草稿截图"><div class="qf-whiteboard-capture-footer"><span class="qf-whiteboard-capture-status" role="status">只截取选定区域，不包含工具栏</span><div class="qf-whiteboard-capture-actions"><button type="button" data-action="copy-capture">复制图片</button><a download>下载 PNG</a></div></div></dialog>
     <div class="qf-whiteboard-confirm" role="dialog" aria-modal="true" aria-label="清空白板" hidden>
       <div><p data-control="clear-message">清空本题的所有笔迹？清空后可以撤销。</p><button type="button" data-action="confirm-clear">清空笔迹</button><button type="button" data-action="cancel-clear">取消</button></div>
     </div>
@@ -113,7 +109,6 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
   const toolButtons = [...toolbar.querySelectorAll('[data-tool]')];
   const settingsButton = select('[data-action="settings"]'), fullscreenButton = select('[data-action="fullscreen"]');
   const penButton = select('[data-tool="pen"]'), expandButton = select('.qf-whiteboard-expand');
-  const capturePreview=select('.qf-whiteboard-capture-preview'), captureImage=capturePreview.querySelector('img'),captureLink=capturePreview.querySelector('a');
   const query = selector => [...root.querySelectorAll(selector), ...(toolbarContainer ? toolbarContainer.querySelectorAll(selector) : [])];
   const listeners = [];
   const listen = (target, type, listener, options) => {
@@ -126,9 +121,8 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
   let readOnly = false, readOnlyCamera = null, writableTool = tool;
   let viewWidth = 1, viewHeight = 1, pixelRatio = 1, strokeSequence = 0;
   let gesture = null, cameraBefore = null, interaction = false, eraserCursor = null;
-  let selectedIds = [], clipboard = [], capturing = false, captureGeneration = 0;
+  let selectedIds = [], clipboard = [];
   let toolbarDrag = null, suppressClickUntil = 0, settle = null, dock = readDock(), cornerOpen = false, expandIcon = '', interactiveClip = '';
-  let captureUrl=null,captureBlob=null;
   let answerClearTarget=null;
   const pointers = new Map();
   let pendingImageTap=null;
@@ -259,7 +253,7 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
     paintInkStroke(context,stroke);
   }
   function paint() {
-    if (destroyed) return;
+    if (destroyed || !syncCanvasSize()) return;
     const camera = displayCamera(), scroll = scrollOffset();
     syncCamera();
     syncScroll();
@@ -280,7 +274,6 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
       let rect = gesture?.kind === 'box' ? rectangle(gesture.from,gesture.to) : tool === 'select-ink' ? selectionBounds() : null;
       if (rect && gesture?.kind === 'move-selection') rect = {...rect,x:rect.x+gesture.dx,y:rect.y+gesture.dy};
       if (rect) { context.strokeStyle='#8661ca'; context.fillStyle='#8661ca16'; context.lineWidth=1/draftCamera().zoom; context.setLineDash([5/draftCamera().zoom,4/draftCamera().zoom]); context.fillRect(rect.x,rect.y,rect.width,rect.height); context.strokeRect(rect.x,rect.y,rect.width,rect.height); context.setLineDash([]); }
-      if (gesture?.kind === 'capture') { const rect = rectangle(gesture.from,gesture.to); context.setTransform(pixelRatio,0,0,pixelRatio,0,0); context.strokeStyle='#8661ca'; context.fillStyle='#8661ca16'; context.setLineDash([5,4]); context.lineWidth=1; context.fillRect(rect.x,rect.y,rect.width,rect.height); context.strokeRect(rect.x,rect.y,rect.width,rect.height); context.setLineDash([]); }
     }
     if (mode === 'draft' && eraserCursor && tool === 'eraser') {
       context.strokeStyle = '#64748b';
@@ -295,14 +288,23 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
     paperElement.style.backgroundPosition = `${camera.x * camera.zoom - scroll.x}px ${camera.y * camera.zoom - scroll.y}px`;
     updateControls();
   }
-  function resize() {
-    syncScroll();
+  function syncCanvasSize() {
     const bounds = root.getBoundingClientRect();
-    viewWidth = Math.max(1, root.clientWidth || bounds.width);
-    viewHeight = Math.max(1, root.clientHeight || bounds.height);
+    const width = root.clientWidth || bounds.width, height = root.clientHeight || bounds.height;
+    // A hidden pane has no layout box. Keep its last valid bitmap rather than
+    // stretching a one-pixel dot/selection across the viewport when it reopens.
+    if (!(width > 0 && height > 0)) return false;
+    viewWidth = width;
+    viewHeight = height;
     pixelRatio = Math.min(3, win.devicePixelRatio || 1);
-    const width = Math.round(viewWidth * pixelRatio), height = Math.round(viewHeight * pixelRatio);
-    if (canvas.width !== width || canvas.height !== height) { canvas.width = width; canvas.height = height; }
+    const bitmapWidth = Math.round(viewWidth * pixelRatio), bitmapHeight = Math.round(viewHeight * pixelRatio);
+    if (canvas.width !== bitmapWidth || canvas.height !== bitmapHeight) { canvas.width = bitmapWidth; canvas.height = bitmapHeight; }
+    return true;
+  }
+  function resize() {
+    if (destroyed) return;
+    syncScroll();
+    syncCanvasSize();
     requestPaint();
     layoutToolbar();
   }
@@ -532,22 +534,6 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
     layoutToolbar();
     settleFrom(from);
   }
-  async function exportRegion(value) {
-    const x=Math.max(0,Math.min(viewWidth,value.x)),y=Math.max(0,Math.min(viewHeight,value.y));
-    const rect={x,y,width:Math.max(0,Math.min(viewWidth,value.x+value.width)-x),height:Math.max(0,Math.min(viewHeight,value.y+value.height)-y)};
-    if (rect.width<4||rect.height<4) { report('截图范围太小，请拖出一个矩形区域。');return; }
-    const generation=captureGeneration;capturing=true;report('正在生成区域截图…');
-    try {
-      const ink=doc.createElement('canvas');ink.width=canvas.width;ink.height=canvas.height;
-      paint();ink.getContext('2d').drawImage(canvas,0,0);
-      const result=onCapture ? await onCapture({rect,ink,draft:model.getDraft(),camera:draftCamera(),scroll:scrollOffset(),pixelRatio}) : null;
-      if (!result) throw new Error('当前页面暂不支持区域截图。');
-      if (destroyed||generation!==captureGeneration) return;
-      if(captureUrl)win.URL.revokeObjectURL(captureUrl);captureBlob=result;select('[data-action="copy-capture"]').disabled=false;select('.qf-whiteboard-capture-status').textContent='只截取选定区域，不包含工具栏';captureUrl=win.URL.createObjectURL(result);captureImage.src=captureUrl;captureLink.href=captureUrl;captureLink.download=`QuizForge-草稿-${Date.now()}.png`;capturePreview.showModal();
-      report('区域截图已生成，可预览并下载。');
-    } catch(error){if(!destroyed&&generation===captureGeneration)report(error.message||'截图失败，请重试。');}
-    finally{capturing=false;}
-  }
   function screenPoint(event) {
     syncScroll(); // Programmatic scrolling may precede its deferred scroll event.
     return canvasSpace(canvas,{width:viewWidth,height:viewHeight}).point({x:event.clientX,y:event.clientY});
@@ -610,7 +596,6 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
         else if (!readOnly && active?.kind === 'erase') changed = model.eraseAlong(active.points, active.radius);
         else if (!readOnly && active?.kind === 'box') { selectedIds = enclosedStrokes(model.strokes,rectangle(active.from,active.to)); if (!selectedIds.length) report('框内没有完整笔迹，请扩大选区。'); }
         else if (!readOnly && active?.kind === 'move-selection') changed = model.editStrokes(translateStrokes(model.strokes,selectedIds,active.dx,active.dy));
-        else if (active?.kind === 'capture') exportRegion(rectangle(active.from,active.to));
         const camera = draftCamera();
         changed ||= !!cameraBefore && (camera.x !== cameraBefore.x || camera.y !== cameraBefore.y || camera.zoom !== cameraBefore.zoom);
       } catch (error) { report(error.message); }
@@ -642,7 +627,7 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
     }
   }
   function pointerDown(event) {
-    if (mode !== 'draft' || capturing || !confirmation.hidden || (event.pointerType === 'mouse' && ![0, 1, 2].includes(event.button))) return;
+    if (mode !== 'draft' || !confirmation.hidden || (event.pointerType === 'mouse' && ![0, 1, 2].includes(event.button))) return;
     const screen = screenPoint(event);
     // Browsers that ignore clip-path hit testing still leave question controls alone.
     if (!event.qfAnswerPan && !gesture && insideInteractiveRegion(screen)) return;
@@ -664,7 +649,6 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
     if (gesture) return;
     const selectedTool = event.qfAnswerPan || event.pointerType === 'mouse' && event.button !== 0 ? 'hand' : tool;
     if(picture&&!readOnly&&['pen','eraser','hand'].includes(selectedTool)){gesture={kind:'image-tap',picture,pointerId:event.pointerId,pointerType:event.pointerType,screen,points:[inkPoint(event)],tool:selectedTool==='hand'||event.pointerType==='touch'&&penOnly.checked?'hand':selectedTool,color:inkColor.value,width:Number(widthInput.value),radius:eraserRadius()};}
-    else if (selectedTool === 'capture') { selectedIds=[]; gesture={kind:'capture',pointerId:event.pointerId,pointerType:event.pointerType,from:screen,to:screen}; }
     else if (selectedTool === 'select-ink' && !readOnly) {
       const point = inkPoint(event);
       if (containsPoint(selectionBounds(),point)) gesture={kind:'move-selection',pointerId:event.pointerId,pointerType:event.pointerType,from:point,dx:0,dy:0};
@@ -714,7 +698,6 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
       if(gesture.kind==='image-tap'){if(Math.hypot(pointer.screen.x-gesture.screen.x,pointer.screen.y-gesture.screen.y)>6){const tap=gesture;resumeImageGesture(tap);pointerMove(event);}else if(gesture.tool!=='hand')addSamples(event);return;}
       if (gesture.kind === 'pan') setDraftCamera(translateCamera(gesture.camera, pointer.screen.x - gesture.origin.x, pointer.screen.y - gesture.origin.y));
       else if (gesture.kind === 'box') gesture.to=inkPoint(event);
-      else if (gesture.kind === 'capture') gesture.to=pointer.screen;
       else if (gesture.kind === 'move-selection') { const point=inkPoint(event);gesture.dx=point.x-gesture.from.x;gesture.dy=point.y-gesture.from.y; }
       else addSamples(event);
     }
@@ -741,7 +724,7 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
     finishInteraction();
     tool = next;
     if (tool !== 'select-ink') selectedIds=[];
-    closeSettings();closePalette();report(tool==='capture'?'从一个角拖到对角，松开即可截取区域。':tool==='select-ink'?'拖出矩形框选完整笔迹；拖动选区可移动。':'');
+    closeSettings();closePalette();report(tool==='select-ink'?'拖出矩形框选完整笔迹；拖动选区可移动。':'');
     root.dataset.tool = tool;
     toolButtons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.tool === tool)));
     canvas.tabIndex = mode === 'draft' ? 0 : -1;
@@ -762,7 +745,7 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
     setTool(next);
   }
   function toolShortcut(event) {
-    const next = { v: 'hand', h: 'hand', p: 'pen', e: 'eraser', s:'select-ink',c:'capture' }[event.key.toLowerCase()];
+    const next = { v: 'hand', h: 'hand', p: 'pen', e: 'eraser', s:'select-ink' }[event.key.toLowerCase()];
     if (mode === 'draft' && confirmation.hidden && !event.ctrlKey && !event.metaKey && !event.altKey && next) {
       event.preventDefault();
       setTool(next);
@@ -862,15 +845,6 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
     setDock({ anchor: stepAnchor(dock.anchor, ...step) });
     if (focused?.hidden || !toolbar.contains(focused)) (expandButton.hidden ? toolbar.querySelector('button:not([hidden])') : expandButton)?.focus({ preventScroll: true });
   });
-  listen(select('[data-action="copy-capture"]'),'click',async event=>{
-    const blob=captureBlob;if(!blob||event.target.disabled)return;
-    const button=select('[data-action="copy-capture"]'),status=select('.qf-whiteboard-capture-status');button.disabled=true;
-    try{await copyCaptureImage(blob,win);if(captureBlob===blob)status.textContent='图片已复制，可直接粘贴。';}
-    catch(error){if(captureBlob===blob)status.textContent=error.message;}
-    finally{if(captureBlob===blob&&!destroyed)button.disabled=false;}
-  });
-  listen(select('[data-action="close-capture"]'),'click',()=>capturePreview.close());
-  listen(capturePreview,'close',()=>{captureBlob=null;if(captureUrl){win.URL.revokeObjectURL(captureUrl);captureUrl=null;}captureImage.removeAttribute('src');captureLink.removeAttribute('href');});
   listen(confirmation, 'click', event => {
     const button = event.target.closest('button');
     if (button && confirmation.contains(button)) perform(button.dataset.action);
@@ -954,8 +928,7 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
       // Validate first, so a malformed incoming draft cannot erase current ink.
       const next = new WhiteboardModel(draft).getDraft();
       cancelInteraction();
-      selectedIds=[];captureGeneration++;closePalette();
-      if(capturePreview.open)capturePreview.close();
+      selectedIds=[];closePalette();
       model.load(next);
       answerInk.reset();
       loadGeneration++;
@@ -1019,14 +992,15 @@ export function mountWhiteboard(container, { onChange = () => {}, onViewChange =
       toolbar.inert = false;
       closeSettings();
       eraserCursor = null;
-      requestPaint();
+      // Changing mode can reveal a CSS-hidden overlay without resizing its
+      // observed parent (notably on phones). Measure after changing classes.
+      resize();
     },
     flush() { finishInteraction(); return model.getDraft(); },
     destroy() {
       if (destroyed) return;
       cancelInteraction();
-      captureGeneration++;captureBlob=null;stopToolbarDrag();
-      if(captureUrl)win.URL.revokeObjectURL(captureUrl);
+      stopToolbarDrag();
       destroyed = true;
       observer?.disconnect();
       for (const cleanup of listeners) cleanup();

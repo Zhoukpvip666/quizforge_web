@@ -27,7 +27,7 @@ Windows 也可运行 `Start-QuizForge-Web.cmd`，自动安装依赖并打开浏�
 
 ## 模块职责
 
-答题区当前浏览器组件位于 `shared/answer-area/1.4.1/component.js`，模型沿用 `1.4.0/model.js`；`1.0.0/`、`1.1.0/`、`1.2.0/`、`1.3.0/`、`1.3.1/`、`1.3.2/`、`1.4.0/` 保留不覆盖，由 `host/extensions/answer-area-component.js` 冻结到声明了能力的页面。`web/draft/canvas-space.js` 统一网页矩形到画布局部坐标的换算，供输入、控件命中和裁剪共用；页面缩放／DPR 变化刷新显示。`web/draft/answer-ink.js` 将答题框范围与宿主草稿世界坐标同步，框内外共用唯一画布与撤销栈；`shared/ink/1.0.0/` 复用同一平滑笔刷。组件只维护普通输入框与截图范围；旧独立笔迹组件继续使用 `web/shared/answer-area-channel.js`。`host/practice/answer-areas.js` 校验答案，有笔迹时生成包含文字与笔迹的整区 PNG，统一笔迹以 2 倍逻辑分辨率绘制，混合绘制按需加载 `@napi-rs/canvas`；纯文字仍使用 text 评分块。编辑页通过原有题目 data 设置高度。AI 与历史沿用现有资源和评分流程。独立例子位于 `examples/handwritten-short-answer/`，接入与构建见 [答题区](../reference/ANSWER_AREAS.md)。
+答题区当前浏览器组件位于 `shared/answer-area/1.4.1/component.js`，模型沿用 `1.4.0/model.js`；`1.0.0/`、`1.1.0/`、`1.2.0/`、`1.3.0/`、`1.3.1/`、`1.3.2/`、`1.4.0/` 保留不覆盖，由 `host/extensions/answer-area-component.js` 冻结到声明了能力的页面。`web/draft/canvas-space.js` 统一网页矩形到画布局部坐标的换算，供输入、控件命中和裁剪共用；页面缩放／DPR 变化刷新显示。`whiteboard.js` 在模式切换后及绘制前校准实际尺寸，隐藏页面不把内部位图缩成一个像素；无需依赖全屏触发 resize。草稿手动截图入口及 `whiteboard-capture.js` 已移除，答题区的提交合成仍由服务端完成。`web/draft/answer-ink.js` 将答题框范围与宿主草稿世界坐标同步，框内外共用唯一画布与撤销栈；`shared/ink/1.0.0/` 复用同一平滑笔刷。组件只维护普通输入框与截图范围；旧独立笔迹组件继续使用 `web/shared/answer-area-channel.js`。`host/practice/answer-areas.js` 校验答案，有笔迹时生成包含文字与笔迹的整区 PNG，统一笔迹以 2 倍逻辑分辨率绘制，混合绘制按需加载 `@napi-rs/canvas`；纯文字仍使用 text 评分块。编辑页通过原有题目 data 设置高度。AI 与历史沿用现有资源和评分流程。独立例子位于 `examples/handwritten-short-answer/`，接入与构建见 [答题区](../reference/ANSWER_AREAS.md)。
 
 目录均相对于 `core/`，完整目录树见 [源码目录](../../README.md)。
 
@@ -60,6 +60,8 @@ Windows 也可运行 `Start-QuizForge-Web.cmd`，自动安装依赖并打开浏�
 作答先留在拓展页面内存。API 1.3 的 `reportAnswerState` 先反馈大纲，随后关联的 `QF.save` 原子保存答案与进度；保存成功才更新 revision 和已保存标记。提交、切题、汇总和交卷前通过 `onFlush` 排空待保存输入与上传，失败则保留输入及恢复入口。接口见 [大纲与作答状态](../reference/SUBQUESTION_OUTLINE.md)。
 
 状态写入采用临时文件、刷盘和原子替换，并检查 revision、内容版本及幂等 requestId。题目编辑通过可恢复事务同时更新题库与状态，只重置内容变化题目的当前作答；历史不变。`features.history:false` 时练习数据仅存在当前页面会话，题目编辑仍可持久保存。
+
+题目编辑会话由 `web/editor/editor-session.js` 只保留当前题的内存表单，`editor-navigation.js` 统一检查离开权限并显示当前题状态。有修改时阻止切题、切库、历史及目录操作，显式取消编辑才可确认放弃；无修改可正常离开。浏览器不再读写或恢复 editor-drafts，刷新丢弃未保存编辑；正式保存请求与普通作答仍保留离页保护。旧草稿存储和接口为兼容调用保留，不由此流程扫描或删除。
 
 ## 页面与规则边界
 
